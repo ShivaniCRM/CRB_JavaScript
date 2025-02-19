@@ -1,0 +1,94 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Opportunity = CRB.CRM.PJ.Opportunity || {};
+CRB.CRM.PJ.Opportunity = {
+    Attributes: {
+        Opportunity: {
+            Employeename: "crb_employeename",
+            Employeename1: "crb_name",
+            EmployeeEmail: "crb_emailaddress1",
+            Title: "crb_salutation",
+
+        },
+    },
+    TabName: {
+
+    },
+    onSaveOpportunity: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        this.setemployeename(executionContext);
+    },
+
+    onLoadOfOpportunity: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+
+    },
+
+    setemployeename: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var EmployeeName = formContext.getAttribute(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.Employeename).getValue()[0].name;
+        if (EmployeeName != null) {
+            formContext.getAttribute(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.Employeename1).setValue(EmployeeName);
+        }
+    },
+
+    onChangeEmpolyeeName: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var EmployeeName = formContext.getAttribute(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.Employeename).getValue();
+        if (EmployeeName != null) {
+            Xrm.WebApi.retrieveMultipleRecords("systemuser", "?$select=title,internalemailaddress&$filter=fullname eq '" + EmployeeName[0].name + "'")
+                .then(
+                    (results) => {
+                        var result = results.entities[0];
+                        formContext.getAttribute(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.EmployeeEmail).setValue(result.internalemailaddress);
+                        formContext.getAttribute(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.Title).setValue(result.title);
+                    }
+                )
+        }
+        else {
+            formContext.getAttribute(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.EmployeeEmail).setValue(null);
+            formContext.getAttribute(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.Title).setValue(null);
+        }
+    },
+
+    assocMemberOpportunity: function (primaryControl) {
+        var currentMemberId = primaryControl.data.entity.getId();
+        var opportunityId = CRB.CRM.PJ.Opportunity.getLookupValue(primaryControl, "crb_opportunity");
+        
+        var entityFormOptions = {};
+        entityFormOptions["entityName"] = "crb_opportunityteam";
+
+        var formParameters = {};
+        formParameters["crb_opportunity"] = opportunityId.id;
+
+        Xrm.Navigation.openForm(entityFormOptions, formParameters).then(
+            function (success) {
+                console.log("Form opened successfully");
+            },
+            function (error) {
+                console.log("Error opening form: " + error.message);
+            }
+        );
+    },
+
+    getLookupValue: function (primaryControl, lookupFieldName) {
+        var lookupField = primaryControl.getAttribute(lookupFieldName);
+
+        if (lookupField && lookupField.getValue()) {
+            var lookupValue = lookupField.getValue()[0];
+            var lookupId = lookupValue.id;
+            var lookupName = lookupValue.name;
+            var lookupEntityType = lookupValue.entityType;
+
+            console.log("Lookup ID: " + lookupId);
+            console.log("Lookup Name: " + lookupName);
+            console.log("Lookup Entity Type: " + lookupEntityType);
+
+            return lookupValue;
+        } else {
+            console.log("Lookup field is empty or not found.");
+            return null;
+        }
+    }
+}
