@@ -1,0 +1,33 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.HighRiskApproval = CRB.CRM.PJ.HighRiskApproval || {};
+CRB.CRM.PJ.HighRiskApproval = {
+        Attributes: {
+            ApproverName: "crb_approvername",
+            sentdate: "crb_sentdate",
+            response: "crb_response",
+            receivedDate: "crb_receiveddate",
+            comments: "crb_comments"
+        
+    },
+    onLoadOfHighRiskApproval: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		this.lockfields(executionContext);
+		    
+	},
+    onSaveOfHighRiskApproval: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		    
+	},
+    lockfields: function(executionContext){
+        var formContext = executionContext.getFormContext();
+        formContext.getControl(CRB.CRM.PJ.HighRiskApproval.Attributes.ApproverName).setDisabled(true);
+        formContext.getControl(CRB.CRM.PJ.HighRiskApproval.Attributes.sentdate).setDisabled(true);
+        formContext.getControl(CRB.CRM.PJ.HighRiskApproval.Attributes.response).setDisabled(true);
+        formContext.getControl(CRB.CRM.PJ.HighRiskApproval.Attributes.receivedDate).setDisabled(true);
+        formContext.getControl(CRB.CRM.PJ.HighRiskApproval.Attributes.comments).setDisabled(true);
+    }
+}
