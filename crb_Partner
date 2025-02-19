@@ -1,0 +1,1221 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Partner = CRB.CRM.PJ.Partner || {};
+CRB.CRM.PJ.Partner = {
+    Attributes: {
+        Partner: {
+            upid: "crb_upid",
+            leadSource: "crb_leadsourcecode",
+            legalEntityName: "name",
+            lineofBusiness: "crb_lineofbusiness",
+            contactfullname: "crb_fullname",
+            address1telephone1: "address1_telephone1",
+            doingbusinessasdba: "crb_dba",
+            businessEmailAddress: "emailaddress1",
+            websiteurl: "websiteurl",
+            referringPartner: "crb_referringpartner",
+            Industry: "crb_industry",
+            Description: "description",
+            Comment: "crb_comment",
+            numberofemployees: "crb_numofemployees",
+            numberoflocations: "crb_numoflocations",
+            NAICSCode: "crb_naicscode1",
+            describeGrowthStrategy: "crb_growthstrategy",
+            businessRegulated: "crb_businessregulated",
+            serverScenters: "crb_serverscenterslocatedinus",
+            SourceofFundorWealth: "crb_sourceoffundorwealth",
+            networkusebycompany: "crb_networkusebycompany",
+            Processorusebycompany: "crb_processors",
+            Companyclass: "crb_moneytrasmitter",
+            Companyinvolved: "crb_crypocurrencyrelatedactivities",
+            Companymemberofaregional: "crb_companymemberofaregionalpaymentassociation",
+            address1line1: "address1_line1",
+            address1line2: "address1_line2",
+            address1city: "address1_city",
+            country: "crb_country",
+            state: "crb_stateother",
+            zip: "address1_postalcode",
+            legalentityaddress: "crb_legalentityaddress",
+            primarycontactid: "primarycontactid",
+            isOpportunitycreated : "crb_isopportunitycreated",
+            comment_crrm:"crb_reasonforupdate",
+            commentHistory_crrm:"crb_changehistory",
+            crrmscore1:"crb_crrmscore",
+            screeningDate:"crb_crrmscreeningdate",
+            oldCRRMScore:"crb_oldcrrmscore",
+            childPartner:"crb_childpartner",
+            CyberExpirationDate: "crb_cyberexpirationdate",
+            EOExpirationDate: "crb_eoexpirationdate",
+            FidelityBondExpirationDate: "crb_fidelitybondexpirationdate",
+            EOStatus: "crb_eostatus",
+            FidelityBbondStatus: "crb_fidelitybondstatus",
+            InsuranceStatus: "crb_insurancestatus",
+            showSeparately: "crb_showseparately_dummydevpoc",
+            CreditModelAuditLastDone: "crb_creditmodelauditlastdone",
+            CreditModelAuditNextDue: "crb_creditmodelauditnextdue",
+            SubprimeDefinitionAnalysisLastDone: "crb_subprimedefinitionanalysislastdone",
+            SubprimeDefinitionAnalysisNextDue: "crb_subprimedefinitionanalysisnextdue",
+            ComplianceAuditLastDone: "crb_complianceauditlastdone",
+            ComplianceAuditNextDue: "crb_complianceauditnextdue",
+            BSAAMLAuditLastDone: "crb_bsaamlauditlastdone",
+            BSAAMLAuditNextDue: "crb_bsaamlauditnextdue",
+            PolicyAndProcedureAnnualLastDone: "crb_policyprocedureannuallastdone",
+            PolicyAndProcedureAnnualNextDue: "crb_policyprocedureannualnextdue",
+            OnsiteDueDiligenceLastDone: "crb_onsiteduediligencelastdone",
+            OnsiteDueDiligenceNextDue: "crb_onsiteduediligencenextdue",
+            LexisNexisLastDone: "crb_lexisnexislastdone",
+            LexisNexisNextDue: "crb_lexisnexisnextdue",
+            CRBITAuditDueDiligenceLastDone: "crb_crbitauditduediligencelastdone",
+            CRBITAuditDueDiligenceNextDue: "crb_crbitauditduediligencenextdue",
+            ITDataSecurityAuditLastDone: "crb_itdatasecurityauditlastdone",
+            ITDataSecurityAuditNextDue: "crb_itdatasecurityauditnextdue",
+            PrimaryServicer: "crb_primaryservicer",
+            PrimaryServicerContractOnFile: "crb_primaryservicercontractonfile",
+            PrimaryServicerExpirationDate: "crb_primaryservicerexpirationdate",
+            DoesCRBRetainLoansForPlatform: "crb_doescrbretainloansforplatform",
+            BackupServicer: "crb_backupservicer",
+            BackupServicerContractOnFile: "crb_backupservicercontractonfile",
+            BackupServicerExpirationDate: "crb_backupservicerexpirationdate",
+            EditExternalContacts: "crb_editexternalcontacts",
+            FinancialAnnualLastDone: "crb_financialannuallastdone",
+            FinancialQuaterlyLastDone: "crb_financialquarterlylastdone",
+            FinancialSemiAnnualLastDone: "crb_financialsemiannuallastdone",
+            FinancialAnnualNextDue: "crb_financialannualnextdue",
+            FinancialQuaterlyNextDue: "crb_financialquarterlynextdue",
+            FinancialSemiAnnualNextDue: "crb_financialsemiannualnextdue",
+            parentPartner: "parentaccountid",
+            subgridclone:"crb_subgridcloneoppnew",
+            BBBRipOffLastDone : "crb_bbbripofflastdone",
+            BBBRipOffNextDue: "crb_bbbripoffnextdue",
+            crrmscore: "crb_crrmscore",
+            Account18Id: "crb_account18id"
+        },
+        LOV: {
+
+            EOStatus: { //common optionset for the fileds EOStatus, FidelityBbondStatus, CyberStatus
+                None: 100000000,
+                Pending: 100000001,
+                Completed: 100000002,
+                PastDue: 100000003,
+            }
+        }
+    },
+    TabName: {
+        Partner: "Partner_TAB",
+        Reminder: "Reminder",
+        MeetingHub: "Meeting Hub",
+    },
+    Section: {
+        PartnerInformation: "Sec_Partner_Information",
+        LegalEntityAddress: "SUMMARY_Legal_Entity_Address",
+        InternalContacts: "Internal Contacts",
+        ExternalContacts: "External Contacts",
+        ProgramOversight: "Program Oversight",
+        FinancialReminders: "Financial Reminders",
+        MPLPrimaryServicerAndBackupServicerReport: "MPL Primary Servicer and Backup Servicer Report",
+        InsuranceCoverageSummary:"Insurance_Coverage_Summary",
+        Audits:"Audits",
+        RiskAssessmentSchedule:"Risk_Assessment_Schedule",
+        pastopportunities:"Past Opportunities",
+        PastOpportunitiesClosedWon:"Past Opportunities (Closed Won)",
+        BBBRipOffReport: "BBB RIP Off Report",
+       
+    },
+    Subgrid: {
+        childpartner: "Childpartner",
+        FinancialAndInsuranceReminders: "Financial_and_Insurance_Reminders",
+        FinancialReminders: "Financial_Reminders",
+        InsuranceReminders: "Insurance_Reminders",
+        InternalContacts: "Internal_Contacts",
+        pastOpportunitiesClosedLost: "PastOpportunitiesClosedLost",
+        PeriodicReviewCadence:"PeriodicReviewCadence",
+        PastOpportunitiesClosedWon: "PastOpportunitiesClosedWon",
+       
+    },
+    Others: {
+        SystemUsers: {
+            LogicalName: "systemuser",
+            EmailReference: "crb_emailreference",
+        }
+    },
+    onLoadOfTask: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        
+        this.dependentsOnRelationshipManagerRole(executionContext);
+        
+        this.enableDisableCrrmScore(executionContext);
+        this.showHideChildPartner(executionContext);
+        this.showHideChildPartnerSubgrid(executionContext);
+        this.updateStatusFieldsBasedOnExpirationDate(executionContext);
+        this.registerOnChangeEventForExpirationDates(executionContext);
+        this.registerOnChangeEvents(executionContext);
+        this.showHideFinancialAndInsuranceRemindersSubgrid(executionContext);
+        this.autopopulateDuedatesinAuditsSection(executionContext);
+        this.registerOnchangeEventforDueDatesInAudit(executionContext);
+        this.showHideCrrmHistory(executionContext);
+        this.redirectToChildPartnerForm(executionContext);
+        this.ShowAndHidePeriodicReviewGrid(executionContext);
+    },
+    onSaveTask: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.updateCommentHistory(executionContext);
+        this.showHideCrrmHistory(executionContext);
+    },
+    registerOnChangeEvents: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        //formContext.getAttribute(this.Attributes.Partner.showSeparately).addOnChange(this.onChangeOfShowSeperately);
+        formContext.getAttribute(this.Attributes.Partner.EditExternalContacts).addOnChange(this.onChangeOfEditExternalContacts);
+         formContext.getAttribute(this.Attributes.Partner.FinancialAnnualLastDone).addOnChange(this.onChangeOfFinancialAnnualLastDone);
+        formContext.getAttribute(this.Attributes.Partner.FinancialQuaterlyLastDone).addOnChange(this.onChangeOfFinancialQuaterlyLastDone);
+        formContext.getAttribute(this.Attributes.Partner.FinancialSemiAnnualLastDone).addOnChange(this.onChangeOfFinancialSemiAnnualLastDone);
+        formContext.getAttribute(this.Attributes.Partner.BBBRipOffLastDone).addOnChange(this.onChangeOfBBBRipOffLastDone);
+    },
+    validatePhoneNumber: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var fieldText = formContext.getAttribute(this.Attributes.Partner.address1telephone1).getValue();
+        if (fieldText === null) return;
+        if (!fieldText.match("^[0-9]*$")) {
+            formContext.getControl(this.Attributes.Partner.address1telephone1).setNotification("Please enter only Numbers", 102);
+            return false;
+        }
+        else {
+            formContext.getControl(this.Attributes.Partner.address1telephone1).clearNotification(102);
+            return true;
+        }
+    },    
+   // Create Opportunity
+    ExecuteCustomQualifyWorkflow: async function (primaryControl) {
+		"use strict";
+        var formContext = primaryControl;
+        var PartnerId = formContext.data.entity.getId().substring(1, 37);
+        var workflowID = "";
+        var originatingleadid = "";
+        var isndacompleted = true;
+        
+        
+        var account18Id = formContext.getAttribute(this.Attributes.Partner.Account18Id).getValue();
+        if(account18Id){
+            var alertStrings = { confirmButtonLabel: "Ok", text: "This is a Migrated Partner. To create new Opportunity, please use 'Current Opportunities' or 'Opportunities - Digital Banking, SBA Lending, PFG' Subgrid on 'Sales' Tab", title: "Information" };
+            var alertOptions = { height: 250, width: 200 };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+            return;
+        }
+        
+        var isopportunitycreated = formContext.getAttribute(this.Attributes.Partner.isOpportunitycreated).getValue();
+        await Xrm.WebApi.retrieveRecord("account", PartnerId, "?$select=accountid&$expand=crb_account_crb_nda($select=crb_substatus)").then(
+            function success(result) {
+                console.log(result);
+                var accountid = result["accountid"]; 
+                for (var j = 0; j < result.crb_account_crb_nda.length; j++) {
+                    var ndasubstatus = result.crb_account_crb_nda[j]["crb_substatus"]; 
+                    var crb_account_crb_nda_crb_substatus_formatted = result.crb_account_crb_nda[j]["crb_substatus@OData.Community.Display.V1.FormattedValue"];
+                    if(ndasubstatus!== 3){
+                      isndacompleted = false;
+                    }
+                }
+            },
+            function(error) {
+                console.log(error.message);
+            }
+        );
+        if(!isndacompleted){
+          var alertStrings = { confirmButtonLabel: "Ok", text: "Please complete NDA to qualify the partner record to opportunity", title: "NDA" };
+            var alertOptions = { height: 70, width: 160 };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                function (success) {
+                },
+                function (error) {
+                }
+            );
+            return;
+        }
+        /*
+        var businessEmailAddress= formContext.getAttribute(this.Attributes.Partner.businessEmailAddress);
+        var flag = 1;
+        if(businessEmailAddress.getValue() ===  null){
+            flag =0;
+        }
+        if(flag === 0){
+        
+            var alertStrings = { confirmButtonLabel: "Ok", text: "Please fill the Business Email Address field to Qualify.", title: "Failed" };
+            var alertOptions = { height: 70, width: 160 };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                function (success) {
+                },
+                function (error) {
+                }
+            );
+            return;
+        }
+        */
+        if(isopportunitycreated === true){
+            var alertStrings = { confirmButtonLabel: "Ok", text: "Please use '+ New Opportunity' button to create more Opportunities", title: "Information" };
+            var alertOptions = { height: 120, width: 120 };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                function (success) {
+                },
+                function (error) {
+                }
+            );
+            return;
+        }
+        await Xrm.WebApi.retrieveRecord("account", PartnerId, "?$select=_originatingleadid_value").then(
+            function success(result) {
+                //console.log(result);
+                // Columns
+                var accountid = result["accountid"]; // Guid
+                originatingleadid = result["_originatingleadid_value"]; // Lookup
+
+           },
+            function (error) {
+            }
+        );
+        Xrm.Utility.showProgressIndicator("Converting to Opportunity");
+        var query = "?$select=name,workflowid,_parentworkflowid_value&$filter=( name eq 'CRB-Lead-CustomQualify' and _parentworkflowid_value eq null and category eq 0)"
+        await Xrm.WebApi.retrieveMultipleRecords("workflow", query).then(
+            function success(result) {
+               if (result !== null && result.entities.length > 0) {
+                    workflowID = result.entities[0]["workflowid"];
+                }
+            },
+            function (error) {
+            });
+        var executeWorkflowRequest = {
+            entity: { entityType: "workflow", id: workflowID },
+            EntityId: { guid: originatingleadid },
+
+            getMetadata: function () {
+                return {
+                    boundParameter: "entity",
+                     parameterTypes: {
+                        entity: { typeName: "mscrm.workflow", structuralProperty: 5 },
+                        EntityId: { typeName: "Edm.Guid", structuralProperty: 1 }
+                    },
+                    operationType: 0, operationName: "ExecuteWorkflow"
+                };
+            }
+        };
+        await Xrm.WebApi.execute(executeWorkflowRequest).then(
+            function success(response) {              
+                if (response.ok) {}
+            }
+        ).then(function (responseBody) {
+            formContext.getAttribute(CRB.CRM.PJ.Partner.Attributes.Partner.isOpportunitycreated).setValue(true);
+            formContext.data.save();
+            Xrm.Utility.closeProgressIndicator("Converting to Opportunity");
+            CRB.CRM.PJ.Partner.RedirectToOpportunity(originatingleadid);
+            var result = responseBody;
+        }).catch(function (error) {
+             let alertStrings = { confirmButtonLabel: 'Ok', text: 'Unexpected Error' };
+            let alertOptions = { height: 120, width: 260 };
+            if(error.message.toLowerCase() === "the lead is already closed."){
+                alertStrings = { confirmButtonLabel: 'Ok', text: 'The lead is already closed' };
+            }
+            
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+             Xrm.Utility.closeProgressIndicator();
+        });
+    },
+    RedirectToOpportunity: async function(leadId){
+		"use strict";
+        var qualifyingopportunityid = "";
+        await Xrm.WebApi.retrieveRecord("lead", leadId, "?$select=_parentaccountid_value,_qualifyingopportunityid_value").then(
+        function success(result) {
+            // Columns
+            var leadid = result["leadid"]; // Guid
+           // var parentaccountid = result["_parentaccountid_value"]; // Lookup
+           // var parentaccountid_formatted = result["_parentaccountid_value@OData.Community.Display.V1.FormattedValue"];
+          //  var parentaccountid_lookuplogicalname = result["_parentaccountid_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+            qualifyingopportunityid = result["_qualifyingopportunityid_value"]; // Lookup
+            Xrm.Navigation.openForm({ entityName: "opportunity", entityId: result["_qualifyingopportunityid_value"] });
+        },
+        function(error) {
+            
+        }
+        );
+    },
+    ValidateNNAICSCode: function (executionContext) {
+        "use strict";
+		var formContext = executionContext.getFormContext();
+		var fieldText = formContext.getAttribute(this.Attributes.Partner.NAICSCode).getValue();
+		if (fieldText === null) return;
+		if (!fieldText.match("^[0-9]*$")) {
+			formContext.getControl(this.Attributes.Partner.NAICSCode).setNotification("Please enter only Numbers", 102);
+			return false;
+		}
+		else if (fieldText.length < 4) {
+			formContext.getControl(this.Attributes.Partner.NAICSCode).setNotification("should be between 4 to 6 digits", 102);
+			return false;
+		}
+		else {
+			formContext.getControl(this.Attributes.Partner.NAICSCode).clearNotification(102);
+			return true;
+		}
+	},
+    HideExistingContactButton: function (primaryControl,selectedControl) {
+   
+    var formContext = primaryControl;
+    var subgridname = selectedControl.getName();   
+    var formName = Xrm.Page.ui.formSelector.getCurrentItem().getLabel();
+ 
+    if(subgridname == "Financial_Reminders" && formName == "Partner 360 view" || subgridname == "Insurance_Reminders" && formName == "Partner 360 view"){
+        return false;
+    }
+    else{
+    return true;
+    }
+       
+},
+    updateIntakeIdd : function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var IntakeIdd = formContext.getAttribute("crb_updateintakeandidd").getValue();
+		if(IntakeIdd === true)
+		{
+		var alertStrings = { confirmButtonLabel: "Okay", text: "By switching this toggle to “Yes” you will be automatically updating any matching fields on the Intake Flow and Initial Due Diligence Flow.", title: "Intake and Initial Due Diligence Update Alert"};
+		var alertOptions = { height: 350, width: 560 };
+		Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+		function (success) {
+			//console.log("Alert dialog closed");
+			},
+		function (error) {
+			//console.log(error.message);
+			}
+		);
+		}
+	 },
+     HideExistingContactButton: function (primaryControl,selectedControl) {
+    //var formContext = executionContext.getFormContext();
+    var formContext = primaryControl;
+    var subgridname = selectedControl.getName();
+    //var MeetingHub = formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.MeetingHub).getDisplayState();
+    var formName = Xrm.Page.ui.formSelector.getCurrentItem().getLabel();
+ 
+    if(subgridname == "Financial_and_Insurance_Reminders" && formName == "Partner 360 view" || subgridname == "Financial_Reminders" && formName == "Partner 360 view" || subgridname == "Insurance_Reminders" && formName == "Partner 360 view"){
+        return false;
+    }
+    else{
+    return true;
+    }
+       
+},
+     updateCommentHistory: function (executionContext) {
+       var formContext = executionContext.getFormContext();
+       var username = Xrm.Utility.getGlobalContext().userSettings.userName;
+       var dateTime = new Date().toString().split(" ");
+       var date = dateTime[1] + "-" + dateTime[2] + "-" + dateTime[3];
+       var time = dateTime[4];       
+       if (formContext.getAttribute(this.Attributes.Partner.comment_crrm).getValue() !== null && formContext.getAttribute(this.Attributes.Partner.comment_crrm).getValue() !== "") {
+           var comment = formContext.getAttribute(this.Attributes.Partner.comment_crrm).getValue();
+           var crrm_score_Label = formContext.getAttribute(this.Attributes.Partner.crrmscore1).getText();
+           var old_crrm_score= formContext.getAttribute(this.Attributes.Partner.oldCRRMScore);
+           if(old_crrm_score != null){
+                var old_crrm_score_label = formContext.getAttribute(this.Attributes.Partner.oldCRRMScore).getText();
+           }
+           var commentHistory = formContext.getAttribute(this.Attributes.Partner.commentHistory_crrm).getValue()
+
+           if (commentHistory === null || commentHistory === "")
+               //commentHistory = "-" + username + ": " + comment + "\t'" + crrm_score_Label + "' \t" + date + " " + time;
+               commentHistory = "Updated by:" + " " + username + "\n" + "Reason of Update:" + " " + comment + "\n" + "Change of Score:" + " " + old_crrm_score_label + " " + "->" + " " + " " + crrm_score_Label + "\n" + "Date:" + " " + date + " " + time;
+           else
+               //commentHistory = "-" + username + ": " + comment + "\t'" + crrm_score_Label + "' \t" + date + " " + time + '\n' + commentHistory;
+               commentHistory = "Updated by:" + " " + username + "\n" + "Reason of Update:" + " " + comment + "\n" + "Change of Score:" + " " + old_crrm_score_label + " " + "->" + " " + crrm_score_Label + "\n" + "Date:" + " " + date + " " + time + '\n' + "------------------------------------------" + '\n' + commentHistory;
+           formContext.getAttribute(this.Attributes.Partner.commentHistory_crrm).setValue(commentHistory);           
+       }
+      
+       this.hideAllCommentsFields(executionContext);
+    },
+    hideAllCommentsFields: function (executionContext) {
+       var formContext = executionContext.getFormContext();
+
+       formContext.getAttribute(this.Attributes.Partner.comment_crrm).setValue("");
+       formContext.getControl(this.Attributes.Partner.comment_crrm).setVisible(false);
+       formContext.getAttribute(this.Attributes.Partner.comment_crrm).setRequiredLevel("none");        
+    },
+    onChangeOfCrrmScore: function (executionContext) {
+      var formContext = executionContext.getFormContext();      
+      var date = new Date();
+      formContext.getAttribute(this.Attributes.Partner.screeningDate).setValue(date);
+      if(formContext.getAttribute(this.Attributes.Partner.oldCRRMScore).getValue() !== null){          
+          formContext.getControl(this.Attributes.Partner.comment_crrm).setVisible(true);
+          formContext.getAttribute(this.Attributes.Partner.comment_crrm).setValue("");
+          formContext.getAttribute(this.Attributes.Partner.comment_crrm).setRequiredLevel("required");
+      }
+             	
+    },
+    showHideCrrmHistory: function (executionContext) {
+      var formContext = executionContext.getFormContext();      
+      var changeHistory = formContext.getAttribute(this.Attributes.Partner.commentHistory_crrm).getValue();
+      if(changeHistory === null){          
+          formContext.getControl(this.Attributes.Partner.commentHistory_crrm).setVisible(false);
+          //formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.PeriodicReviewCadence).setVisible(false);          
+      }
+      else{
+          formContext.getControl(this.Attributes.Partner.commentHistory_crrm).setVisible(true);
+          //formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.PeriodicReviewCadence).setVisible(true);
+      }
+             	
+    },
+    enableDisableCrrmScore: async function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var userSettings = Xrm.Utility.getGlobalContext().userSettings;
+        var currentuserid = userSettings.userId.replace("{", "").replace("}", "").toLowerCase();
+        var PartnerId = formContext.data.entity.getId().substring(1, 37);
+        await Xrm.WebApi.retrieveMultipleRecords("crb_accountteam", "?$select=_crb_usersname_value,crb_role&$filter=_crb_account_value eq " + PartnerId ).then(
+            function success(results) {
+                console.log(results);
+                if(results.entities.length > 0){
+                    for (var i = 0; i < results.entities.length; i++) {
+                        var result = results.entities[i];
+                        // Columns			       
+                        var usersname = result["_crb_usersname_value"]; // Lookup			        
+                        var role = result["crb_role"]; // Choices
+                        if(usersname == currentuserid && role.includes('100000004')){
+                            formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.crrmscore1).setDisabled(false);
+                            break;
+                        }
+                        else{
+                            formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.crrmscore1).setDisabled(true);
+                        }
+                    }
+                }
+                else{
+                    formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.crrmscore1).setDisabled(true);
+                }
+            },
+            function(error) {
+                console.log(error.message);
+            }
+        );
+    },
+   showHideChildPartner: async function(executionContext) {
+         var formContext = executionContext.getFormContext();
+         var userSettings = Xrm.Utility.getGlobalContext().userSettings;
+         var currentuserid = userSettings.userId.replace("{", "").replace("}", "").toLowerCase();
+         var PartnerId = formContext.data.entity.getId().substring(1, 37);
+         var childpartnervalue = formContext.getAttribute(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).getValue();
+         var flag = false;
+         var productValues = null;
+         await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 62").then((result) => {
+             var value = result.entities[0]["crb_value"];
+             productValues = value.split(",");
+         })
+         await Xrm.WebApi.retrieveMultipleRecords("crb_accountteam", "?$select=_crb_usersname_value,crb_role&$filter=_crb_account_value eq " + PartnerId).then(
+             function success(results) {
+                 console.log(results);
+                 if (results.entities.length > 0) {
+                     for (var i = 0; i < results.entities.length; i++) {
+                         var result = results.entities[i];
+                         // Columns			       
+                         var usersname = result["_crb_usersname_value"]; // Lookup			        
+                         var role = result["crb_role"]; // Choices
+                         if (usersname == currentuserid && role && role.includes('100000004')) {
+                             var flag = true;
+                             Xrm.WebApi.retrieveMultipleRecords("opportunity", "?$expand=crb_Opportunity_Opportunity_crb_product($select=_crb_productname_value)&$filter=_parentaccountid_value eq " + PartnerId).then(
+                                 function success(results){
+                                     console.log(results);                                    
+                                     if(results.entities.length > 0){
+                                         outerLoop: for (var i = 0; i < results.entities.length; i++) {
+                                             var result = results.entities[i];
+                                             // Columns
+                                             var opportunityid = result["opportunityid"]; // Guid
+
+                                             // One To Many Relationships
+                                             for (var j = 0; j < result.crb_Opportunity_Opportunity_crb_product.length; j++) {
+                                                 var productName = result.crb_Opportunity_Opportunity_crb_product[j]["_crb_productname_value@OData.Community.Display.V1.FormattedValue"];
+                                                 if (productValues.includes(productName) && flag === true) {
+                                                     //formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(true);
+                                                     formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).setVisible(true);
+                                                     flage = true;
+                                                     //formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).setVisible(true);
+                                                     if (childpartnervalue) {
+                                                         formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(true);												
+                                                     }
+                                                     break outerLoop;
+                                                     //return;
+                                                 } else {
+                                                     formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).setVisible(false);
+                                                     formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+                                                 }
+                                             }
+                                         }
+                                     }else{
+                                         formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).setVisible(false);
+                                         formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+                                     }
+                                 },
+                                 function(error) {
+                                     console.log(error.message);
+                                 }
+                             );
+                         } else {
+                             //formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+                             formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).setVisible(false);
+                             formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+                         }
+                     }
+                 }else {
+                             formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+                             formContext.getControl(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).setVisible(false);
+                 }
+             }
+         );
+    },
+    showHideChildPartnerSubgrid: async function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var userSettings = Xrm.Utility.getGlobalContext().userSettings;
+        var currentuserid = userSettings.userId.replace("{", "").replace("}", "").toLowerCase();
+        var PartnerId = formContext.data.entity.getId().substring(1, 37);
+        var childpartnervalue = formContext.getAttribute(CRB.CRM.PJ.Partner.Attributes.Partner.childPartner).getValue();
+        if(childpartnervalue){
+            await Xrm.WebApi.retrieveMultipleRecords("crb_accountteam", "?$select=_crb_usersname_value,crb_role&$filter=_crb_account_value eq " + PartnerId ).then(
+                function success(results) {
+                    console.log(results);
+                    if(results.entities.length > 0){
+                        for (var i = 0; i < results.entities.length; i++) {
+                            var result = results.entities[i];
+                            // Columns			       
+                            var usersname = result["_crb_usersname_value"]; // Lookup			        
+                            var role = result["crb_role"]; // Choices
+                            if(usersname == currentuserid && role.includes('100000004') && childpartnervalue){
+                                formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(true);
+                                break;
+                            }
+                            else{
+                                formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+                            }
+                        }
+                    }
+                    else{
+                        formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+                    }
+                },
+                function(error) {
+                    console.log(error.message);
+                }
+            );
+        }
+        else{
+           formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.childpartner).setVisible(false);
+        }
+    },
+    
+    updateStatusFieldsBasedOnExpirationDate: function (executionContext) {
+        "use strict";
+        const formContext = executionContext.getFormContext();
+        const attributes = this.Attributes.Partner;
+        const statusValues = this.Attributes.LOV.EOStatus;
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+
+        const expirationDates = [
+            { date: formContext.getAttribute(attributes.EOExpirationDate).getValue(), statusField: attributes.EOStatus },
+            { date: formContext.getAttribute(attributes.FidelityBondExpirationDate).getValue(), statusField: attributes.FidelityBbondStatus },
+            { date: formContext.getAttribute(attributes.CyberExpirationDate).getValue(), statusField: attributes.InsuranceStatus }
+        ];
+
+        expirationDates.forEach(item => {
+            if (item.date !== null) {
+                const expirationDate = new Date(item.date);
+                expirationDate.setHours(0, 0, 0, 0);
+
+                if (expirationDate < currentDate) {
+                    formContext.getAttribute(item.statusField).setValue(statusValues.PastDue);
+                }
+                else if (expirationDate > currentDate) {
+                    formContext.getAttribute(item.statusField).setValue(statusValues.Completed);
+                }
+                else {
+                    formContext.getAttribute(item.statusField).setValue(statusValues.Pending);
+                }
+            }
+            else {
+                formContext.getAttribute(item.statusField).setValue(statusValues.None);
+            }
+        });
+    },
+    
+    registerOnChangeEventForExpirationDates: function (executionContext) {
+        "use strict";
+        const formContext = executionContext.getFormContext();
+        const attributes = this.Attributes.Partner;
+        const expirationDates = [
+            attributes.EOExpirationDate,
+            attributes.FidelityBondExpirationDate,
+            attributes.CyberExpirationDate
+        ];
+
+        expirationDates.forEach(field => {
+            formContext.getAttribute(field).addOnChange(executionContext => {
+                this.updateStatusFieldsBasedOnExpirationDate(executionContext);
+            });
+        });
+    },
+    onChangeOfEditExternalContacts: function (executionContext) {
+        var partnerObject = CRB.CRM.PJ.Partner;
+        partnerObject.showHideFinancialAndInsuranceRemindersSubgrid(executionContext);
+    },
+    showHideFinancialAndInsuranceRemindersSubgrid: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var partnerObject = CRB.CRM.PJ.Partner;
+        var editExternalContacts = formContext.getAttribute(partnerObject.Attributes.Partner.EditExternalContacts).getValue();
+        
+        formContext.getControl(partnerObject.Subgrid.FinancialAndInsuranceReminders).setVisible(editExternalContacts);
+        
+    },
+    
+    autopopulateDuedatesinAuditsSection: function (executionContext) {
+        "use strict";
+        const formContext = executionContext.getFormContext();
+        const attributes = this.Attributes.Partner;
+
+        const updateDueDate = (lastDoneDate, nextDueAttribute) => {
+            if (lastDoneDate !== null) {
+                const dueDate = new Date(lastDoneDate);
+                dueDate.setDate(dueDate.getDate() + 365);
+                formContext.getAttribute(nextDueAttribute).setValue(dueDate);
+            } else {
+                formContext.getAttribute(nextDueAttribute).setValue(null);
+            }
+            formContext.getControl(nextDueAttribute).setDisabled(true);
+        };
+
+        const creditModelAuditLastDone = formContext.getAttribute(attributes.CreditModelAuditLastDone).getValue();
+        const subprimeDefinitionAnalysisLastDone = formContext.getAttribute(attributes.SubprimeDefinitionAnalysisLastDone).getValue();
+        const complianceAuditLastDone = formContext.getAttribute(attributes.ComplianceAuditLastDone).getValue();
+        const bsaAmlAuditLastDone = formContext.getAttribute(attributes.BSAAMLAuditLastDone).getValue();
+        const policyAndProcedureAnnualLastDone = formContext.getAttribute(attributes.PolicyAndProcedureAnnualLastDone).getValue();
+        const onsiteDueDiligenceLastDone = formContext.getAttribute(attributes.OnsiteDueDiligenceLastDone).getValue();
+        const lexisNexisLastDone = formContext.getAttribute(attributes.LexisNexisLastDone).getValue();
+        const crbItAuditDueDiligenceLastDone = formContext.getAttribute(attributes.CRBITAuditDueDiligenceLastDone).getValue();
+        const itDataSecurityAuditLastDone = formContext.getAttribute(attributes.ITDataSecurityAuditLastDone).getValue();
+
+        updateDueDate(creditModelAuditLastDone, attributes.CreditModelAuditNextDue);
+        updateDueDate(subprimeDefinitionAnalysisLastDone, attributes.SubprimeDefinitionAnalysisNextDue);
+        updateDueDate(complianceAuditLastDone, attributes.ComplianceAuditNextDue);
+        updateDueDate(bsaAmlAuditLastDone, attributes.BSAAMLAuditNextDue);
+        updateDueDate(policyAndProcedureAnnualLastDone, attributes.PolicyAndProcedureAnnualNextDue);
+        updateDueDate(onsiteDueDiligenceLastDone, attributes.OnsiteDueDiligenceNextDue);
+        updateDueDate(lexisNexisLastDone, attributes.LexisNexisNextDue);
+        updateDueDate(crbItAuditDueDiligenceLastDone, attributes.CRBITAuditDueDiligenceNextDue);
+        updateDueDate(itDataSecurityAuditLastDone, attributes.ITDataSecurityAuditNextDue);
+    },
+    
+    registerOnchangeEventforDueDatesInAudit: function (executionContext) {
+        "use strict";
+        const formContext = executionContext.getFormContext();
+        const attributes = this.Attributes.Partner;
+
+        const dueDates = [
+            attributes.CreditModelAuditLastDone,
+            attributes.SubprimeDefinitionAnalysisLastDone,
+            attributes.ComplianceAuditLastDone,
+            attributes.BSAAMLAuditLastDone,
+            attributes.PolicyAndProcedureAnnualLastDone,
+            attributes.OnsiteDueDiligenceLastDone,
+            attributes.LexisNexisLastDone,
+            attributes.CRBITAuditDueDiligenceLastDone,
+            attributes.ITDataSecurityAuditLastDone
+        ];
+
+        dueDates.forEach(field => {
+            formContext.getAttribute(field).addOnChange(executionContext => {
+                this.autopopulateDuedatesinAuditsSection(executionContext);
+            });
+        });
+    },
+    isLoggedInUserRelationshipManager: async function (executionContext) {
+        let formContext = executionContext.getFormContext();
+        var userSettings = Xrm.Utility.getGlobalContext().userSettings;
+        var currentuserid = userSettings.userId.replace("{", "").replace("}", "").toLowerCase();
+        var PartnerId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        let accountTeamInfo = {
+            logicalName : "crb_accountteam",
+            fields : {
+                usersnameValue: "_crb_usersname_value",
+                role: "crb_role",
+                accountValue : "_crb_account_value"
+            },
+            optionSets : {
+                role : {
+                    RelationshipManager : "100000004",
+                }
+            }
+        }
+        let accountTeamQuery = `?$select=${accountTeamInfo.fields.accountValue},${accountTeamInfo.fields.role},${accountTeamInfo.fields.usersnameValue}&$filter=${accountTeamInfo.fields.accountValue} eq ${PartnerId}` ;
+        let isLoggedInUserRelationshipManger = false;
+        await Xrm.WebApi.retrieveMultipleRecords(accountTeamInfo.logicalName,accountTeamQuery).then(
+            function success(results) {
+                console.log(results);
+                if(results.entities.length > 0){
+                    for (var i = 0; i < results.entities.length; i++) {
+                        var result = results.entities[i];
+                        // Columns			       
+                        var usersId = result[accountTeamInfo.fields.usersnameValue]; // Lookup			        
+                        var role = result[accountTeamInfo.fields.role]; // Choices
+                        var userIdMatch = (usersId === currentuserid);
+                        var roleMatch = (role) && (role.includes(accountTeamInfo.optionSets.role.RelationshipManager));
+                        if(userIdMatch && roleMatch){
+                           isLoggedInUserRelationshipManger = true;
+                           break;
+                        }
+                        else{
+                            // Logged in user record found but doesnot have relationship manager role
+                        }
+                    }
+                }
+                else{
+                    //No Record for the logged in user found in Account Team
+                }
+            },
+            function(error) {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to fetch related Account Team Records' };
+                let alertOptions = { height: 120, width: 260 };
+                
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+            }
+        );
+
+        return isLoggedInUserRelationshipManger;
+    },
+    dependentsOnRelationshipManagerRole : async function (executionContext) {
+        let formContext = executionContext.getFormContext();
+        let isLoggedInUserRelationshipManager = await this.isLoggedInUserRelationshipManager(executionContext);
+        this.dependentsOnRelationshipManagerRoleAndInternalUser(executionContext,isLoggedInUserRelationshipManager);
+        
+        // this.showHideMPLPrimaryServicerAndBackupServicerSection(executionContext,isLoggedInUserRelationshipManger);
+        // this.showHideExternalContactsSection(executionContext, isLoggedInUserRelationshipManger);
+        // this.showHideInternalContactsSection(executionContext, isLoggedInUserRelationshipManger);
+        // this.showHideProgramOversightSection(executionContext, isLoggedInUserRelationshipManger);
+        // this.showHideFinancialRemindersSection(executionContext, isLoggedInUserRelationshipManger);
+        // this.showHideInsuranceCoverageSummarySection(executionContext, isLoggedInUserRelationshipManger);
+        // this.showHideAuditsSection(executionContext, isLoggedInUserRelationshipManger);
+        // this.showHideRiskAssessmentScheduleSection(executionContext, isLoggedInUserRelationshipManger);
+        // this.showHideBBBRipOffReportSection(executionContext, isLoggedInUserRelationshipManger);
+        
+    },
+    showHideMPLPrimaryServicerAndBackupServicerSection: function (executionContext,isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.MPLPrimaryServicerAndBackupServicerReport).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideExternalContactsSection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.ExternalContacts).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideInternalContactsSection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.InternalContacts).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideProgramOversightSection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.ProgramOversight).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideFinancialRemindersSection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.FinancialReminders).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideInsuranceCoverageSummarySection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.InsuranceCoverageSummary).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideAuditsSection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.Audits).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideBBBRipOffReportSection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.BBBRipOffReport).setVisible(isLoggedInUserRelationshipManager);
+    },
+    showHideRiskAssessmentScheduleSection: function (executionContext, isLoggedInUserRelationshipManager) {
+        let formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.Reminder).sections.get(this.Section.RiskAssessmentSchedule).setVisible(isLoggedInUserRelationshipManager);
+    },
+    onChangeOfFinancialAnnualLastDone: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var partnerObject = CRB.CRM.PJ.Partner;
+        partnerObject.autoPopulateWithXDaysAdded(executionContext,partnerObject.Attributes.Partner.FinancialAnnualLastDone , partnerObject.Attributes.Partner.FinancialAnnualNextDue, 365);
+    },
+    onChangeOfFinancialQuaterlyLastDone: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var partnerObject = CRB.CRM.PJ.Partner;
+        partnerObject.autoPopulateWithXDaysAdded(executionContext,partnerObject.Attributes.Partner.FinancialQuaterlyLastDone , partnerObject.Attributes.Partner.FinancialQuaterlyNextDue, 90);
+    },
+    onChangeOfFinancialSemiAnnualLastDone: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var partnerObject = CRB.CRM.PJ.Partner;
+        partnerObject.autoPopulateWithXDaysAdded(executionContext,partnerObject.Attributes.Partner.FinancialSemiAnnualLastDone , partnerObject.Attributes.Partner.FinancialSemiAnnualNextDue, 180);
+    },
+    onChangeOfBBBRipOffLastDone: function (executionContext){
+        var formContext = executionContext.getFormContext();
+        var partnerObject = CRB.CRM.PJ.Partner;
+        partnerObject.autoPopulateWithXDaysAdded(executionContext, partnerObject.Attributes.Partner.BBBRipOffLastDone, partnerObject.Attributes.Partner.BBBRipOffNextDue, 365);
+    },
+    autoPopulateWithXDaysAdded: function(executionContext,fieldToBeRefered,fieldToBeUpdated,X){
+        var formContext = executionContext.getFormContext();
+        var lastDoneDate = formContext.getAttribute(fieldToBeRefered).getValue();
+        if (lastDoneDate !== null) {
+            const dueDate = new Date(lastDoneDate);
+            dueDate.setDate(dueDate.getDate() + X);
+            formContext.getAttribute(fieldToBeUpdated).setValue(dueDate);
+        }
+        else {
+            formContext.getAttribute(fieldToBeUpdated).setValue(null);
+        }
+    },
+    /*handleExternalContactsSubGridSave: function (executionContext) {
+        let formContext = executionContext.getFormContext();
+        let partnerObject = CRB.CRM.PJ.Partner;
+        formContext.getControl(partnerObject.Subgrid.FinancialReminders).refresh();
+        formContext.getControl(partnerObject.Subgrid.InsuranceReminders).refresh();
+    }*/
+    hidenewbuttonfromPastOpportunitiesClosedLostDecliend: function (primaryControl,selectedControl){
+    var formContext= primaryControl;
+   var subGridName = selectedControl.getName();
+    var sectionNameAndSubgridName = this.getSubgridInfo(formContext, subGridName);
+    var sectionName = sectionNameAndSubgridName.sectionName;
+      if(sectionName== "Past Opportunities" || sectionName=="Past Opportunities (Closed Won)"){
+            return false;
+      }
+      else{
+      return true;
+    }
+    },
+	
+
+     getSubgridInfo: function (formContext, subgridName) {
+        var gridControl = formContext.getControl(subgridName);
+        if (gridControl) {
+            var subgridName = gridControl.getName();
+            var parentSection = gridControl.getParent();
+            if (parentSection) {
+                var sectionName = parentSection.getName();
+                return { subgridName: subgridName, sectionName: sectionName };
+            } else {
+
+                return null;
+            }
+        } else {
+
+            return null;
+        }
+    },
+    openChildPartnerQuickCreateForm: async function (primaryControl){
+        var formContext = primaryControl;
+        var entityId = formContext.data.entity.getId().substring(1, 37);
+        await Xrm.WebApi.retrieveRecord("account", entityId, "?$select=accountid,name").then(
+            function success(result) {
+                console.log(result);
+                // Columns
+                var accountid = result["accountid"]; // Guid
+                var name = result["name"]; // Text
+
+                var entityFormOptions = {};
+                entityFormOptions["entityName"] = "account";
+                entityFormOptions["useQuickCreateForm"] = true;
+                entityFormOptions["formId"] = "2ec524fd-602e-4886-bf99-93f04c70a5a5";      
+                var formParameters = {};
+                formParameters["parentaccountid"] = accountid;
+                formParameters["parentaccountidname"] = name;
+
+                Xrm.Navigation.openForm(entityFormOptions,formParameters).then(
+                    function (success) {
+               
+                    },
+                    function (error) {
+                        let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to Open Child Partner Quick Create Form' };
+                        let alertOptions = { height: 120, width: 260 };
+
+                        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                });
+            },
+            function(error) {
+                console.log(error.message);
+            }
+        );      
+       
+    },
+   redirectToChildPartnerForm: function (executionContext){
+        var formContext = executionContext.getFormContext();
+        var targetFormId = "db1128ed-1ea8-ef11-8a69-6045bdd3fb9a";
+        var availableForms = formContext.ui.formSelector.items.get();
+        var currentForm = formContext.ui.formSelector.getCurrentItem().getId();
+        //var parentpartner = formContext.getAttribute(this.Attributes.Partner.parentPartner);
+        if(formContext.getAttribute(this.Attributes.Partner.parentPartner).getValue() != null && currentForm != targetFormId ){
+            availableForms.forEach(element => {
+                if(element.getId() == targetFormId)
+                element.navigate();
+            });
+        }
+       
+},
+    redirectToParentPartnerForm: function (executionContext){
+        var formContext = executionContext.getFormContext();
+        var targetFormId = "aa3d43ab-3eb0-4d47-9103-64ab5cb4f888";
+        var availableForms = formContext.ui.formSelector.items.get();
+        var currentForm = formContext.ui.formSelector.getCurrentItem().getId();
+        //var parentpartner = formContext.getAttribute(this.Attributes.Partner.parentPartner);
+        if(formContext.getAttribute(this.Attributes.Partner.parentPartner).getValue() === null && currentForm !== targetFormId ){
+            availableForms.forEach(element => {
+                if(element.getId() == targetFormId)
+                element.navigate();
+            });
+        }
+        else
+        {
+            formContext.getAttribute(this.Attributes.Partner.parentPartner).setRequiredLevel("none");
+        }
+       
+},
+         subgridclonebutton:function(PrimaryControl){
+           var formContext=PrimaryControl;
+             formContext.getAttribute(this.Attributes.Partner.subgridclone).setValue(true);   
+          },
+          
+        ShowAndHidePeriodicReviewGrid(executionContext) {
+        var formContext = executionContext.getFormContext();
+        var CRRMScore = formContext.getAttribute(this.Attributes.Partner.crrmscore).getValue();
+        if (CRRMScore !== null) {
+            formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.PeriodicReviewCadence).setVisible(true);
+            formContext.getControl(this.Attributes.Partner.screeningDate).setVisible(true);
+        }
+        else {
+            formContext.getControl(CRB.CRM.PJ.Partner.Subgrid.PeriodicReviewCadence).setVisible(false);
+            formContext.getControl(this.Attributes.Partner.screeningDate).setVisible(false);
+            //formContext.getAttribute(this.Attributes.Partner.screeningDate).setValue(null);
+        }
+    },
+    hideAddContactButtonFromExternalContactsSubGrid: function (primaryControl,secondaryControl) {
+        var partnerObject = CRB.CRM.PJ.Partner;
+        var gridName = secondaryControl._controlName;
+        var fromName = Xrm.Page.ui.formSelector.getCurrentItem().getLabel();
+        if(gridName === partnerObject.Subgrid.FinancialReminders && fromName === "Partner 360 view" || gridName === partnerObject.Subgrid.InsuranceReminders && fromName === "Partner 360 view"){
+            return false;
+        }
+   },
+   preventDuplicateEmailReferenceInInternalContacts: async function (executionContext) { // we will get the execution context of systemuser entity
+        var formContext = executionContext.getFormContext();
+        var partnerObject = CRB.CRM.PJ.Partner;
+        var systemuserid = formContext.data.entity.getId().replace('{', '').replace('}', '');
+        var emailReference = formContext.getAttribute(partnerObject.Others.SystemUsers.EmailReference).getValue();
+        
+        var accountid = Xrm.Utility.getPageContext().input.entityId.replace('{','').replace('}','');
+      
+        var names = "";
+
+        var usersFilter = "&$filter=";
+
+        await Xrm.WebApi.retrieveMultipleRecords("crb_account_systemuser", "?$select=systemuserid&$filter=accountid eq " + accountid)   //get the related systemusers
+            .then(
+                (res) => {
+                    res.entities.forEach((userid, index) => {
+                        if (index === res.entities.length - 1) {
+                            usersFilter += "systemuserid eq " + userid.systemuserid;
+                        }
+                        else {
+                            usersFilter += "systemuserid eq " + userid.systemuserid + " or ";
+                        }
+                    })
+                }
+            ).catch(
+                (err) => {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: `Unknown Error` };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                }
+            )
+
+        await Xrm.WebApi.retrieveMultipleRecords(partnerObject.Others.SystemUsers.LogicalName, "?$select=systemuserid,crb_emailreference,fullname" + usersFilter)   //get the users names who already have email reference selected
+            .then(
+                (res) => {
+                    res.entities.forEach((user) => {
+                        if (user['systemuserid'] !== systemuserid.toLowerCase() && emailReference && emailReference.some((val) => 
+                            user['crb_emailreference'] && user['crb_emailreference'].includes(val.toString())
+                        )) {
+                            names += user.fullname + ",";
+                        }
+                    })
+
+                }
+            ).catch(
+                (err) => {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: `Unknown Error` };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                }
+            )
+
+        if (names) {
+
+            let alertStrings = { confirmButtonLabel: 'Ok', text: `${names.slice(0,-1)} already have one or more of the selected email references` };
+            let alertOptions = { height: 220, width: 260 };
+
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+
+            Xrm.WebApi.retrieveRecord(partnerObject.Others.SystemUsers.LogicalName, systemuserid, "?$select=crb_emailreference").then(
+                function success(result) {
+                    var references = result['crb_emailreference'];
+                    if (references) {  //if previous value was not null
+                        var referencesList = references.split(',');
+                        var referencesListInt = referencesList.map(function (value) {
+                            return parseInt(value, 10);
+                        });
+                        if (referencesList.length > 0) {
+                            formContext.getAttribute(partnerObject.Others.SystemUsers.EmailReference).setValue(referencesListInt);
+                        }
+                    }
+                    else{   //if previous value was null
+                        formContext.getAttribute(partnerObject.Others.SystemUsers.EmailReference).setValue(null);
+                    }
+                },
+                function error(error) {
+                    //console.log(error.message);
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: `Unknown Error` };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                }
+            );
+        }
+    },
+    HideNewButtonOnOpportunity: function (selectedControl, primaryControl) {
+    "use strict";
+    var formContext = primaryControl;
+    var currentGridName = selectedControl._controlName;
+
+    var tabname = "Sales";
+    var tab = formContext.ui.tabs.get(tabname);
+    var excludedPayRun = "Past Opportunities";
+    var excludedPayRun1 = "RenewalOpportunities";
+    var excludedPayRun2 = "Past Opportunities (Closed Won)";
+    if (tab && tab.getVisible() && tab.getDisplayState() === "expanded" && (currentGridName == excludedPayRun || currentGridName == excludedPayRun1  || currentGridName == excludedPayRun2)) {
+        return false;
+    }
+    else { return true; }
+
+    },
+    dependentsOnRelationshipManagerRoleAndInternalUser: async function (executionContext,isLoggedInUserRelationshipManager) {
+        var formContext = executionContext.getFormContext();
+        
+        var isLoggedInUserInternalUser = await this.isLoggedInUserInternalUser(executionContext);
+
+        this.enableDisableOversightReminderTab(executionContext, isLoggedInUserRelationshipManager || isLoggedInUserInternalUser);
+    },
+    isLoggedInUserInternalUser: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var userSettings = Xrm.Utility.getGlobalContext().userSettings;
+        var currentuserid = userSettings.userId.replace("{", "").replace("}", "").toLowerCase();
+        var PartnerId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var isInternalUser = false;
+
+        await Xrm.WebApi.retrieveMultipleRecords("crb_account_systemuser", "?$select=systemuserid&$filter=accountid eq " + PartnerId)
+            .then(
+                (res) => {
+                    for (var i = 0; i < res.entities.length; i++) {
+                        var result = res.entities[i];
+                        var systemuserid = result["systemuserid"];
+                        if (systemuserid === currentuserid) {
+                            isInternalUser = true;
+                            break;
+                        }
+                    }
+                }
+            )
+            .catch((error) => {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to fetch related Internal User Records' };
+                let alertOptions = { height: 120, width: 260 };
+
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+            })
+
+        return isInternalUser;
+    },
+    enableDisableOversightReminderTab: function (executionContext, enable) {
+        var formContext = executionContext.getFormContext();
+        var excemptedFields = [
+            this.Attributes.Partner.CreditModelAuditNextDue,
+            this.Attributes.Partner.SubprimeDefinitionAnalysisNextDue,
+            this.Attributes.Partner.ComplianceAuditNextDue,
+            this.Attributes.Partner.BSAAMLAuditNextDue,
+            this.Attributes.Partner.PolicyAndProcedureAnnualNextDue,
+            this.Attributes.Partner.OnsiteDueDiligenceNextDue,
+            this.Attributes.Partner.LexisNexisNextDue,
+            this.Attributes.Partner.CRBITAuditDueDiligenceNextDue,
+            this.Attributes.Partner.ITDataSecurityAuditNextDue,
+        ]
+        
+        var tab = formContext.ui.tabs.get(this.TabName.Reminder);
+
+        tab.sections.forEach((section) => {
+            section.controls.forEach((control) => {
+                if (control.getControlType() !== "subgrid" && !excemptedFields.includes(control.getName())) {
+                    control.setDisabled(!enable);
+                }
+            })
+        })
+
+    },
+    HideExistingMeetingButton: function (primaryControl,selectedControl) {
+    //var formContext = executionContext.getFormContext();
+    var formContext = primaryControl;
+    var subgridname = selectedControl.getName();
+    //var MeetingHub = formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.MeetingHub).getDisplayState();
+    var formName = Xrm.Page.ui.formSelector.getCurrentItem().getLabel();
+
+    if(subgridname == "MeetingHub" && formName == "Partner 360 view" ){
+        return false;
+    }
+    else{
+    return true;
+    }
+        
+},
+HideDecactivateButtonOnPartner: function (primaryControl) {
+    //var formContext = executionContext.getFormContext();
+    var formContext = primaryControl;
+    //var subgridname = selectedControl.getName();
+    //var MeetingHub = formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.MeetingHub).getDisplayState();
+    var formName = Xrm.Page.ui.formSelector.getCurrentItem().getLabel();
+
+    if(formName == "Partner 360 view" ){
+        return false;
+    }
+    else{
+    return true;
+    }
+        
+},
+HideQualifyButtonOnPartner: function (primaryControl) {
+    //var formContext = executionContext.getFormContext();
+    var formContext = primaryControl;
+    //var subgridname = selectedControl.getName();
+    //var MeetingHub = formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.MeetingHub).getDisplayState();
+    var formName = Xrm.Page.ui.formSelector.getCurrentItem().getLabel();
+
+    if(formName == "Partner 360 view" ){
+        return true;
+    }
+    else{
+    return false;
+    }
+        
+},
+
+    hideNewButtonFromOpportunitySubgridForSpecificGrids: function (primaryControl, selectedControl) {
+        var formContext = primaryControl;
+        var currentGridName = selectedControl._controlName;
+        var partnerObject = CRB.CRM.PJ.Partner;
+        var excludedGrids = [partnerObject.Subgrid.pastOpportunitiesClosedLost, partnerObject.Subgrid.PastOpportunitiesClosedWon];
+        if (excludedGrids.includes(currentGridName)) {
+            return false;
+        }
+    },
+    
+}
