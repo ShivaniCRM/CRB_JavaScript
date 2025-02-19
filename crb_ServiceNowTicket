@@ -1,0 +1,221 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Servicenow = CRB.CRM.PJ.Servicenow || {};
+CRB.CRM.PJ.Servicenow = {
+    Attributes: {
+        requestType:"crb_requesttype",
+		typeifOther:"crb_typeifother",
+		notApplicable:"crb_notapplicable",
+		statuscosaccountsetupandapproval:"crb_statuscosaccountsetupandapproval",
+        servicenowlink:"crb_servicenowlink", 
+		servicenowidnumber:"crb_servicenowidnumber",
+		dateofticketcreation:"crb_dateofticketcreation",
+		dateofticketcompletion:"crb_dateofticketcompletion",
+		durationdays:"crb_durationdays",
+		notes:"crb_notes",
+		gldepositaccountrequisitionform:"crb_gldepositaccountrequisitionform",
+		rollupglaccountnumber:"crb_rollupglaccountnumber",
+		dateofsandboxaccountapproval:"crb_dateofsandboxaccountapproval",
+		dateofproductionaccountapproval:"crb_dateofproductionaccountapproval",
+		sftpform:"crb_sftpform",
+		requester:"crb_requester",
+        Ownerid:"ownerid",
+       
+    },
+        
+    onLoadOfServicenow: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();  
+        this.setRequesterField(executionContext);
+        this.showandhidefieldsbasedontoggle(executionContext);
+        this.setURLforGLdepositaccountrequisitionform(executionContext);
+        this.DisableAndEnableFields(executionContext);
+        this.setURLforSFTPform(executionContext);
+        this.onChangeOfRequestType(executionContext);
+    },
+    onSaveOfServicenow: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+    },  
+    onChangeOfRequestType: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+		var requesttype = formContext.getAttribute(this.Attributes.requestType).getValue();
+		if(requesttype === 100000005)
+		{
+			formContext.getControl(this.Attributes.typeifOther).setVisible(true);
+		}
+        else{
+            formContext.getControl(this.Attributes.typeifOther).setVisible(false);
+        }
+        if(requesttype === 100000000)
+		{
+			formContext.getControl(this.Attributes.gldepositaccountrequisitionform).setVisible(true);
+            formContext.getControl(this.Attributes.rollupglaccountnumber).setVisible(true);
+            
+		}
+        else{
+             formContext.getControl(this.Attributes.gldepositaccountrequisitionform).setVisible(false);
+            formContext.getControl(this.Attributes.rollupglaccountnumber).setVisible(false);  
+        }
+        if(requesttype === 100000004)
+		{
+			formContext.getControl(this.Attributes.dateofsandboxaccountapproval).setVisible(true);
+            formContext.getControl(this.Attributes.dateofproductionaccountapproval).setVisible(true);
+                        
+		}
+        else{
+             formContext.getControl(this.Attributes.dateofsandboxaccountapproval).setVisible(false);
+            formContext.getControl(this.Attributes.dateofproductionaccountapproval).setVisible(false);
+        }
+        if(requesttype === 100000002)
+		{
+			formContext.getControl(this.Attributes.sftpform).setVisible(true);         
+		}
+        else{
+        formContext.getControl(this.Attributes.sftpform).setVisible(false);  
+        }
+        
+    }, 
+    onchangeofservicenowidnumber: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+		var ServiceNowidnumber = formContext.getAttribute(this.Attributes.servicenowidnumber).getValue();
+		if(ServiceNowidnumber !== null)
+		{
+			formContext.getAttribute(this.Attributes.statuscosaccountsetupandapproval).setValue(100000001);
+		}
+        
+    }, 
+    setRequesterField: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var ownerid = formContext.getAttribute(this.Attributes.Ownerid).getValue();
+        var Requester = formContext.getAttribute(this.Attributes.requester).getValue();
+        if (ownerid) {
+           var ownervalue = ownerid;
+            formContext.getAttribute(this.Attributes.requester).setValue(ownervalue);
+        }
+    },
+        showandhidefieldsbasedontoggle: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var notapplicable = formContext.getAttribute(this.Attributes.notApplicable).getValue();
+        var requesttype = formContext.getAttribute(this.Attributes.requestType).getValue();
+        if (notapplicable == true) {
+             // formContext.getControl(this.Attributes.requestType).setVisible(false);
+              formContext.getControl(this.Attributes.statuscosaccountsetupandapproval).setVisible(false);
+              formContext.getControl(this.Attributes.servicenowlink).setVisible(false);
+              formContext.getControl(this.Attributes.servicenowidnumber).setVisible(false);
+              formContext.getControl(this.Attributes.dateofticketcreation).setVisible(false);
+              formContext.getControl(this.Attributes.dateofticketcompletion).setVisible(false);
+              formContext.getControl(this.Attributes.durationdays).setVisible(false);
+              formContext.getControl(this.Attributes.notes).setVisible(false);
+              formContext.getControl(this.Attributes.requester).setVisible(false);
+			  if(requesttype === 100000005)
+		{
+			formContext.getControl(this.Attributes.typeifOther).setVisible(false);
+		}
+				else if(requesttype === 100000000)
+		{
+			formContext.getControl(this.Attributes.gldepositaccountrequisitionform).setVisible(false);
+            formContext.getControl(this.Attributes.rollupglaccountnumber).setVisible(false);
+            
+		}
+		else if(requesttype === 100000004)
+		{
+			formContext.getControl(this.Attributes.dateofsandboxaccountapproval).setVisible(false);
+            formContext.getControl(this.Attributes.dateofproductionaccountapproval).setVisible(false);
+                        
+		}
+		else(requesttype === 100000002)
+		{
+			formContext.getControl(this.Attributes.sftpform).setVisible(false);         
+		}
+			
+			
+            }
+        else {
+             // formContext.getControl(this.Attributes.requestType).setVisible(true);
+              formContext.getControl(this.Attributes.statuscosaccountsetupandapproval).setVisible(true);
+              formContext.getControl(this.Attributes.servicenowlink).setVisible(true);
+              formContext.getControl(this.Attributes.servicenowidnumber).setVisible(true);
+              formContext.getControl(this.Attributes.dateofticketcreation).setVisible(true);
+              formContext.getControl(this.Attributes.dateofticketcompletion).setVisible(true);
+              formContext.getControl(this.Attributes.durationdays).setVisible(true);
+              formContext.getControl(this.Attributes.notes).setVisible(true);
+              formContext.getControl(this.Attributes.requester).setVisible(true);
+              if(requesttype === 100000005)
+		{
+			formContext.getControl(this.Attributes.typeifOther).setVisible(true);
+		}
+				else if(requesttype === 100000000)
+		{
+			formContext.getControl(this.Attributes.gldepositaccountrequisitionform).setVisible(true);
+            formContext.getControl(this.Attributes.rollupglaccountnumber).setVisible(true);
+            
+		}
+		else if(requesttype === 100000004)
+		{
+			formContext.getControl(this.Attributes.dateofsandboxaccountapproval).setVisible(true);
+            formContext.getControl(this.Attributes.dateofproductionaccountapproval).setVisible(true);
+                        
+		}
+		else(requesttype === 100000002)
+		{
+			formContext.getControl(this.Attributes.sftpform).setVisible(true);         
+		}
+          }
+    },
+    DisableAndEnableFields: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var teams = "General Due Diligence,Operation Team";
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var isMemberOfTeams = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, teams);
+        var teamedit = "Implementation Team";
+        var isMemberOfTeamsedit = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, teamedit);
+        if (isMemberOfTeams) {
+            var controls = formContext.ui.controls.get();
+            for (var i in controls) {
+                var control = controls[i];
+                control.setDisabled(true);
+
+            }
+        } else if(isMemberOfTeamsedit) {
+            var controls = formContext.ui.controls.get();
+            for (var i in controls) {
+                var control = controls[i];
+                control.setDisabled(false);
+
+            }
+        }
+        else
+        { var controls = formContext.ui.controls.get();
+            for (var i in controls) {
+                var control = controls[i];
+                control.setVisible(false);
+
+            }
+
+        }
+
+    },
+
+    setURLforGLdepositaccountrequisitionform: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var URLforGLdepositaccountrequisitionform = formContext.getAttribute(this.Attributes.gldepositaccountrequisitionform);
+
+        if (!URLforGLdepositaccountrequisitionform.getValue()) {
+            URLforGLdepositaccountrequisitionform.setValue("https://crossriverbank.atlassian.net/wiki/spaces/CSKB/pages/1576763681/Forms+Documents#GL-Deposit-Account-Requisition-Form-%5BhardBreak%5D");
+        }
+    },
+    setURLforSFTPform: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var URLforSFTPform = formContext.getAttribute(this.Attributes.sftpform);
+
+        if (!URLforSFTPform.getValue()) {
+            URLforSFTPform.setValue("https://crossriverbank.atlassian.net/wiki/spaces/IMD/pages/1364885512/Forms+Documents#SFTP-Client-Request-Form");
+        }
+    },
+    
+                     
+}
