@@ -1,0 +1,14 @@
+function autoPopulateName(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var product = formContext.getAttribute("crb_product2").getValue();
+    var name = formContext.getAttribute("crb_name").getValue();
+    var productId = formContext.getAttribute("crb_opportunityproductid").getValue();
+    if(!productId){
+        if (!name && product) {
+            formContext.getAttribute("crb_name").setValue(product[0].name);
+        }
+        else if (name && !product) {
+            formContext.getAttribute("crb_name").setValue(null);
+        }
+    }
+}
