@@ -1,0 +1,235 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.OnboardingPhase3 = CRB.CRM.PJ.OnboardingPhase3 || {};
+CRB.CRM.PJ.OnboardingPhase3 = {
+        Attributes: { 
+        OnboardingStatus: "crb_tabstatus",
+        close: "crb_close",
+        terminationdatedecline: "crb_terminationdatedecline",
+        terminationdatelost: "crb_terminationdatelost",
+        StatusOnboarding: "crb_statustab",
+        TerminationDateOnbording: "crb_terminationdateonboarding",
+        TerminationReasonOnboarding: "crb_terminationreasononboardings",
+        TerminationResquestedByOnbording: "crb_terminationrequestedbyonboardings",
+        Statuss: "crb_statusonboarding",
+        statustabfieldsmodifiedonboarding: "crb_statustabfieldsmodifiedonboarding", 
+        terminationdescriptiondecline: "crb_terminationdescriptiondecline", 
+   
+        },
+        TabName: {
+        General: "General",
+        ClosedLost:"ClosedLost",
+        ClosedDecline:"ClosedDecline",
+        OpportunityInformation: "OpportunityInformation",
+        Status: "Status"
+
+    },LOV:{
+        Status: {
+            NotStarted: 1,
+            InProgress: 2,
+            Complete: 3,
+            ClosedLost:4,
+            ClosedDecline:5,
+            ClosedWon: 6,
+        },
+        StatusTabStatus: {
+            Active: 100000000,
+            Inactive: 100000001,
+            Pending: 100000002,
+            PendingTermination: 100000003,
+            SuspendedActivity: 100000004,
+        },
+    },
+        onLoadOfOnboardingPhase3: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        
+        this.registerOnChangeEvents(executionContext);
+        formContext.data.process.addOnStageChange(this.ShowAndHideCloseLostandDeclineTab);
+        this.ShowAndHideCloseLostandDeclineTab(executionContext);
+        this.populateOnboardingStatusWithClosedField(executionContext);
+        this.ShowHideFieldsOnStatusTab(executionContext);
+        //this.SetvalueForStatusonStatusTab(executionContext);
+        formContext.data.process.addOnStageChange(this.populateTerminationDate);
+        formContext.data.process.addOnStageChange(this.SetvalueForStatusonStatusTab);
+        },
+        
+        onSaveOfOnboardingPhase3: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        
+        },
+        
+         //Phase - 3
+    registerOnChangeEvents: function(executionContext){ 
+        var formContext = executionContext.getFormContext();        
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).addOnChange(this.setStatusTabFieldsMofiedOnboarding);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).addOnChange(this.setStatusTabFieldsMofiedOnboarding);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).addOnChange(this.setStatusTabFieldsMofiedOnboarding);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).addOnChange(this.setStatusTabFieldsMofiedOnboarding);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.terminationdescriptiondecline).addOnChange(this.setStatusTabFieldsMofiedOnboarding);
+    },
+    setStatusTabFieldsMofiedOnboarding: function (executionContext) {   
+        var formContext = executionContext.getFormContext();
+        var onboardingPhase3Object = CRB.CRM.PJ.OnboardingPhase3;
+        formContext.getAttribute(onboardingPhase3Object.Attributes.statustabfieldsmodifiedonboarding).setValue(true);
+    },        
+    populateOnboardingStatusWithClosedField : function (executionContext) {
+    var formContext = executionContext.getFormContext();
+    var close = formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.close).getValue();
+    if (close!== null && close == 1) {
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.OnboardingStatus).setValue(4);
+        }
+    else if (close!== null && close == 2) {
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.OnboardingStatus).setValue(5);
+        }
+    else if (close== null) {
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.OnboardingStatus).setValue(2);
+        }
+      
+    },
+    AutoMoveBPFStage: function (executionContext) {
+     var formContext = executionContext.getFormContext();
+     var close = formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.close).getValue();
+     if (close !== null) {
+        formContext.data.save().then(()=>{
+        formContext.data.process.moveNext()});  
+     }
+    },
+    ShowAndHideCloseLostandDeclineTab: function (executionContext) {
+	var formContext = executionContext.getFormContext();
+
+	var bpfStage = formContext.data.process.getActiveStage();
+	var currentStageName = bpfStage.getName();
+    var statusValue = formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.OnboardingStatus).getValue();
+
+	if (currentStageName == "Closed Lost") {
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.DueDiligence).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.ImplementationTeam).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Payments).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Screening).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Implementation).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Contract).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.CRBDocuments).setVisible(false);
+		formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.Status).setVisible(true);
+        formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.OpportunityInformation).setVisible(false);
+        formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.General).setVisible(false);
+		formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.ClosedDecline).setVisible(false);
+		formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.ClosedLost).setVisible(true);
+        
+
+	}
+	else if (currentStageName == "Closed Declined") {
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.DueDiligence).setVisible(false);
+//		//formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.ImplementationTeam).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Payments).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Screening).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Implementation).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Contract).setVisible(false);
+//		formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.CRBDocuments).setVisible(false);
+		formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.Status).setVisible(true);
+        formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.OpportunityInformation).setVisible(false);
+        formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.General).setVisible(false);
+		formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.ClosedDecline).setVisible(true);
+		formContext.ui.tabs.get(CRB.CRM.PJ.OnboardingPhase3.TabName.ClosedLost).setVisible(false);
+        
+	}else if(currentStageName == "Onboarding"){
+            formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setValue(3);
+            formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setDisabled(true);
+        }
+    
+	
+    },
+    
+    SetvalueForStatusonStatusTab: function(executionContext){
+    var formContext = executionContext.getFormContext();
+    var Status = formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.OnboardingStatus).getValue();
+    var currentDate = new Date();
+    if (Status == 6){
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setValue(1);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).fireOnChange();
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setDisabled(false);
+        //formContext.getControl(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.TerminationDateStatusTab).setVisible(false);
+        //formContext.getControl(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.TerminationRequesteByStatusTab).setVisible(false);
+    }
+    else if (Status == 2){
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setValue(3);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).fireOnChange();
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setDisabled(true);
+        //formContext.getControl(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.TerminationDateStatusTab).setVisible(false);
+        //formContext.getControl(CRB.CRM.PJ.Opportunity.Attributes.Opportunity.TerminationRequesteByStatusTab).setVisible(false);
+    }
+    else if (Status == 4 || Status == 5){
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setValue(2);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).fireOnChange();
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).setDisabled(false);
+        var value = formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).getValue();
+        if(value == 2){
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setVisible(true);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setVisible(true);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setVisible(true);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setValue(currentDate);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setRequiredLevel("required");
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setRequiredLevel("required");
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setRequiredLevel("required");
+        }
+        else{
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setVisible(false);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setVisible(false);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setVisible(false);
+
+        }
+
+    }
+
+    },
+    
+    ShowHideFieldsOnStatusTab: function(executionContext){
+    var formContext = executionContext.getFormContext();
+    var StatusOption = formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.Statuss).getValue();
+    var currentDate = new Date();
+    if(StatusOption === 4){
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setVisible(true);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setVisible(true);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setVisible(true);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setValue(currentDate);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setRequiredLevel("required");
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setRequiredLevel("required");
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setRequiredLevel("required");
+        
+    }
+    else if(StatusOption == 2){
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setVisible(true);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setVisible(true);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setVisible(true);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setValue(currentDate);
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setRequiredLevel("required");
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setRequiredLevel("required");
+        formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setRequiredLevel("required");
+        }
+    else if (StatusOption == 1 || StatusOption == 3 || StatusOption == 5 || StatusOption == null){
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationDateOnbording).setVisible(false);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationReasonOnboarding).setVisible(false);
+        formContext.getControl(CRB.CRM.PJ.OnboardingPhase3.Attributes.TerminationResquestedByOnbording).setVisible(false);
+    }
+
+
+},
+    populateTerminationDate: function (executionContext) {
+	var formContext = executionContext.getFormContext();
+	var bpfStage = formContext.data.process.getActiveStage();
+	var currentStageName = bpfStage.getName();
+	var currentDate = new Date();
+
+
+	if (currentStageName == "Closed Lost") {
+		formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.terminationdatelost).setValue(currentDate);
+	}
+	else if (currentStageName == "Closed Declined") {
+		formContext.getAttribute(CRB.CRM.PJ.OnboardingPhase3.Attributes.terminationdatedecline).setValue(currentDate);
+	}
+
+}
+        
+}
