@@ -1,0 +1,219 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.PEPPoliticalPositions = CRB.CRM.PJ.PEPPoliticalPositions || {};
+CRB.CRM.PJ.PEPPoliticalPositions = {
+    Attributes: {
+        Fields: {
+            name:"crb_name",
+            pep: "crb_pep",
+            describeofficialresponsibilitiesfunctions: "crb_describeofficialresponsibilitiesfunctions",
+            inwhatcountrydoesthepepholdoffice: "crb_inwhatcountrydoesthepepholdoffice",
+            isthepepstillactiveinoffice: "crb_isthepepstillactiveinoffice",
+            timeperiodinofficefromyear: "crb_timeperiodinofficefromyear",
+            timeperiodinofficetoyear: "crb_timeperiodinofficetoyear",
+            doespephaveauthorityoverpoliciesoperations: "crb_doespephaveauthorityoverpoliciesoperations",
+            haveaccesstogovassetsfundsawardcontracts: "crb_haveaccesstogovassetsfundsawardcontracts",
+            describeaccesstogovassestsfundscontracts: "crb_describeaccesstogovassestsfundscontracts",
+            abilitytocontrolflowoffundsthroughaccounts: "crb_abilitytocontrolflowoffundsthroughaccounts",
+            describecontrolonflowoffunds: "crb_describecontrolonflowoffunds",
+            materialnegativemediaidentifiedforthepep: "crb_materialnegativemediaidentifiedforthepep",
+            detaileddispositionofnegativemediafindings: "crb_detaileddispositionofnegativemediafindings",
+            negativemediatransactionalorreputational: "crb_negativemediatransactionalorreputational",
+            negativemediaescalatedtobsaamlcompliance: "crb_negativemediaescalatedtobsaamlcompliance",
+            whywasthenegativemedianotescalated: "crb_whywasthenegativemedianotescalated",
+            whatwastheoutcomeoftheescalation: "crb_whatwastheoutcomeoftheescalation",
+            providetherationalefortheoutcome: "crb_providetherationalefortheoutcome",
+            isthepephighrisk: "crb_isthepephighrisk",
+            anyconfirmedmatchtoaninternallist: "crb_anyconfirmedmatchtoaninternallist",
+            evidenceattachment: "crb_evidenceattachment",
+            providedetailsofpepspoliticalpositions: "crb_providedetailsofpepspoliticalpositions", // this field of PEP political table only
+        },
+        Sections: {
+            General: "General",
+
+        },
+        Tabs: {
+            General: "General",
+        }
+    },
+    onLoadPEPPoliticalPositions: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        //this.dynamicallyRenderFields(executionContext);
+        this.filterOptinsInDetailsOfPoliticallyExposedPerson(executionContext);
+        this.dynamicallyRenderFields(executionContext);
+        this.onLoadMakeManadatory(executionContext);
+
+    },
+    onSavePEPPoliticalPositions: function (executionContext) {
+        this.setPEPPoliticalPostionAsName(executionContext);
+    },
+    setPEPPoliticalPostionAsName: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var PEPPoliticalPositionsLabel = formContext.getAttribute(this.Attributes.Fields.providedetailsofpepspoliticalpositions).getText();
+        formContext.getAttribute(this.Attributes.Fields.name).setValue(PEPPoliticalPositionsLabel);
+    },
+    dynamicallyRenderFields: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var pep = formContext.getAttribute(this.Attributes.Fields.pep).getValue();
+        // if (pep) {
+        //     var pepId = pep[0].id;
+        //     var pepValues = await this.getFieldValuesFromLinkedPEP(executionContext, pepId, "crb_providedetailsofpepspoliticalpositions");
+        //     var providedetailsofpepspoliticalpositions = pepValues["crb_providedetailsofpepspoliticalpositions"];
+        //     if (providedetailsofpepspoliticalpositions) {
+        //         formContext.getAttribute(this.Attributes.Fields.describeofficialresponsibilitiesfunctions).setValue(providedetailsofpepspoliticalpositions);
+
+        //     }
+        // }
+        formContext.getControl(this.Attributes.Fields.describeofficialresponsibilitiesfunctions).setVisible(true);
+        formContext.getControl(this.Attributes.Fields.inwhatcountrydoesthepepholdoffice).setVisible(true);
+        formContext.getControl(this.Attributes.Fields.isthepepstillactiveinoffice).setVisible(true);
+        formContext.getControl(this.Attributes.Fields.timeperiodinofficefromyear).setVisible(true);
+        formContext.getControl(this.Attributes.Fields.timeperiodinofficetoyear).setVisible(true);
+        formContext.getControl(this.Attributes.Fields.doespephaveauthorityoverpoliciesoperations).setVisible(true);
+        this.onChangeOfDoesPEPHaveAuthorityOverPoliciesOperations(executionContext);
+        formContext.getControl(this.Attributes.Fields.abilitytocontrolflowoffundsthroughaccounts).setVisible(true);
+        this.onChangeOfAbilityToControlFlowOfFundsThroughAccounts(executionContext);
+        formContext.getControl(this.Attributes.Fields.materialnegativemediaidentifiedforthepep).setVisible(true);
+        this.onChangeOfMaterialNegativeMediaIdentifiedForThePEP(executionContext);
+        formContext.getControl(this.Attributes.Fields.negativemediaescalatedtobsaamlcompliance).setVisible(true);
+        this.onChangeOfNegativeMediaEscalatedToBSAAMLCompliance(executionContext);
+        formContext.getControl(this.Attributes.Fields.isthepephighrisk).setVisible(true);
+        formContext.getControl(this.Attributes.Fields.anyconfirmedmatchtoaninternallist).setVisible(true);
+
+    },
+    onChangeOfDoesPEPHaveAuthorityOverPoliciesOperations: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var doespephaveauthorityoverpoliciesoperations = formContext.getAttribute(this.Attributes.Fields.doespephaveauthorityoverpoliciesoperations).getValue();
+        if (doespephaveauthorityoverpoliciesoperations) {
+            formContext.getControl(this.Attributes.Fields.haveaccesstogovassetsfundsawardcontracts).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.describeaccesstogovassestsfundscontracts).setVisible(true);
+            formContext.getAttribute(this.Attributes.Fields.haveaccesstogovassetsfundsawardcontracts).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.Fields.describeaccesstogovassestsfundscontracts).setRequiredLevel("required");
+        } else {
+            formContext.getControl(this.Attributes.Fields.haveaccesstogovassetsfundsawardcontracts).setVisible(false);
+            formContext.getControl(this.Attributes.Fields.describeaccesstogovassestsfundscontracts).setVisible(false);
+            formContext.getAttribute(this.Attributes.Fields.haveaccesstogovassetsfundsawardcontracts).setRequiredLevel("none");
+            formContext.getAttribute(this.Attributes.Fields.describeaccesstogovassestsfundscontracts).setRequiredLevel("none");
+        }
+    
+    },
+    onChangeOfAbilityToControlFlowOfFundsThroughAccounts: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var abilitytocontrolflowoffundsthroughaccounts = formContext.getAttribute(this.Attributes.Fields.abilitytocontrolflowoffundsthroughaccounts).getValue();
+        if (abilitytocontrolflowoffundsthroughaccounts) {
+            formContext.getControl(this.Attributes.Fields.describecontrolonflowoffunds).setVisible(true);
+            formContext.getAttribute(this.Attributes.Fields.describecontrolonflowoffunds).setRequiredLevel("required");
+        } else {
+            formContext.getControl(this.Attributes.Fields.describecontrolonflowoffunds).setVisible(false);
+            formContext.getAttribute(this.Attributes.Fields.describecontrolonflowoffunds).setRequiredLevel("none");
+        }
+    },
+    onChangeOfMaterialNegativeMediaIdentifiedForThePEP: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var materialnegativemediaidentifiedforthepep = formContext.getAttribute(this.Attributes.Fields.materialnegativemediaidentifiedforthepep).getValue();
+        if (materialnegativemediaidentifiedforthepep) {
+            formContext.getControl(this.Attributes.Fields.detaileddispositionofnegativemediafindings).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.negativemediatransactionalorreputational).setVisible(true);
+            formContext.getAttribute(this.Attributes.Fields.detaileddispositionofnegativemediafindings).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.Fields.negativemediatransactionalorreputational).setRequiredLevel("required");
+        } else {
+            formContext.getControl(this.Attributes.Fields.detaileddispositionofnegativemediafindings).setVisible(false);
+            formContext.getControl(this.Attributes.Fields.negativemediatransactionalorreputational).setVisible(false);
+            formContext.getAttribute(this.Attributes.Fields.detaileddispositionofnegativemediafindings).setRequiredLevel("none");
+            formContext.getAttribute(this.Attributes.Fields.negativemediatransactionalorreputational).setRequiredLevel("none");
+        }
+    },
+    onChangeOfNegativeMediaEscalatedToBSAAMLCompliance: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var negativemediaescalatedtobsaamlcompliance = formContext.getAttribute(this.Attributes.Fields.negativemediaescalatedtobsaamlcompliance).getValue();
+        if (negativemediaescalatedtobsaamlcompliance) {
+            formContext.getControl(this.Attributes.Fields.whywasthenegativemedianotescalated).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.whatwastheoutcomeoftheescalation).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.providetherationalefortheoutcome).setVisible(true);
+            formContext.getAttribute(this.Attributes.Fields.whywasthenegativemedianotescalated).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.Fields.whatwastheoutcomeoftheescalation).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.Fields.providetherationalefortheoutcome).setRequiredLevel("required");
+        } else {
+            formContext.getControl(this.Attributes.Fields.whywasthenegativemedianotescalated).setVisible(false);
+            formContext.getControl(this.Attributes.Fields.whatwastheoutcomeoftheescalation).setVisible(false);
+            formContext.getControl(this.Attributes.Fields.providetherationalefortheoutcome).setVisible(false);
+            formContext.getAttribute(this.Attributes.Fields.whywasthenegativemedianotescalated).setRequiredLevel("none");
+            formContext.getAttribute(this.Attributes.Fields.whatwastheoutcomeoftheescalation).setRequiredLevel("none");
+            formContext.getAttribute(this.Attributes.Fields.providetherationalefortheoutcome).setRequiredLevel("none");
+        }
+    },
+    dynamicallySetSectionLabel:async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var pep = formContext.getAttribute(this.Attributes.Fields.crb_pep).getValue();
+        if (pep) {
+            var section = formContext.ui.tabs.get().sections.get();
+            var pepId = pep[0].id;
+            var pepOptions = "?$select=crb_providedetailsofpepspoliticalpositions";
+            var pep_providedetailsofpepspoliticalpositions = await Xrm.WebApi.retrieveRecord('crb_pep', pepId, pepOptions).then(
+                function success(result) {
+                    return result["crb_name"];
+                },
+                function (error) {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to Fetch Details from related PEP' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                }
+            );
+
+            section.controls.setLabel(pepName);
+        }
+    },
+    getFieldValuesFromLinkedPEP: async function (executionContext, pepId, requiredFields) {
+        var formContext = executionContext.getFormContext();
+        //var fieldList = requiredFields.split(",");
+        var pepOptions = "?$select=" + requiredFields;
+        var pepValues = await Xrm.WebApi.retrieveRecord('crb_pep', pepId, pepOptions).then(
+            function success(result) {
+                return result;
+            },
+            function (error) {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to Fetch Details from related PEP' };
+                let alertOptions = { height: 120, width: 260 };
+
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        return pepValues;
+    },
+    filterOptinsInDetailsOfPoliticallyExposedPerson:async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var pep = formContext.getAttribute(this.Attributes.Fields.pep).getValue();
+        if (pep) {
+            var pepId = pep[0].id;
+            var pepValues =await this.getFieldValuesFromLinkedPEP(executionContext, pepId, "crb_providedetailsofpepspoliticalpositions");
+            var providedetailsofpepspoliticalpositions = pepValues["crb_providedetailsofpepspoliticalpositions"];
+            var selectPEPDetailsList = providedetailsofpepspoliticalpositions.split(",");
+            var PEPPoliticalsPersionDetailsControl = formContext.getControl(this.Attributes.Fields.providedetailsofpepspoliticalpositions);
+            var options = PEPPoliticalsPersionDetailsControl.getAttribute().getOptions();
+            PEPPoliticalsPersionDetailsControl.clearOptions()
+            options.forEach((option)=>{
+                if(selectPEPDetailsList.includes(option.value.toString())){
+                    PEPPoliticalsPersionDetailsControl.addOption(option);
+                }
+            })
+        }
+
+    },
+    onLoadMakeManadatory: function (executionContext){
+       var formContext = executionContext.getFormContext();
+       formContext.getAttribute(this.Attributes.Fields.providedetailsofpepspoliticalpositions).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.describeofficialresponsibilitiesfunctions).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.inwhatcountrydoesthepepholdoffice).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.isthepepstillactiveinoffice).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.timeperiodinofficefromyear).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.timeperiodinofficetoyear).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.doespephaveauthorityoverpoliciesoperations).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.abilitytocontrolflowoffundsthroughaccounts).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.materialnegativemediaidentifiedforthepep).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.negativemediaescalatedtobsaamlcompliance).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.isthepephighrisk).setRequiredLevel("required");
+       formContext.getAttribute(this.Attributes.Fields.anyconfirmedmatchtoaninternallist).setRequiredLevel("required");
+    }
+}
