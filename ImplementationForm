@@ -1,0 +1,184 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.ImplementationForm = CRB.CRM.PJ.ImplementationForm || {};
+CRB.CRM.PJ.ImplementationForm = {
+    Attributes: {
+        notapplicable: "crb_notapplicable",
+        documentupload: "crb_documentupload",
+        requestform: "crb_requestform",
+        completiondate: "crb_completiondate",
+        NameofTheForm: "crb_name",
+        creditnetworkInCardissuing: "crb_creditnetworktypeforcardissuing",
+        IsThisANewBINPartnerOrSharedBINPartner: "crb_isthisanewbinpartnerorsharedbinpartner",
+        onboarding: "crb_onboarding",
+        documentrecord: "crb_documentrecord",
+        merchantacquiring: "crb_creditnetworktype"
+
+    },
+    LOV: {
+        CreditNetwork: {
+            Visa: 100000000,
+            MasterCard: 100000001,
+            AmericanExpress: 100000002,
+        },
+        MerchantCreditNetwork: {
+            Visa: 100000000,
+            MasterCard: 100000001,
+            Discover: 100000002,
+        },
+        IsThisANewBINPartnerOrSharedBINPartner: {
+            NewBINPartner: 100000000,
+            SharedBINPartner: 100000001,
+        },
+
+    },
+
+    onLoadOfImplementationForm: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.showAndHideFields(executionContext);
+        this.HideDocumentUploadonload(executionContext);
+        this.DisableAndEnableFields(executionContext);
+        //this.hidedocumentuploadforinternaltask(executionContext);
+        this.DisableAndEnableFields4cardissuing(executionContext);
+    },
+    onSaveTask: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+    },
+
+    showAndHideFields: function (executionContext) {
+
+        var formContext = executionContext.getFormContext();
+        var documentrecordshow = formContext.getAttribute(this.Attributes.documentrecord).getValue();
+        var formname = formContext.getAttribute(this.Attributes.NameofTheForm).getValue().trim();
+        var selectedCreditNetworkValue = formContext.getAttribute(this.Attributes.creditnetworkInCardissuing).getValue();
+        var selectedMerchantCreditNetworkValue = formContext.getAttribute(this.Attributes.merchantacquiring).getValue();
+        var selectedNewBinOrSharedBinValue = formContext.getAttribute(this.Attributes.IsThisANewBINPartnerOrSharedBINPartner).getValue();
+        var notApplicableimplementationform = formContext.getAttribute(this.Attributes.notapplicable).getValue();
+        var cardissuing = formContext.getAttribute(this.Attributes.creditnetworkInCardissuing).getValue();
+        var merchantacquiring = formContext.getAttribute(this.Attributes.merchantacquiring).getValue();
+        if (notApplicableimplementationform !== null && notApplicableimplementationform !== undefined && notApplicableimplementationform === true) {
+            formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.documentupload).setVisible(false);
+            formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.requestform).setVisible(false);
+            formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.completiondate).setVisible(false);
+        }
+        else {
+            formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.documentupload).setVisible(true);
+            formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.requestform).setVisible(true);
+            formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.completiondate).setVisible(true);
+            if ((cardissuing !== null && cardissuing !== undefined) && (selectedNewBinOrSharedBinValue === this.LOV.IsThisANewBINPartnerOrSharedBINPartner.NewBINPartner) && (selectedCreditNetworkValue === this.LOV.CreditNetwork.Visa) && (documentrecordshow !== null && documentrecordshow !== undefined) && (formname === "BIN Request")) {
+                formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.documentrecord).setVisible(true);
+            }
+            else if ((cardissuing !== null && cardissuing !== undefined) && (selectedNewBinOrSharedBinValue === this.LOV.IsThisANewBINPartnerOrSharedBINPartner.NewBINPartner) && (selectedCreditNetworkValue === this.LOV.CreditNetwork.MasterCard) && (documentrecordshow !== null && documentrecordshow !== undefined) && (formname === "ICA Request Form")) {
+                formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.documentrecord).setVisible(true);
+            }
+            else if ((merchantacquiring !== null && merchantacquiring !== undefined) && (selectedMerchantCreditNetworkValue === this.LOV.MerchantCreditNetwork.Visa) && (documentrecordshow !== null && documentrecordshow !== undefined) && (formname === "BIN Request" || formname === "Settlement Funds Transfer (SFT) Form")) {
+                formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.documentrecord).setVisible(true);
+            }
+            else if ((merchantacquiring !== null && merchantacquiring !== undefined) && (selectedMerchantCreditNetworkValue === this.LOV.MerchantCreditNetwork.MasterCard) && (documentrecordshow !== null && documentrecordshow !== undefined) && (formname === "ICA Request Form" || formname === "Debit Authorization Letter (336 Form)")) {
+                formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.documentrecord).setVisible(true);
+            }
+        }
+
+    },
+
+    HideDocumentUpload: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var requestformimplementationform = formContext.getAttribute(this.Attributes.requestform).getValue();
+        if (requestformimplementationform !== null) {
+            formContext.getControl(this.Attributes.documentupload).setVisible(false);
+        }
+        else {
+            formContext.getControl(this.Attributes.documentupload).setVisible(true);
+        }
+    },
+    HideDocumentUploadonload: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var requestformimplementationform = formContext.getAttribute(this.Attributes.requestform).getValue();
+        if (requestformimplementationform !== null) {
+            formContext.getControl(this.Attributes.documentupload).setVisible(false);
+        }
+
+    },
+        DisableAndEnableFields: async function (executionContext) {
+        debugger
+        var formContext = executionContext.getFormContext();
+        var teams = "General Due Diligence,Operation Team,Network Team,Relationship Management Team,Business Development";
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var isMemberOfTeams = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, teams);
+        if (isMemberOfTeams) {
+            var controls = formContext.ui.controls.get();
+            for (var i in controls) {
+                var control = controls[i];
+                control.setDisabled(true);
+
+            }
+        } else {
+            var controls = formContext.ui.controls.get();
+            for (var i in controls) {
+                var control = controls[i];
+                control.setDisabled(false);
+
+            }
+        }
+
+    },
+//    hidedocumentuploadforinternaltask: function (executionContext) {
+//
+//        var formContext = executionContext.getFormContext();
+//        var name = formContext.getAttribute(this.Attributes.NameofTheForm).getValue();
+//        var creditnetwork = formContext.getAttribute(this.Attributes.creditnetworkInCardissuing).getValue();
+//        if (creditnetwork !== null && (name == "PRM and TPA Registrations" || name == "VROL Enrollment Form (Disputes) " || name == "Server Provider Registration " || name === "Net Settlement Information Form (NSIF) " || name === "VROL RID Request ")) {
+//            formContext.getControl(CRB.CRM.PJ.ImplementationForm.Attributes.documentupload).setVisible(false);
+//        }
+//
+//    },
+    DisableAndEnableFields4cardissuing: async function (executionContext) {
+        debugger
+        var formContext = executionContext.getFormContext();
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var teams = await CRB.CRM.PJ.Common.getTeamsbasedonUserId(userId);
+        var controls = formContext.ui.controls.get();
+        var isUserImplementationTeam = teams.some(team => team.name === CRB.CRM.PJ.Common.Common.LOV.Teams.ImplementationTeam);
+        var eligibleteamtoView = false;
+        var selectedCreditNetworkValue = formContext.getAttribute(this.Attributes.creditnetworkInCardissuing).getValue();
+        var selectedNewBinOrSharedBinValue = formContext.getAttribute(this.Attributes.IsThisANewBINPartnerOrSharedBINPartner).getValue();
+        if (!isUserImplementationTeam) {
+            eligibleteamtoView = teams.some(team => team.name === CRB.CRM.PJ.Common.Common.LOV.Teams.OperationTeam || team.name === CRB.CRM.PJ.Common.Common.LOV.Teams.BusinessDevelopment || team.name === CRB.CRM.PJ.Common.Common.LOV.Teams.RelationshipManagement || team.name === CRB.CRM.PJ.Common.Common.LOV.Teams.GeneralDueDiligence);
+        }
+        if (isUserImplementationTeam) {
+            //if (((selectedCreditNetworkValue === this.LOV.CreditNetwork.Visa) || (selectedCreditNetworkValue === this.LOV.CreditNetwork.MasterCard)) && (selectedNewBinOrSharedBinValue === this.LOV.IsThisANewBINPartnerOrSharedBINPartner.NewBINPartner)) {
+              if (((selectedCreditNetworkValue === this.LOV.CreditNetwork.Visa) || (selectedCreditNetworkValue === this.LOV.CreditNetwork.MasterCard)) && ((selectedNewBinOrSharedBinValue === this.LOV.IsThisANewBINPartnerOrSharedBINPartner.NewBINPartner) ||(selectedNewBinOrSharedBinValue === this.LOV.IsThisANewBINPartnerOrSharedBINPartner.SharedBINPartner))) {
+                for (var i in controls) {
+                    var control = controls[i];
+                    control.setDisabled(false);
+                }
+            }
+        }
+        else if (eligibleteamtoView) {
+            if (((selectedCreditNetworkValue === this.LOV.CreditNetwork.Visa) || (selectedCreditNetworkValue === this.LOV.CreditNetwork.MasterCard)) && (selectedNewBinOrSharedBinValue === this.LOV.IsThisANewBINPartnerOrSharedBINPartner.NewBINPartner)) {
+                for (var i in controls) {
+                    var control = controls[i];
+                    control.setDisabled(true);
+                }
+            }
+        }
+    },
+    showHideButtonsBasedOnRolesIfRelatedToOnboarding: function (primaryControl) {
+        //var formContext = executionContext.getFormContext();
+        var formContext = primaryControl;
+        var onboarding = formContext.getAttribute(this.Attributes.onboarding).getValue();
+        if (onboarding) {
+            var hasRole = false;
+            var userRoles = Xrm.Utility.getGlobalContext().userSettings.roles;
+            userRoles.forEach((role) => {
+                if (role.name === "System Administrator") {
+                    hasRole = true;
+                }
+            })
+            return hasRole;
+        }
+    },
+}
