@@ -1,0 +1,648 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.TermSheets = CRB.CRM.PJ.TermSheets || {};
+CRB.CRM.PJ.TermSheets = {
+    Attributes: {
+        Fields: {
+            lineOfBusiness: "crb_lineofbusiness",
+            termyearsPayment: "crb_pts_termyears",
+            optiontermsPayment: "crb_pts_optionterms",
+            optionyearsPayment: "crb_pts_optionyears",
+            termyearsBaasCards: "crb_prd_termyears",
+            optiontermsBaasCards: "crb_prd_optionterms",
+            optionyearsBaasCards: "crb_prd_optionyears",
+            status: "crb_termsheetstatus",
+            pts_productnames: "crb_pts_productnames",
+            baas_productnames: "crb_baas_productnames",
+            pts_productnames: "crb_pts_productnames",
+            mpl_productnames: "crb_mpl_productnames",
+            pts_achpertransactioncap: "crb_pts_achpertransactioncap",
+            pts_wiresapipertansactioncap: "crb_pts_wiresapipertansactioncap",
+            pts_wiresnonapipertransactioncap: "crb_pts_wiresnonapipertransactioncap",
+            opportunity: "crb_opportunity",
+            entityTypeCode: "crb_entitytypecode",
+            submitTo: "crb_submitto",
+            termSheetSingnature: "crb_authorizedsigner",
+            mplSingnature: "crb_mpl_authorizedsigner",
+            MplSingnatureTitle: "crb_authorizedsignertitlempl",
+            termSheetSignatureTitle: "crb_authorizedsignertitle",
+            payementSingnature: "crb_authorizedsignerpayments",
+            paymentSignatureTitle: "crb_authorizedsignertitlepayments",
+
+        },
+        Sections: {
+            payment: "Payment_Termsheet",
+            mpl: "MPL_termsheet",
+            BaasCards: "BaaS/Cards_termsheet"
+        },
+        Tabs: {
+            General: "Information",
+            FeePayment: "Fee Payment"
+        },
+        LOV: {
+            lineOfBusiness: {
+                BaaSCards: "BaaS/Cards",
+                Marketplace_Lending: "Marketplace Lending",
+                Payments: "Payments",
+            },
+            ProductNameLOV: {
+                AchDomestic: "ACH Domestic",
+                AchInternational: "ACH International",
+                MerchantAcquiring: "Merchant Acquiring",
+                PushToCard: "Push to Card",
+            },
+        }
+    },
+    onLoadOfTermSheets: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.hideAndShowSections(executionContext);
+        this.UpdateProductNames(executionContext);
+        //this.showandhidefields(executionContext);
+        CRB.CRM.PJ.TermSheets.makeFieldsReadOnly(formContext);
+        //this.getObjectTypeCodeByName(executionContext);
+
+    },
+    onSaveOfTermSheets: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        //this.onSaveDisableTermSheetForm(executionContext);
+    },
+    /* onSaveDisableTermSheetForm: async function (executionContext) {
+     "use strict";
+     let formContext = executionContext.getFormContext();
+     let formControls = formContext.ui.controls;
+     var termsheet = formContext.data.entity.getId().replace("{", "").replace("}", "");
+     var crb_approvalstatus;
+     var crb_approvaltype;
+     await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$filter=(crb_approvaltype ne null and crb_approvalstatus ne null and _regardingobjectid_value eq '" + termsheet+"')").then(
+         function success(results) {
+             console.log(results);
+             for (var i = 0; i < results.entities.length; i++) {
+                 var result = results.entities[i];
+                 var activityid = result["activityid"]; // Guid
+                 crb_approvalstatus = result["crb_approvalstatus"]; // Choice
+                 crb_approvaltype = result["crb_approvaltype"]; // Choice
+                 var crb_approvalstatus_formatted = result["crb_approvalstatus@OData.Community.Display.V1.FormattedValue"];
+                 var crb_approvaltype_formatted = result["crb_approvaltype@OData.Community.Display.V1.FormattedValue"];
+             }
+             if (crb_approvaltype === 1 && (crb_approvalstatus === 1 || crb_approvalstatus === 2)) {
+                 formControls.forEach(control => {
+                     if (control.getName() !== "" && control.getName() !== null) {
+                         control.setDisabled(true);
+                     }
+                 });
+ 
+             }
+             else {
+     formControls.forEach(control => {
+         if (control.getName() !== "" && control.getName() !== null) {
+             control.setDisabled(false);
+         }
+     });
+ 
+ }
+         },
+ 
+         function (error) {
+             console.log(error.message);
+         }
+     );
+ 
+ },*/
+    AlertMessageForSubmitForFinanceTeam: async function (primaryControl) {
+        "use strict";
+        var value;
+        var formContext = primaryControl;
+        var termsheetId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var body = {
+            "termsheetId": termsheetId
+        }
+        console.log(termsheetId);
+        var confirmStrings = {
+            text: "Do you want to continue ?",
+            title: "Submit Term Sheet",
+            confirmButtonLabel: "OK",
+            cancelButtonLabel: "Cancel"
+        };
+        var dialogOptions = {
+            height: 200,
+            width: 450
+        };
+        var crb_approvalstatus;
+        var crb_approvaltype;
+        await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_termsheet_task($select=crb_termsheetid)&$filter=(crb_approvaltype eq 1 and _regardingobjectid_value eq '" + termsheetId + "' )").then(
+            function success(results) {
+                console.log(results);
+                for (var i = 0; i < results.entities.length; i++) {
+                    var result = results.entities[i];
+                    // Columns
+                    var activityid = result["activityid"]; // Guid
+                    crb_approvalstatus = result["crb_approvalstatus"]; // Choice
+                    var crb_approvalstatus_formatted = result["crb_approvalstatus@OData.Community.Display.V1.FormattedValue"];
+                    crb_approvaltype = result["crb_approvaltype"]; // Choice
+                    var crb_approvaltype_formatted = result["crb_approvaltype@OData.Community.Display.V1.FormattedValue"];
+
+                    // Many To One Relationships
+                    if (result.hasOwnProperty("regardingobjectid_crb_termsheet_task") && result["regardingobjectid_crb_termsheet_task"] !== null) {
+                        var regardingobjectid_crb_termsheet_task_crb_termsheetid = result["regardingobjectid_crb_termsheet_task"]["crb_termsheetid"]; // Guid
+                    }
+                }
+                if (crb_approvaltype === 1 && crb_approvalstatus === null) {
+                    var alertStrings = { confirmButtonLabel: "Ok", text: "There is already pending task with Finance Team", title: "Alert" };
+                    var alertOptions = { height: 120, width: 260 };
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                        function (success) {
+                            //console.log("Alert dialog closed");
+                        },
+                        function (error) {
+                            // console.log(error.message);
+                        });
+                }
+                else {
+                    Xrm.Navigation.openConfirmDialog(confirmStrings, dialogOptions, null).then(
+                        async function (success) {
+                            if (success.confirmed) {
+                                console.log("Alert dialog closed");
+                                /*
+                                await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 95").then((result) => {
+                                    value = result.entities[0]["crb_value"];
+                                })
+                                var url = value;
+                                var req = new XMLHttpRequest();
+                                req.open("POST", url, true);
+                                req.setRequestHeader('Content-Type', 'application/json');
+                                req.send(JSON.stringify(body));
+                                req.onreadystatechange = function () {
+                                    if (this.readyState === 4) {
+                                        if (this.status === 202) {
+                                            Xrm.Navigation.openAlertDialog("Term Sheet Task created sucessfully.");
+                                            CRB.CRM.PJ.TermSheets.makeFieldsReadOnly(primaryControl);
+    
+                                        } else {
+                                            Xrm.Navigation.openAlertDialog("Term Sheet Task creation Failed.");
+                                        }
+                                    }
+                                }
+                                */
+                                formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.submitTo).setValue(2);
+                                formContext.data.entity.save();
+                                Xrm.Navigation.openAlertDialog("Termsheet task created Sucessfully.");
+                                CRB.CRM.PJ.TermSheets.makeFieldsReadOnly(primaryControl);
+                            }
+                            // Handle OK button action here
+                        },
+                        function (error) {
+                            console.log(error.message);
+                            Xrm.Navigation.openAlertDialog("Termsheet Task Failed." + error.message);
+                            // Handle Cancel button action here
+                        }
+                    );
+                }
+
+            },
+            function (error) {
+                console.log(error.message);
+            }
+        );
+    },
+
+    AlertForSubmitForSalesTeam: async function (primaryControl) {
+        "use strict";
+        var value;
+        var formContext = primaryControl;
+        var termsheetId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var body = {
+            "termsheetId": termsheetId
+        }
+        var confirmStrings = {
+            text: "Do you want to continue?",
+            title: "Submit TermSheet",
+            confirmButtonLabel: "OK",
+            cancelButtonLabel: "Cancel"
+        };
+        var dialogOptions = {
+            height: 200,
+            width: 450
+        };
+        var crb_approvalstatus;
+        var crb_approvaltype;
+        // await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_termsheet_task($select=crb_termsheetid)&$filter=(crb_approvaltype eq 1 and _regardingobjectid_value eq '" + termsheetId + "' )").then(
+        await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_termsheet_task($select=crb_termsheetid)&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and _regardingobjectid_value eq '" + termsheetId + "')").then(
+            //await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_termsheet_Tasks($select=crb_termsheetId)&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and _regardingobjectid_value eq '" + termsheetId + "')").then(
+            function success(results) {
+                console.log(results);
+                for (var i = 0; i < results.entities.length; i++) {
+                    var result = results.entities[i];
+                    // Columns
+                    var activityid = result["activityid"]; // Guid
+                    crb_approvalstatus = result["crb_approvalstatus"]; // Choice
+                    var crb_approvalstatus_formatted = result["crb_approvalstatus@OData.Community.Display.V1.FormattedValue"];
+                    crb_approvaltype = result["crb_approvaltype"]; // Choice
+                    var crb_approvaltype_formatted = result["crb_approvaltype@OData.Community.Display.V1.FormattedValue"];
+                    /*
+                    // Many To One Relationships
+                    if (result.hasOwnProperty("regardingobjectid_crb_termsheet_Tasks") && result["regardingobjectid_crb_termsheet_Tasks"] !== null) {
+                        var regardingobjectid_crb_termsheet_Tasks_crb_termsheetId = result["regardingobjectid_crb_termsheet_Tasks"]["crb_termsheetId"]; // Guid
+                    } */
+
+                    // Many To One Relationships
+                    if (result.hasOwnProperty("regardingobjectid_crb_termsheet_task") && result["regardingobjectid_crb_termsheet_task"] !== null) {
+                        var regardingobjectid_crb_termsheet_task_crb_termsheetid = result["regardingobjectid_crb_termsheet_task"]["crb_termsheetid"]; // Guid
+                    }
+                }
+                if (crb_approvaltype === 1 && crb_approvalstatus === null) {
+                    var alertStrings = {
+                        confirmButtonLabel: "Ok",
+                        text: "Finance team has not Reviewed",
+                        title: "Alert"
+                    };
+                    var alertOptions = {
+                        height: 120,
+                        width: 260
+                    };
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                        function (success) {
+                            //console.log("Alert dialog closed");
+                        },
+                        function (error) {
+                            // console.log(error.message);
+                        });
+                } else if (crb_approvaltype !== 1 && crb_approvalstatus !== null) {
+                    var alertStrings = {
+                        confirmButtonLabel: "Ok",
+                        text: "Please submit for Finance team before submitting to Sales team",
+                        title: "Alert"
+                    };
+                    var alertOptions = {
+                        height: 120,
+                        width: 260
+                    };
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                        function (success) {
+                            //console.log("Alert dialog closed");
+                        },
+                        function (error) {
+                            // console.log(error.message);
+                        });
+                } else if (crb_approvaltype === 2 && crb_approvalstatus === null) {
+                    var alertStrings = {
+                        confirmButtonLabel: "Ok",
+                        text: "There is already pending task with Sales Team ",
+                        title: "Alert"
+                    };
+                    var alertOptions = {
+                        height: 120,
+                        width: 260
+                    };
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                        function (success) {
+                            //console.log("Alert dialog closed");
+                        },
+                        function (error) {
+                            // console.log(error.message);
+                        });
+                } else {
+                    Xrm.Navigation.openConfirmDialog(confirmStrings, dialogOptions, null).then(
+                        async function (success) {
+                            if (success.confirmed) {
+                                console.log("Alert dialog closed");
+                                formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.submitTo).setValue(1);
+                                formContext.data.entity.save();
+                                Xrm.Navigation.openAlertDialog("Termsheet task created Sucessfully.");
+                                CRB.CRM.PJ.TermSheets.makeFieldsReadOnly(primaryControl);
+                            }
+                            // Handle OK button action here
+                        },
+                        function (error) {
+                            console.log(error.message);
+                            Xrm.Navigation.openAlertDialog("Termsheet Task Failed." + error.message);
+                        }
+                    );
+                }
+            },
+            function (error) {
+                console.log(error.message);
+                // Handle Cancel button action here
+            }
+        );
+    },
+
+    makeFieldsReadOnly: async function (context) {
+        var formContext = context; //primaryControl or executioncontext.getFormcontext();
+        var termsheet = formContext.data.entity.getId().replace("{", "").replace("}", "");
+
+        //await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_pricingproposal_task($select=crb_pricingproposalid)&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+        //await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_pricingproposal_task($select=crb_pricingproposalid)&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+        //await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_pricingproposal_task($select=crb_pricingproposalid)&$filter=(crb_approvaltype eq 2 and crb_approvalstatus eq null and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+        await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and crb_approvalstatus eq null and _regardingobjectid_value eq '" + termsheet + "')").then(
+            function success(results) {
+                if (results.entities.length > 0) {
+                    var controls = formContext.ui.controls;
+                    controls.forEach(control => {
+                        if (control.getName() !== "" || control.getName() !== null)
+                            control.setDisabled(true);
+                    })
+                }
+            },
+            function error(err) {
+                console.log(err);
+            })
+
+    },
+
+    hideAndShowSections: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var lob = formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).getValue();
+        if (lob !== null) {
+            if (lob[0].name === this.Attributes.LOV.lineOfBusiness.Payments) {
+                formContext.ui.tabs.get(this.Attributes.Tabs.General).sections.get(this.Attributes.Sections.payment).setVisible(true);
+            }
+            else if (lob[0].name === this.Attributes.LOV.lineOfBusiness.Marketplace_Lending) {
+                formContext.ui.tabs.get(this.Attributes.Tabs.General).sections.get(this.Attributes.Sections.mpl).setVisible(true);
+            }
+            else if (lob[0].name === this.Attributes.LOV.lineOfBusiness.BaaSCards) {
+                formContext.ui.tabs.get(this.Attributes.Tabs.General).sections.get(this.Attributes.Sections.BaasCards).setVisible(true);
+            }
+        }
+
+
+    },
+    UpdateProductNames: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var termSheetId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var products = [];
+        var productFDIC = [];
+
+        await Xrm.WebApi.retrieveRecord("crb_termsheet", termSheetId, "?$select=crb_termsheetid&$expand=crb_termsheet_crb_pricingproposal_crb_pri($select=_crb_productname_value)").then(
+            function success(result) {
+                var crb_termsheetid = result["crb_termsheetid"]; // Guid
+                // Many To Many Relationships
+                for (var j = 0; j < result.crb_termsheet_crb_pricingproposal_crb_pri.length; j++) {
+                    var productName = result.crb_termsheet_crb_pricingproposal_crb_pri[j]["_crb_productname_value@OData.Community.Display.V1.FormattedValue"];
+                    products.push(productName);
+
+                }
+            },
+            function (error) {
+
+            }
+
+        );
+        formContext.getAttribute(this.Attributes.Fields.pts_productnames).setValue(products.join());
+        formContext.getAttribute(this.Attributes.Fields.baas_productnames).setValue(products.join());
+        if (products.includes("ACH Domestic") || products.includes("ACH International")) {
+            formContext.getControl(this.Attributes.Fields.pts_achpertransactioncap).setVisible(true);
+        }
+        if (products.includes("Wires Domestic") || products.includes("Wires International")) {
+            formContext.getControl(this.Attributes.Fields.pts_wiresapipertansactioncap).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.pts_wiresnonapipertransactioncap).setVisible(true);
+        }
+
+        var lob = formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).getValue();
+        var oppportunity = formContext.getAttribute(this.Attributes.Fields.opportunity).getValue();
+        if (oppportunity === null || oppportunity === undefined) {
+            return;
+        }
+        if (lob === null || lob === undefined) {
+            return;
+        }
+        if (lob[0].name === this.Attributes.LOV.lineOfBusiness.Marketplace_Lending) {
+            await Xrm.WebApi.retrieveRecord("opportunity", oppportunity[0].id, "?$select=opportunityid&$expand=crb_Opportunity_Opportunity_crb_product($select=_crb_lineofbusiness_value,crb_standarardizedproductfidc)").then(
+                function success(result) {
+                    // Columns
+                    var opportunityid = result["opportunityid"];
+                    for (var j = 0; j < result.crb_Opportunity_Opportunity_crb_product.length; j++) {
+                        var lobValue = result.crb_Opportunity_Opportunity_crb_product[j]["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+                        var standarardizedproductfidc = result.crb_Opportunity_Opportunity_crb_product[j]["crb_standarardizedproductfidc"]; // Text
+
+                        if (lobValue === CRB.CRM.PJ.TermSheets.Attributes.LOV.lineOfBusiness.Marketplace_Lending) {
+                            productFDIC.push(standarardizedproductfidc);
+                        }
+
+
+                    }
+                },
+                function (error) {
+                }
+            );
+            formContext.getAttribute(this.Attributes.Fields.mpl_productnames).setValue(productFDIC.join());
+        }
+    },
+    CallTemplateAPI: async function (primaryControl) {
+        var formContext = primaryControl;
+        //    var personaldocumenttemplateid;
+        //    var value;
+        //    var value1;
+        var objectTypeCode;
+        //	var globalContext = Xrm.Utility.getGlobalContext().getClientUrl();
+        //	var termsheetId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        //	var opportunityId = formContext.getAttribute(this.Attributes.Fields.opportunity).getValue()[0].id.replace("{", "").replace("}", "");
+        //    console.log(opportunityId);
+        //     //Added for POC
+        //    var lob = formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).getValue();
+        //	var lobName = lob[0].name + " " + "TermSheet";
+        //	if (lob !== null) {
+        //    await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 20").then((result) => {
+        //        value = result.entities[0]["crb_value"];
+        //    })
+        //    await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 19").then((result) => {
+        //        value1 = result.entities[0]["crb_value"];
+        //        configurationId = result.entities[0]["crb_configurationid"];
+        //    })
+        //		await Xrm.WebApi.retrieveMultipleRecords("personaldocumenttemplate", "?$select=personaldocumenttemplateid&$filter=name eq '" + lobName + "' &$top=1").then((results) => {
+        //			personaldocumenttemplateid = results.entities[0]["personaldocumenttemplateid"]
+        //		})
+        var lob = formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).getValue();
+        try {
+            var lobName = lob[0].name + " " + "TermSheet";
+            Xrm.Utility.showProgressIndicator("Exporting" + " " + lobName + " Document" + ".....");
+            formContext = primaryControl;
+            objectTypeCode = await this.getObjectTypeCodeByName(formContext);
+            objectTypeCode = objectTypeCode.toString();
+            formContext.getAttribute(this.Attributes.Fields.entityTypeCode).setValue(objectTypeCode);
+            Xrm.Utility.closeProgressIndicator();
+            formContext.data.entity.save();
+            Xrm.Navigation.openAlertDialog(lobName + " " + "Generated Sucessfully.");
+
+
+        } catch (error) {
+            console.log(error.message);
+            Xrm.Utility.closeProgressIndicator();
+            Xrm.Navigation.openAlertDialog(lobName + " " + "Generation Failed." + " " + error.message);
+        }
+
+        //		var body = {
+        //			"termSheetId": termsheetId,
+        //			"templateId": personaldocumenttemplateid,
+        //            "scope": globalContext,
+        //            "value": value1,
+        //            "opportunity":opportunityId,
+        //            "configId": configurationId,
+        //            "entityCode": objectTypeCode
+        //		}
+        //		var url = value;
+        //		var req = new XMLHttpRequest();
+        //		req.open("POST", url, true);
+        //		req.setRequestHeader('Content-Type', 'application/json');
+        //        //req.setRequestHeader('Authorization', 'bearer');
+        //		req.send(JSON.stringify(body));
+        //		req.onreadystatechange = function() {
+        //			if (this.readyState === 4) {
+        //				if (this.status === 202) {
+        //					Xrm.Navigation.openAlertDialog(lobName + " " + "Generated Sucessfully.");
+        //				} else {
+        //                    Xrm.Utility.closeProgressIndicator();
+        //					Xrm.Navigation.openAlertDialog(lobName + " " + "Generation Failed." +" "+this.status);
+        //				}
+        //			}
+        //		};
+        //	}
+
+    },
+    getObjectTypeCodeByName: function (formContext) {
+        return new Promise((resolve, reject) => {
+            //var formContext = executionContext.getFormContext();
+            var globalContext = Xrm.Utility.getGlobalContext().getClientUrl();
+            var entityName = formContext.data.entity.getEntityName();
+            var entityLogicalName = entityName;
+            var requestUrl = "/api/data/v9.2/EntityDefinitions?$filter=LogicalName eq '" + entityLogicalName + "'&$select=ObjectTypeCode";
+            var req = new XMLHttpRequest();
+            req.open("GET", globalContext + requestUrl, true);
+            req.setRequestHeader("OData-MaxVersion", "4.0");
+            req.setRequestHeader("OData-Version", "4.0");
+            req.setRequestHeader("Accept", "application/json");
+            req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+            req.onreadystatechange = function () {
+                if (this.readyState === 4) {
+                    req.onreadystatechange = null;
+                    if (this.status === 200) {
+                        var result = JSON.parse(this.response);
+                        var objectTypeCode = result.value[0].ObjectTypeCode;
+                        resolve(objectTypeCode);
+                        //alert(objectTypeCode);
+                    } else {
+                        var errorText = this.responseText;
+                        reject(errorText);
+                        //handle error here
+                    }
+                }
+            };
+            req.send();
+        })
+    },
+    onStatuschange: async function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var status = formContext.getAttribute(this.Attributes.Fields.status).getValue();
+        var termsheetId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var statusList = [1,2]
+        if (statusList.includes(status)) {
+            Xrm.Navigation.openAlertDialog(
+                "Status change not allowed."
+            ).then(
+                function (success) {  
+                },
+                function (error) {
+                });
+            var previousStatusValue = null;
+            await Xrm.WebApi.retrieveRecord("crb_termsheet",termsheetId, "?$select=crb_termsheetstatus").then(
+                function success(result) {
+                    previousStatusValue = result["crb_termsheetstatus"];
+                },
+                function(error) {
+                }
+            );
+            formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.status).setValue(previousStatusValue)
+            
+        }
+        
+    },
+    SetTermSheetTitle: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var termSheetSignature = formContext.getAttribute(this.Attributes.Fields.termSheetSingnature).getValue();
+        if (termSheetSignature !== null && termSheetSignature !== undefined) {
+            termSheetSignature = termSheetSignature[0].id.slice(1, -1);
+            Xrm.WebApi.retrieveRecord("contact", termSheetSignature, "?$select=salutation").then(
+                function success(result) {
+                    console.log(result);
+                    var salutation = result["salutation"];
+                    if (salutation) {
+                        formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.termSheetSignatureTitle).setValue(salutation);
+                    }
+                    else {
+                        Xrm.Navigation.openAlertDialog({
+                            confirmButtonLabel: "Ok",
+                            text: "Contact title is not available.",
+                            title: "Alert"
+                        });
+                    }
+
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+        }
+        else if (termSheetSignature === null) {
+            formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.termSheetSignatureTitle).setValue(null);
+        }
+    },
+    SetMplTitle: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var mplSignature = formContext.getAttribute(this.Attributes.Fields.mplSingnature).getValue();
+        if (mplSignature !== null && mplSignature !== undefined) {
+            mplSignature = mplSignature[0].id.slice(1, -1);
+            Xrm.WebApi.retrieveRecord("contact", mplSignature, "?$select=salutation").then(
+                function success(result) {
+                    console.log(result);
+                    var salutation = result["salutation"];
+                    if (salutation) {
+                        formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.MplSingnatureTitle).setValue(salutation);
+                    }
+                    else {
+                        Xrm.Navigation.openAlertDialog({
+                            confirmButtonLabel: "Ok",
+                            text: "Contact title is not available.",
+                        });
+                    }
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+        }
+        else if (mplSignature === null) {
+            formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.MplSingnatureTitle).setValue(null);
+        }
+    },
+    SetPaymentTitle: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var paymentSignature = formContext.getAttribute(this.Attributes.Fields.payementSingnature).getValue();
+        if(paymentSignature !== null && paymentSignature !== undefined){
+            paymentSignature = paymentSignature[0].id.slice(1, -1);
+            Xrm.WebApi.retrieveRecord("contact", paymentSignature, "?$select=salutation").then(
+                function success(result) {
+                    console.log(result);
+                    var salutation = result["salutation"];
+                    if (salutation) {
+                        formContext.getAttribute(CRB.CRM.PJ.TermSheets.Attributes.Fields.paymentSignatureTitle).setValue(salutation);
+                    }
+                    else {
+                        Xrm.Navigation.openAlertDialog({
+                            confirmButtonLabel: "Ok",
+                            text: "Contact title is not available.",
+                        });
+                    }
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+
+        }
+    }
+
+}
