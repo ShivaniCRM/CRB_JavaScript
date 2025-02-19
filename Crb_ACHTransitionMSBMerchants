@@ -1,0 +1,133 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.ACHTransactionsMSBMerchants = CRB.CRM.PJ.ACHTransactionsMSBMerchants || {};
+CRB.CRM.PJ.ACHTransactionsMSBMerchants = {
+	Attributes: {
+		Fields: {
+            name: "crb_name",
+			productName: "crb_productname",
+            minTransactionCount :"crb_mintransactioncount",
+            maxTransactionCount : "crb_maxtransactioncount",
+            sameDayAchsSurcharge : "crb_samedayachsurcharge",
+            laterSettlementWindowSurcharge : "crb_latersettlementwindowsurcharge",
+            standardAchFeePerTransmsbCustomers : "crb_standardachfeepertransmsbcustomers",
+            pricingProposal : "crb_pricingproposal"
+		},
+		Sections: {},
+		Tabs: {},
+		LOV: {
+            lineOfBusiness: {
+                BaaSCards: "BaaS/Cards",
+                Marketplace_Lending: "Marketplace Lending",
+                Payments: "Payments",
+            },
+            ProductNameLOV: {
+                AchDomestic: "ACH Domestic",
+                AchInternational: "ACH International",
+                MerchantAcquiring: "Merchant Acquiring",
+                PushToCard: "Push to Card",
+            },
+        }
+	},
+	onLoadOfACHTransactionsMSBMerchants: function (executionContext)
+	{
+        "use strict";
+		var formContext = executionContext.getFormContext();
+		this.showAndHideFields(executionContext);
+        this.settingSoftDefaultValues(executionContext);
+	},
+	onSaveOfACHTransactionsMSBMerchants: function (executionContext)
+	{
+        "use strict";
+		var formContext = executionContext.getFormContext();
+	},
+	showAndHideFields: async function (executionContext){
+        "use strict";
+		var formContext = executionContext.getFormContext();
+        var lineofbusinessValue = "";
+        var productnameValue = "";
+        var describesyourbusiness = "";
+        var pricingProposal =  formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+        if(pricingProposal === undefined){
+            return;
+        }
+
+        var pricingProposalId = pricingProposal[0].id;
+        if(pricingProposalId === null){
+            return;
+        }
+        await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$select=crb_pricingproposalid&$expand=crb_ProductToPricingProposalId($select=_crb_lineofbusiness_value,_crb_productname_value,crb_describesyourbusiness)").then(
+            function success(result) {
+                if (result.hasOwnProperty("crb_ProductToPricingProposalId") && result["crb_ProductToPricingProposalId"] !== null) {
+                    lineofbusinessValue = result["crb_ProductToPricingProposalId"]["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+                    productnameValue = result["crb_ProductToPricingProposalId"]["_crb_productname_value@OData.Community.Display.V1.FormattedValue"];
+                    describesyourbusiness = result["crb_ProductToPricingProposalId"]["crb_describesyourbusiness"]	;
+                }
+            },
+            function(error) {
+            }
+        );
+        //Checking for Line of buisness is payment, Product name is ACH domestic and Buisness desciption contains MSB
+        if(lineofbusinessValue === this.Attributes.LOV.lineOfBusiness.Payments){
+            if(productnameValue === this.Attributes.LOV.ProductNameLOV.AchDomestic && (describesyourbusiness.match(/5/) || describesyourbusiness.match(/6/) 	)) // 5:MSB (Money Services Business) registered with FinCen  and 6:MSB (Money Services Business) registered with Foreign authority
+            {
+                formContext.getControl(this.Attributes.Fields.productName).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.minTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.maxTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.laterSettlementWindowSurcharge).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.sameDayAchsSurcharge).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.standardAchFeePerTransmsbCustomers).setVisible(true);
+            }
+        }
+    },
+    settingSoftDefaultValues: async function (executionContext){
+        "use strict";
+        var formContext = executionContext.getFormContext();
+
+        if (formContext.ui.getFormType() === 1)
+        {
+            var value;
+            var valueJson;
+            
+            await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 11").then((result)=>{
+                value = result.entities[0]["crb_value"];
+                valueJson = JSON.parse(value);
+            })
+
+           
+            if( formContext.getAttribute(this.Attributes.Fields.minTransactionCount).getValue()=== null){
+                formContext.getAttribute(this.Attributes.Fields.minTransactionCount).setValue(valueJson["MinimumTransactionCount"]);
+            }
+            if( formContext.getAttribute(this.Attributes.Fields.maxTransactionCount).getValue()=== null){
+                formContext.getAttribute(this.Attributes.Fields.maxTransactionCount).setValue(valueJson["MaximumTransactionCount"]);
+            }
+            if( formContext.getAttribute(this.Attributes.Fields.standardAchFeePerTransmsbCustomers).getValue()=== null){
+                formContext.getAttribute(this.Attributes.Fields.standardAchFeePerTransmsbCustomers).setValue(valueJson["FeePerTransactionMSBCustomers"]);
+            }
+            if( formContext.getAttribute(this.Attributes.Fields.laterSettlementWindowSurcharge).getValue()=== null){
+                formContext.getAttribute(this.Attributes.Fields.laterSettlementWindowSurcharge).setValue(valueJson["LaterSettlementWindowSurcharge"]);
+            }
+            if( formContext.getAttribute(this.Attributes.Fields.sameDayAchsSurcharge).getValue()=== null){
+                formContext.getAttribute(this.Attributes.Fields.sameDayAchsSurcharge).setValue(valueJson["SameDayACHSurchargeVolume"]);
+            }
+            if (formContext.getAttribute(this.Attributes.Fields.productName).getValue() === null)
+			{
+				var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+				if (pricingProposal !== null)
+				{
+					await Xrm.WebApi.retrieveRecord(pricingProposal[0].entityType, pricingProposal[0].id, "?$select=_crb_productname_value").then((result) => {
+						var productName = [
+						{
+							id: result["_crb_productname_value"],
+							name: result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"],
+							entityType: result["_crb_productname_value@Microsoft.Dynamics.CRM.lookuplogicalname"]}]
+						formContext.getAttribute(this.Attributes.Fields.name).setValue(result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"]);
+						formContext.getAttribute(this.Attributes.Fields.productName).setValue(productName);
+					})
+				}
+			}
+           
+      } // end of form type checking
+    }
+}
