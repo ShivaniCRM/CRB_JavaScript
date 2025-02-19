@@ -1,0 +1,71 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Collateral = CRB.CRM.PJ.Collateral || {};
+CRB.CRM.PJ.Collateral = {
+	Attributes: {
+		Fields: {
+            name:"crb_name",
+            productName:"crb_productname",
+            originationTierFrom:"crb_originationtierfrom",
+            originationTierTo:"crb_originationtierto",
+            collateralPercentage:"crb_collateralpercentage",
+            pricingProposal:"crb_pricingproposal",
+		},
+		Sections: {},
+		Tabs: {},
+		LOV: {}
+	},
+	onLoadOfCollateral: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+        this.settingSoftDefaultValues(executionContext);
+		
+	},
+	onSaveOfCollateral: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		
+    },
+   settingSoftDefaultValues: async function (executionContext)
+   {
+        var formContext = executionContext.getFormContext();
+
+        if (formContext.ui.getFormType() === 1)
+        {
+        var value;
+        var valueJson;
+        
+            await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 3").then((result)=>{
+                value = result.entities[0]["crb_value"];
+                valueJson = JSON.parse(value);
+        })
+        
+        //Xrm.Utility.showProgressIndicator();
+			if (formContext.getAttribute(this.Attributes.Fields.productName).getValue() === null)
+			{
+				var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+				if (pricingProposal != null)
+				{
+					await Xrm.WebApi.retrieveRecord(pricingProposal[0].entityType, pricingProposal[0].id, "?$select=_crb_productname_value").then((result) => {
+						var productName = [
+						{
+							id: result["_crb_productname_value"],
+							name: result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"],
+							entityType: result["_crb_productname_value@Microsoft.Dynamics.CRM.lookuplogicalname"]}]
+						formContext.getAttribute(this.Attributes.Fields.name).setValue(result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"]);
+						formContext.getAttribute(this.Attributes.Fields.productName).setValue(productName);
+					})
+				}
+			}
+        //Xrm.Utility.closeProgressIndicator();
+        if(formContext.getAttribute(this.Attributes.Fields.originationTierFrom).getValue() === null){
+            formContext.getAttribute(this.Attributes.Fields.originationTierFrom).setValue(valueJson["OriginationTierFrom"]);
+        }
+        if(formContext.getAttribute(this.Attributes.Fields.collateralPercentage).getValue() === null){
+            formContext.getAttribute(this.Attributes.Fields.collateralPercentage).setValue(valueJson["CollateralPercentage"]);
+        }
+        if(formContext.getAttribute(this.Attributes.Fields.originationTierTo).getValue() === null){
+            formContext.getAttribute(this.Attributes.Fields.originationTierTo).setValue(valueJson["OriginationTierTo"]);
+        }
+      } // end of form type checking
+    }
+}
