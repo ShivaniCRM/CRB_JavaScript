@@ -1,0 +1,1410 @@
+//Sprint 3
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.PricingProposal = CRB.CRM.PJ.PricingProposal || {};
+CRB.CRM.PJ.PricingProposal = {
+	Attributes: {
+		PricingProposalStatus: "crb_pricingproposalstatus",
+        ProductDiscountFee :"crb_programdiscountfee",
+        EarlyDirectDepositAccess: "crb_earlydirectdepositaccess1",
+		sponsorshipType: "crb_sponsorshiptype",
+		ProductName: "crb_productname",
+		CheckDepositLockbox: "crb_checkdepositlockbox",
+		CheckClearing: "crb_checkclearing",
+		OTSFeeCheck: "crb_otsfeecheck",
+		PMFCheck: "crb_pmfcheck",
+		PTFCheck: "crb_ptfcheck",
+		pts_productnames: "crb_pts_productnames",
+		pts_achpertransactioncap: "crb_pts_achpertransactioncap",
+		pts_wiresapipertansactioncap: "crb_pts_wiresapipertansactioncap",
+		pts_wiresnonapipertransactioncap: "crb_pts_wiresnonapipertransactioncap",
+        childEntityRecordValueModified: "crb_childentityrecordfieldsmodified",
+        submitTo: "crb_submitto"
+
+	},
+	TabName: {
+		General: "Pricing Information",
+		Collateral: "Collateral",
+		MonthlyLoans: "MonthlyLoans",
+		MonthlyMinimumFee: "MonthlyMinimumFee",
+		ProgramFee: "ProgramFee",
+		RequestforInformation: "RequestforInformation",
+		PaymentTransactionCount: "Payment Transaction Count",
+		PaymentTransactionVolume: "Payment Transaction Volume",
+		MonthlyFeesForExceedingSLAs: "MonthlyFeesForExceedingSLAs",
+		ACHTransactionsDomesticMSBMerchants: "ACHTransactionsDomesticMSBMerchants",
+		DepositRate: "DepositRate",
+		DebitCardsMonthlyFees: "DebitCardsMonthlyFees",
+		MonthlyCardFees: "Monthly Card Fees",
+
+	},
+	ProductNameLOV: {
+		AchDomestic: "ACH Domestic",
+		ConsumerSavingsAccount: "Consumer Savings Account",
+		ConsumerCheckingAccount: "Consumer Checking Account",
+		CommercialCheckingAccount: "Commercial Checking Account",
+		ConsumerCreditCard: "Consumer Credit Card",
+		CommercialCreditCard: "Commercial Credit Card",
+	},
+	Section: {
+		MPL: "mpl",
+		PaymentsWires: "paymentswires",
+		PaymentsAch: "paymentsach",
+		ProgramSetUpFee: "programSetUpFee",
+		SaasProgramFee: "saasProgramFee",
+		PrimaryAccountFees: "primaryAccountFees",
+		OtherFees: "otherFees",
+		MonthlyTransactionFeeDomestic: "Monthly Transaction Fee--Domestic",
+		MonthlyTransactionFeeDomestictoaUSBasedcorrespondentofaForeignBank: "Monthly Transaction Fee--Domestic to a US-Based correspondent of a Foreign Bank",
+		OtherWireFeeCharges: "Other Wire Fee Charges ",
+		OtherSaaSPerItemFees: "OtherSaaSPerItemFee",
+		AdditionalCharges: "Additional_Charges",
+		SaaSPerItemFees: "saasPerItemFee",
+		AdditionalAccountFeatureFees: "Additional Account Feature Fees",
+		CustomerSetupFees: "Customer Setup Fees",
+		CardSetupFees: "Card Setup Fees",
+		ParticipatingInstitutionSetupFees: "Participating Institution Setup Fees",
+		VolumeBasedMonthlyFees: "Volume Based Monthly Fees",
+		//ProgramSetupFee: "ProgramSetupFee",
+		XPAYProgramFee: "XPAY Program Fee",
+		Chargebackfees: "Chargeback_fees",
+		Requestforinformation: "Request_for_information",
+		ProgramFee: "Program Fee",
+		MonthlyFeesforexceedingSLAson60dayACHReturnRate: "MonthlyFeesforexceedingSLAson60dayACHReturnRate",
+		MonthlyLoans: "Monthly Loans",
+		MonthlyCardFees: "Monthly Card Fees",
+		PaymentTransactionCount: "PaymentTransactionCount",
+		PaymentTransactionVolume: "PaymentTransactionVolume",
+		DebitCardMonthlyFees: "DebitCardMonthlyFees",
+		DepositRate: "DepositRate",
+        MonthlyMinimumFee: "MonthlyMinimumFee",
+        Collateral: "Collateral",
+	},
+	onLoadOfPricingProposal: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		this.showOrHideSections(executionContext);
+        this.HideandShowPaymentSections(executionContext);
+        CRB.CRM.PJ.PricingProposal.makeFieldsReadOnly(formContext,2);
+        CRB.CRM.PJ.PricingProposal.makeFieldsReadOnly(formContext,1);
+		//this.showOrHideTabs(executionContext);
+		//this.showTabsUsingConfig(executionContext);
+		//this.showTabsUsingConfigWithComplexties(executionContext);
+	},
+	onSaveOfPricingProposal: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		this.onPricingProposalStatusChange(executionContext);
+		this.onSaveDisablePricingproposalForm(executionContext);
+	},
+	showOrHideSections: async function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var pricingProposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+		//alert(pricingProposalId);
+		var featureName = null;
+		var mobileDepositeCapture = null;
+		var describesyourbusiness;
+		var willYouRequireBinSponshership = null;
+        var interestedInSweepsFeature = null;
+		await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$expand=crb_ProductToPricingProposalId($select=_crb_features_value,crb_linkedmobiledepositcapture,crb_requirebinsponsorship,crb_sweepsfeatureproduct)").then(
+			function success(result) {
+				console.log(result);
+				// Columns
+				var crb_pricingproposalid = result["crb_pricingproposalid"]; // Guid
+				// Many To One Relationships
+				if (result.hasOwnProperty("crb_ProductToPricingProposalId") && result["crb_ProductToPricingProposalId"] !== null) {
+					var crb_ProductToPricingProposalId_crb_features = result["crb_ProductToPricingProposalId"]["_crb_features_value"]; // Lookup
+					var crb_ProductToPricingProposalId_crb_features_formatted = result["crb_ProductToPricingProposalId"]["_crb_features_value@OData.Community.Display.V1.FormattedValue"];
+					var crb_ProductToPricingProposalId_crb_features_lookuplogicalname = result["crb_ProductToPricingProposalId"]["_crb_features_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+					var crb_ProductToPricingProposalId_crb_linkedmobiledepositcapture = result["crb_ProductToPricingProposalId"]["crb_linkedmobiledepositcapture"]; // Choice
+					var crb_ProductToPricingProposalId_crb_linkedmobiledepositcapture_formatted = result["crb_ProductToPricingProposalId"]["crb_linkedmobiledepositcapture@OData.Community.Display.V1.FormattedValue"];
+
+					featureName = result["crb_ProductToPricingProposalId"]["_crb_features_value@OData.Community.Display.V1.FormattedValue"];
+					mobileDepositeCapture = result["crb_ProductToPricingProposalId"]["crb_linkedmobiledepositcapture"];
+					willYouRequireBinSponshership = result["crb_ProductToPricingProposalId"]["crb_requirebinsponsorship"];
+                    interestedInSweepsFeature = result["crb_ProductToPricingProposalId"]["crb_sweepsfeatureproduct"];
+				}
+			},
+			function (error) {
+				console.log(error.message);
+			}
+		);
+		var productName = formContext.getAttribute(this.Attributes.ProductName).getValue();
+		//Baas/Cards start
+		//Only for Additonal Account Features Fees section we are hiding all the fields by default and showing them based on condintions
+		if (productName[0].name === "Commercial Checking Account") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+            formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			// if (mobileDepositeCapture === 1) {
+			// 	formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+			// 	formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+			// 	formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			// }
+
+			if ((featureName === null || featureName === undefined) && (willYouRequireBinSponshership === null || willYouRequireBinSponshership === undefined) && (interestedInSweepsFeature === null || interestedInSweepsFeature === undefined) && (mobileDepositeCapture === null || mobileDepositeCapture === undefined) ) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+
+				//formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			}
+
+			if (featureName === "Debit Card") {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+
+			if (featureName === "Mobile Deposit Capture" || mobileDepositeCapture === 1) {
+                
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+
+				//child tables start
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+				////child tables end
+                
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+			// if (featureName === "BIN Sponsorship") {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			// }
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+			
+			if (featureName === "Sweeps" || interestedInSweepsFeature === 1) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ParticipatingInstitutionSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.VolumeBasedMonthlyFees).setVisible(true);
+			}
+		}
+		if (productName[0].name === "Commercial Savings Account") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+            formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			// if (mobileDepositeCapture === 1) {
+			// 	formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+			// 	formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+			// 	formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			// }
+
+			if ((featureName === null || featureName === undefined) && (willYouRequireBinSponshership === null || willYouRequireBinSponshership === undefined) && (interestedInSweepsFeature === null || interestedInSweepsFeature === undefined) && (mobileDepositeCapture === null || mobileDepositeCapture === undefined) ) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+
+				//formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			}
+
+			if (featureName === "Debit Card") {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+
+			if (featureName === "Mobile Deposit Capture" || mobileDepositeCapture === 1) {
+                
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+
+				//child tables start
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+				////child tables end
+                
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+			// if (featureName === "BIN Sponsorship") {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			// }
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+			
+			if (featureName === "Sweeps" || interestedInSweepsFeature === 1) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ParticipatingInstitutionSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.VolumeBasedMonthlyFees).setVisible(true);
+			}
+		}
+		if (productName[0].name === "Consumer Checking Account") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+            formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			// if (mobileDepositeCapture === 1) {
+			// 	formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+			// 	formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+			// 	formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			// }
+
+			if ((featureName === null || featureName === undefined) && (willYouRequireBinSponshership === null || willYouRequireBinSponshership === undefined) && (interestedInSweepsFeature === null || interestedInSweepsFeature === undefined) && (mobileDepositeCapture === null || mobileDepositeCapture === undefined) ) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+
+				//formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			}
+
+			if (featureName === "Debit Card") {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+
+			if (featureName === "Mobile Deposit Capture" || mobileDepositeCapture === 1) {
+                
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+
+				//child tables start
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+				////child tables end
+                
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+			// if (featureName === "BIN Sponsorship") {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			// }
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+			
+			if (featureName === "Sweeps" || interestedInSweepsFeature === 1) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ParticipatingInstitutionSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.VolumeBasedMonthlyFees).setVisible(true);
+			}
+		}
+		if (productName[0].name === "Consumer Savings Account") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+            formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			// if (mobileDepositeCapture === 1) {
+			// 	formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+			// 	formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+			// 	formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+			// 	formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			// }
+
+			if ((featureName === null || featureName === undefined) && (willYouRequireBinSponshership === null || willYouRequireBinSponshership === undefined) && (interestedInSweepsFeature === null || interestedInSweepsFeature === undefined) && (mobileDepositeCapture === null || mobileDepositeCapture === undefined) ) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+
+				//formContext.getControl(this.Attributes.EarlyDirectDepositAccess).setVisible(true);
+			}
+
+			if (featureName === "Debit Card") {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+
+			if (featureName === "Mobile Deposit Capture" || mobileDepositeCapture === 1) {
+                
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+
+				//child tables start
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DebitCardMonthlyFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.DepositRate).setVisible(true);
+				////child tables end
+                
+				formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+				formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+			// if (featureName === "BIN Sponsorship") {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			// }
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+			
+			if (featureName === "Sweeps" || interestedInSweepsFeature === 1) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ParticipatingInstitutionSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.VolumeBasedMonthlyFees).setVisible(true);
+			}
+		}
+		if (productName[0].name === "Commercial Charge Card") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+		}
+		if (productName[0].name === "Commercial Credit Card") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+		}
+
+		if (productName[0].name === "Consumer Charge Card") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+		}
+
+		if (productName[0].name === "Consumer Credit Card") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			if(featureName === "Sweeps" || interestedInSweepsFeature === 1){
+				formContext.getControl(this.Attributes.ProductDiscountFee).setVisible(false);
+			}
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			if(featureName !== "Sweeps" && interestedInSweepsFeature !== 1)
+            	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyMinimumFee).setVisible(true);
+
+			// if (willYouRequireBinSponshership === 1) {
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+			// 	formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+			// }
+			if (featureName === "BIN Sponsorship" || willYouRequireBinSponshership === 1) {
+				//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CustomerSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.CardSetupFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+				formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyCardFees).setVisible(true);
+			}
+
+		}
+		if (featureName === "Debit Card") {
+			formContext.getControl(this.Attributes.CheckDepositLockbox).setVisible(true);
+			formContext.getControl(this.Attributes.CheckClearing).setVisible(true);
+			if (mobileDepositeCapture === 1) {
+				formContext.getControl(this.Attributes.OTSFeeCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PMFCheck).setVisible(true);
+				formContext.getControl(this.Attributes.PTFCheck).setVisible(true);
+			}
+		}
+		//Baas/Cards end
+		//if (productName[0].name === "Consumer Checking Account") {
+		// 	if (featureName === null || (featureName !== "BIN Sponsorship" && featureName !== "Sweeps")) {
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.AdditionalAccountFeatureFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+		// 	}
+		// }
+		// if (productName[0].name === "Consumer Savings Account") {
+		// 	if (featureName === null || (featureName !== "BIN Sponsorship" && featureName !== "Sweeps")) {
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.AdditionalAccountFeatureFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+		// 	}
+		// }
+		// if (productName[0].name === "Commercial Checking Account") {
+		// 	if (featureName === null || (featureName !== "BIN Sponsorship" && featureName !== "Sweeps")) {
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.AdditionalAccountFeatureFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+		// 	}
+		// }
+		// if (productName[0].name === "Commercial Savings Account") {
+		// 	if (featureName === null || (featureName !== "BIN Sponsorship" && featureName !== "Sweeps")) {
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.AdditionalAccountFeatureFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+		// 		formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+		// 	}
+		// }
+		if (productName[0].name === "Wires Domestic" || productName[0].name === "Wires International") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyTransactionFeeDomestic).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyTransactionFeeDomestictoaUSBasedcorrespondentofaForeignBank).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherWireFeeCharges).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.Requestforinformation).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+		}
+		if (productName[0].name === "ACH International") {
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionCount).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionVolume).setVisible(true);
+			await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$select=crb_pricingproposalid&$expand=crb_ProductToPricingProposalId($select=crb_describesyourbusiness)").then(
+
+				function success(result) {
+					if (result.hasOwnProperty("crb_ProductToPricingProposalId") && result["crb_ProductToPricingProposalId"] !== null) {
+						describesyourbusiness = result["crb_ProductToPricingProposalId"]["crb_describesyourbusiness"]; // Choices
+						//alert(describesyourbusiness);
+						if (describesyourbusiness.match(/5/) || describesyourbusiness.match(/6/)) {
+							formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentsAch).setVisible(true);
+							formContext.ui.tabs.get(this.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentTransactionCount).setVisible(true);
+							formContext.ui.tabs.get(this.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentTransactionVolume).setVisible(true);
+						}
+					}
+				},);
+		}
+		if (productName[0].name === "ACH Domestic") {
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionCount).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionVolume).setVisible(true);
+			await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$select=crb_pricingproposalid&$expand=crb_ProductToPricingProposalId($select=crb_describesyourbusiness)").then(
+
+				function success(result) {
+					if (result.hasOwnProperty("crb_ProductToPricingProposalId") && result["crb_ProductToPricingProposalId"] !== null) {
+						describesyourbusiness = result["crb_ProductToPricingProposalId"]["crb_describesyourbusiness"]; // Choices
+						//alert(describesyourbusiness);
+						if (describesyourbusiness.match(/5/) || describesyourbusiness.match(/6/)) {
+							formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentsAch).setVisible(true);
+							formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.MonthlyFeesforexceedingSLAson60dayACHReturnRate).setVisible(true);
+							formContext.ui.tabs.get(this.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentTransactionCount).setVisible(true);
+							//formContext.ui.tabs.get(this.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentTransactionVolume).setVisible(true);
+						}
+					}
+				},);
+		}
+		if (productName[0].name === "RTP") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+            formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionCount).setVisible(true);
+		}
+		if (productName[0].name === "FedNow") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+            formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionCount).setVisible(true);
+		}
+		if (productName[0].name === "Xpay") {
+            formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.XPAYProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PrimaryAccountFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentTransactionCount).setVisible(true);
+			formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.General).sections.get(CRB.CRM.PJ.PricingProposal.Section.PaymentTransactionVolume).setVisible(true);
+		}
+		if (productName[0].name === "Push to Card") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.OtherSaaSPerItemFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.AdditionalCharges).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaaSPerItemFees).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetUpFee).setVisible(true);
+            formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+            formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionCount).setVisible(true);
+            formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.PaymentTransactionVolume).setVisible(true);
+		}
+		if (productName[0].name === "Merchant Acquiring") {
+            formContext.getControl(this.Attributes.sponsorshipType).setVisible(true);
+			var keys = [this.Section.SaasProgramFee, this.Section.Chargebackfees, this.Section.ProgramSetUpFee]
+			this.ShowSection(formContext, keys); 
+			//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.SaasProgramFee).setVisible(true);
+			//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.Chargebackfees).setVisible(true);
+			//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramSetupFee).setVisible(true);
+		}
+		if (productName[0].name === "Commercial Loan" || productName[0].name === "Consumer Installment Loan" || productName[0].name === "Consumer Line of Credit") {
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MPL).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.MonthlyLoans).setVisible(true);
+            formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.Collateral).setVisible(true);
+			//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.ParticipatingInstitutionSetupFees).setVisible(true);
+			//formContext.ui.tabs.get(this.TabName.General).sections.get(this.Section.VolumeBasedMonthlyFees).setVisible(true);
+		}
+	},
+	showOrHideTabs: async function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var x = formContext.ui.tabs.get()
+		var pricingProposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+		var productName = formContext.getAttribute(this.Attributes.ProductName).getValue();
+		if (productName[0].name === "Wires Domestic" || productName[0].name === "Wires International") {
+			formContext.ui.tabs.get(this.TabName.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.RequestforInformation).setVisible(true);
+		}
+		if (productName[0].name === "ACH Domestic" || productName[0].name === "ACH International") {
+			formContext.ui.tabs.get(this.TabName.ProgramFee).setVisible(true);
+		}
+		if (productName[0].name === "RTP") {
+			formContext.ui.tabs.get(this.TabName.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionCount).setVisible(true);
+		}
+		if (productName[0].name === "FedNow") {
+			formContext.ui.tabs.get(this.TabName.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionCount).setVisible(true);
+		}
+		if (productName[0].name === "Xpay") {
+			formContext.ui.tabs.get(this.TabName.ProgramFee).setVisible(true);
+		}
+		if (productName[0].name === "Push to Card") {
+			formContext.ui.tabs.get(this.TabName.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionVolume).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionCount).setVisible(true);
+		}
+		if (productName[0].name === "Merchant Acquiring") {
+			formContext.getControl(this.Attributes.sponsorshipType).setVisible(true); //sponsorship type is a field
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionCount).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionVolume).setVisible(true);
+		}
+		if (productName[0].name === "Commercial Loan" || productName[0].name === "Consumer Installment Loan" || productName[0].name === "Consumer Line of Credit") {
+			formContext.ui.tabs.get(this.TabName.ProgramFee).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.MonthlyLoans).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.Collateral).setVisible(true);
+		}
+		if (productName[0].name === "ACH Domestic") {
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionCount).setVisible(true);
+			formContext.ui.tabs.get(this.TabName.PaymentTransactionVolume).setVisible(true);
+			await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$expand=crb_ProductToPricingProposalId($select=crb_describesyourbusiness)").then(
+
+				function success(result) {
+					var crb_pricingproposalid = result["crb_pricingproposalid"];
+					if (result.hasOwnProperty("crb_ProductToPricingProposalId") && result["crb_ProductToPricingProposalId"] !== null) {
+						describesyourbusiness = result["crb_ProductToPricingProposalId"]["crb_describesyourbusiness"];
+						if (describesyourbusiness.match(/5/) || describesyourbusiness.match(/6/)) {
+							formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.MonthlyFeesForExceedingSLAs).setVisible(true);
+						}
+					}
+				},);
+		}
+	},
+	//Sprint 3
+	// Pricing Proposal status change display alert
+	onPricingProposalStatusChange: async function (executionContext) {
+		"use strict";
+		const formContext = executionContext.getFormContext();
+		var subStatus = formContext.getAttribute("crb_pricingproposalstatus").getValue();
+		formContext.ui.clearFormNotification();
+		if (subStatus === 5) {
+			var pricingProposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+			await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=subject,statecode&$filter=_regardingobjectid_value eq '" + pricingProposalId + "'").then(function success(result) {
+				if (result !== null && result.entities.length > 0) {
+					for (var i = 0; i < result.entities.length; i++) {
+						var taskstatus = result.entities[i]["statecode"];
+						if (taskstatus !== 1) {
+							formContext.getAttribute("crb_pricingproposalstatus").setValue(null);
+							var alertStrings = {
+								confirmButtonLabel: "Ok",
+								text: "There are still pending tasks open. You need to close them before you can set the sub status as complete.",
+								title: "Alert"
+							};
+							var alertOptions = {
+								height: 120,
+								width: 260
+							};
+							Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+
+								function (success) { },
+
+								function (error) {
+									//console.log(error.message);
+								});
+							break;
+						}
+					}
+				}
+			},
+
+				function (error) {
+					// console.log(error.message);
+				});
+		}
+	},
+	showTabsUsingConfig: async function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var json;
+		await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 1110").then(
+			(result) => {
+				json = result.entities[0]["crb_value"];
+			})
+		var product = formContext.getAttribute("crb_productname").getValue();
+		var productName = product[0].name;
+		json = JSON.parse(json);
+		var tabSchemaNames = json[productName];
+		tabSchemaNames.forEach((val) => {
+			formContext.ui.tabs.get(val).setVisible(true);
+		})
+	},
+    HideandShowPaymentSections: function (executionContext) {
+	"use strict";
+        var formContext = executionContext.getFormContext();
+        var product = formContext.getAttribute(this.Attributes.ProductName).getValue();
+        if (product !== null && product[0].name === "Merchant Acquiring") {
+            var sponserShipType = formContext.getAttribute(this.Attributes.sponsorshipType).getValue();
+            if (sponserShipType !== null && (sponserShipType === 1 || sponserShipType === 2)) {
+                var keys = [this.Section.PaymentTransactionCount, this.Section.PaymentTransactionVolume]
+                this.ShowSection(formContext, keys);
+            }
+            else{
+                var keys = [this.Section.PaymentTransactionCount, this.Section.PaymentTransactionVolume]
+                this.HideSection(formContext, keys);
+            }
+        }
+    },
+	ShowSection: function (formContext,keys) {
+        
+		for (i = 0; i < keys.length; i++) {
+			var sec = keys[i];
+			if (sec !== null) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(sec).setVisible(true);
+			}
+		}
+	},
+    HideSection: function (formContext,keys) {
+        
+		for (i = 0; i < keys.length; i++) {
+			var sec = keys[i];
+			if (sec !== null) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(sec).setVisible(false);
+			}
+		}
+	},
+	showTabsUsingConfigWithComplexties: async function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var productName = formContext.getAttribute(this.Attributes.ProductName).getValue();
+		var pricingProposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+		var willyourequirebinsponshership = null;
+		var describesyourbusiness = null;
+		await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$expand=crb_ProductToPricingProposalId($select=crb_describesyourbusiness,crb_requirebinsponsorship)").then(
+			function success(result) {
+				var crb_pricingproposalid = result["crb_pricingproposalid"];
+				if (result.hasOwnProperty("crb_ProductToPricingProposalId") && result["crb_ProductToPricingProposalId"] !== null) {
+					describesyourbusiness = result["crb_ProductToPricingProposalId"]["crb_describesyourbusiness"];
+					willyourequirebinsponshership = result["crb_ProductToPricingProposalId"]["crb_requirebinsponsorship"];
+				}
+			},);
+		if (productName[0].name === this.ProductNameLOV.AchDomestic) {
+			if (describesyourbusiness.match(/5/) || describesyourbusiness.match(/6/)) {
+				formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.MonthlyFeesForExceedingSLAs).setVisible(true);
+				formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.ACHTransactionsDomesticMSBMerchants).setVisible(true);
+				formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.ProgramFee).setVisible(false);
+				formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.PaymentTransactionVolume).setVisible(true);
+			}
+		}
+		if (productName[0].name === this.ProductNameLOV.ConsumerSavingsAccount || productName[0].name === this.ProductNameLOV.ConsumerCheckingAccount || productName[0].name === this.ProductNameLOV.CommercialCheckingAccount) {
+			await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$expand=crb_ProductToPricingProposalId($select=_crb_features_value)").then(
+				function success(result) {
+					console.log("here");
+					var crb_pricingproposalid = result["crb_pricingproposalid"];
+
+					var feature = result["crb_ProductToPricingProposalId"]["_crb_features_value@OData.Community.Display.V1.FormattedValue"];
+					if (feature === "Debit Card") {
+						formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.DepositRate).setVisible(true);
+						formContext.ui.tabs.get(CRB.CRM.PJ.PricingProposal.TabName.DebitCardsMonthlyFees).setVisible(true);
+					}
+
+				},);
+		}
+		if (productName[0].name === this.ProductNameLOV.ConsumerCreditCard || productName[0].name === this.ProductNameLOV.CommercialCreditCard) {
+			if (willyourequirebinsponshership === 1) {
+				formContext.ui.tabs.get(this.TabName.MonthlyCardFees).setVisible(true);
+			}
+
+		}
+	},
+	onSaveDisablePricingproposalForm: function (executionContext) {
+		"use strict";
+		let formContext = executionContext.getFormContext();
+		let formControls = formContext.ui.controls;
+		var pricingproposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+		var crb_approvalstatus;
+		var crb_approvaltype;
+		Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$filter=(crb_approvaltype eq 2 and crb_approvalstatus eq 3 and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+			function success(results) {
+				console.log(results);
+				for (var i = 0; i < results.entities.length; i++) {
+					var result = results.entities[i];
+					var activityid = result["activityid"]; // Guid
+					crb_approvalstatus = result["crb_approvalstatus"]; // Choice
+					crb_approvaltype = result["crb_approvaltype"]; // Choice
+					var crb_approvalstatus_formatted = result["crb_approvalstatus@OData.Community.Display.V1.FormattedValue"];
+					var crb_approvaltype_formatted = result["crb_approvaltype@OData.Community.Display.V1.FormattedValue"];
+				}
+				if ((crb_approvalstatus === 3 && crb_approvaltype === 2)||(crb_approvalstatus === 1 && crb_approvaltype === 1)) {
+					formControls.forEach(control => {
+						if (control.getName() !== "" && control.getName() !== null) {
+							control.setDisabled(true);
+						}
+					});
+
+				}
+			},
+
+			function (error) {
+				console.log(error.message);
+			}
+		);
+
+	},
+	showandhidefields: function (executionContext) {
+		var formContext = executionContext.getformContext();
+
+		var productnames = formContext.getAttribute(this.Attributes.pts_productnames).getValue();
+		if (productnames.includes("ACH Domestic") || productnames.includes("ACH International")) {
+			formContext.getControl(this.Attributes.pts_achpertransactioncap).setVisible(true);
+		}
+		if (productnames.includes("Wires Domestic") || productnames.includes("Wires International")) {
+			formContext.getControl(this.Attributes.pts_wiresapipertansactioncap).setVisible(true);
+			formContext.getControl(this.Attributes.pts_wiresnonapipertransactioncap).setVisible(true);
+		}
+	},
+	AlertMessageForSubmitForFinance: async function (primaryControl) {
+		"use strict";
+		var value;
+		var formContext = primaryControl;
+		var pricingproposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+		var body = {
+			"pricingproposalId": pricingproposalId
+		};
+		var confirmStrings = {
+			text: "Do you want to continue ?",
+			title: "Submit Pricing Proposal",
+			confirmButtonLabel: "OK",
+			cancelButtonLabel: "Cancel"
+		};
+		var dialogOptions = {
+			height: 200,
+			width: 450
+		};
+		var crb_approvalstatus;
+		await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_pricingproposal_task($select=crb_pricingproposalid)&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+			function success(results) {
+				console.log(results);
+				for (var i = 0; i < results.entities.length; i++) {
+					var result = results.entities[i];
+					// Columns
+					var activityid = result["activityid"]; // Guid
+					var crb_approvalstatus = result["crb_approvalstatus"]; // Choice
+					var crb_approvalstatus_formatted = result["crb_approvalstatus@OData.Community.Display.V1.FormattedValue"];
+					var crb_approvaltype = result["crb_approvaltype"]; // Choice
+					var crb_approvaltype_formatted = result["crb_approvaltype@OData.Community.Display.V1.FormattedValue"];
+
+					// Many To One Relationships
+					if (result.hasOwnProperty("regardingobjectid_crb_pricingproposal_task") && result["regardingobjectid_crb_pricingproposal_task"] !== null) {
+						var regardingobjectid_crb_pricingproposal_task_crb_pricingproposalid = result["regardingobjectid_crb_pricingproposal_task"]["crb_pricingproposalid"]; // Guid
+					}
+				}
+				if (crb_approvaltype === 1 && crb_approvalstatus === null) {
+					var alertStrings = { confirmButtonLabel: "Ok", text: "There is already pending task with Finance Team ", title: "Alert" };
+					var alertOptions = { height: 120, width: 260 };
+					Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+						function (success) {
+							//console.log("Alert dialog closed");
+						},
+						function (error) {
+							// console.log(error.message);
+						});
+				}
+				else {
+					Xrm.Navigation.openConfirmDialog(confirmStrings, dialogOptions, null).then(
+						async function (success) {
+							if (success.confirmed) {
+								console.log("Alert dialog closed");
+//								await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 25").then((result) => {
+//									value = result.entities[0]["crb_value"];
+//								})
+//								var url = value;
+//								var req = new XMLHttpRequest();
+//								req.open("POST", url, true);
+//								req.setRequestHeader('Content-Type', 'application/json');
+//								req.send(JSON.stringify(body));
+//								req.onreadystatechange = function () {
+//									if (this.readyState === 4) {
+//										if (this.status === 202) {
+//                                            
+//											Xrm.Navigation.openAlertDialog("Pricing Proposal Task created sucessfully.");
+//                                            var controls = formContext.ui.controls;
+//											controls.forEach(control => {
+//												if (control.getName() !== "" || control.getName() !== null)
+//													control.setDisabled(true);
+//											})
+//
+//										} else {
+//											Xrm.Navigation.openAlertDialog("Pricing Proposal Task Failed.");
+//										}
+//									}
+//								}
+                                formContext.getAttribute(CRB.CRM.PJ.PricingProposal.Attributes.submitTo).setValue(2);
+                                formContext.data.entity.save();
+                                Xrm.Navigation.openAlertDialog("Pricing Proposal task created Sucessfully.");
+                                CRB.CRM.PJ.PricingProposal.makeFieldsReadOnly(primaryControl);
+							}
+							// Handle OK button action here
+						},
+						function (error) {
+							console.log(error.message);
+                            Xrm.Navigation.openAlertDialog("Pricingproposal Task Failed." + error.message);
+							// Handle Cancel button action here
+						}
+					);
+
+				}
+			}
+		);
+	},
+
+	AlertMessageForSubmitforSalesTeam: async function (primaryControl) {
+		"use strict";
+		var value;
+		var formContext = primaryControl;
+		var pricingproposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");   
+		var crb_approvalstatus;
+        var crb_approvaltype;
+        
+        //await formContext.data.entity.save();
+        
+        Xrm.Utility.showProgressIndicator();
+        
+		await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_pricingproposal_task($select=crb_pricingproposalid)&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+			function success(results) {
+                Xrm.Utility.closeProgressIndicator();
+				//console.log(results);
+				for (var i = 0; i < results.entities.length; i++) {
+					var result = results.entities[i];
+					// Columns
+					var activityid = result["activityid"]; // Guid
+					crb_approvalstatus = result["crb_approvalstatus"]; // Choice
+					var crb_approvalstatus_formatted = result["crb_approvalstatus@OData.Community.Display.V1.FormattedValue"];
+					crb_approvaltype = result["crb_approvaltype"]; // Choice
+					var crb_approvaltype_formatted = result["crb_approvaltype@OData.Community.Display.V1.FormattedValue"];
+
+					// Many To One Relationships
+					if (result.hasOwnProperty("regardingobjectid_crb_pricingproposal_task") && result["regardingobjectid_crb_pricingproposal_task"] !== null) {
+						var regardingobjectid_crb_pricingproposal_task_crb_pricingproposalid = result["regardingobjectid_crb_pricingproposal_task"]["crb_pricingproposalid"]; // Guid
+					}
+				}
+				if (crb_approvaltype === 1 && crb_approvalstatus === null) {
+					var alertStrings = { confirmButtonLabel: "Ok", text: "Finance team has not Reviewed", title: "Alert" };
+					var alertOptions = { height: 120, width: 260 };
+					Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+						function (success) {
+							//console.log("Alert dialog closed");
+						},
+						function (error) {
+							// console.log(error.message);
+						});
+				}
+                else if (crb_approvaltype !== 1 &&  crb_approvalstatus !== null) {
+				var alertStrings = { confirmButtonLabel: "Ok", text: "Please submit for Finance team before submitting to Sales team", title: "Alert" };
+				var alertOptions = { height: 120, width: 260 };
+				Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+					function (success) {
+						//console.log("Alert dialog closed");
+					},
+					function (error) {
+						// console.log(error.message);
+					});
+                }
+				else if (crb_approvaltype === 2 && crb_approvalstatus === null) {
+					var alertStrings = { confirmButtonLabel: "Ok", text: "There is already pending task with Sales Team ", title: "Alert" };
+					var alertOptions = { height: 120, width: 260 };
+					Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+						function (success) {
+							//console.log("Alert dialog closed");
+						},
+						function (error) {
+							// console.log(error.message);
+						});
+				}
+				else {
+					CRB.CRM.PJ.PricingProposal.checkIfSoftDefaultsValuesAreChanged(primaryControl);
+					// var pricingproposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+					// var body = {
+					// 	"pricingproposalId": pricingproposalId
+					// }
+					// var confirmStrings = {
+					// 	text: "Do you want to continue ?",
+					// 	title: "Submit For Pricing Proposal",
+					// 	confirmButtonLabel: "OK",
+					// 	cancelButtonLabel: "Cancel"
+					// };
+					// var dialogOptions = {
+					// 	height: 200,
+					// 	width: 450
+					// };
+					// Xrm.Navigation.openConfirmDialog(confirmStrings, dialogOptions, null).then(
+					// 	async function (success) {
+					// 		if (success.confirmed) {
+					// 			console.log("Alert dialog closed");
+					// 			await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 60").then((result) => {
+					// 				value = result.entities[0]["crb_value"];
+					// 			})
+					// 			var url = value;
+					// 			var req = new XMLHttpRequest();
+					// 			req.open("POST", url, true);
+					// 			req.setRequestHeader('Content-Type', 'application/json');
+					// 			req.send(JSON.stringify(body));
+					// 			req.onreadystatechange = function () {
+					// 				if (this.readyState === 4) {
+					// 					if (this.status === 202) {
+					// 						Xrm.Navigation.openAlertDialog("Pricing Proposal Task Sent Sucessfully.");
+
+					// 					} else {
+					// 						Xrm.Navigation.openAlertDialog("Pricing Proposal Task Failed.");
+					// 					}
+					// 				}
+					// 			}
+					// 		}
+					// 		// Handle OK button action here
+					// 	},
+					// 	function (error) {
+					// 		console.log(error.message);
+					// 		// Handle Cancel button action here
+					// 	}
+					// );
+				}
+			},
+			function (error) {
+                Xrm.Utility.closeProgressIndicator();
+				console.log(error.message);
+			}
+		);
+
+	},
+	checkIfSoftDefaultsValuesAreChanged: async function (primaryControl) {
+		//var formContext = executionContext.getFormContext();
+		var formContext = primaryControl;
+		var valueJson = null;
+        
+         Xrm.Utility.showProgressIndicator();
+         
+		await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 18").then((result) => {
+			var value = result.entities[0]["crb_value"];
+			valueJson = JSON.parse(value);
+		})
+        
+        var flag = false;
+
+		if (valueJson !== null) {
+			Object.entries(valueJson).forEach(([key, value]) => {
+				var field = formContext.getAttribute(key);
+				
+				if (field !== null) {
+					if (field.getValue() !== null && field.getValue() !== value) {
+						flag = true;
+					}
+				}
+			})
+		}
+        
+        Xrm.Utility.closeProgressIndicator();
+
+		if (flag) {
+			//show confirm to ask to create approval task as soft values changed or not
+			var confirmStrings = {
+				text: "Do you want to continue ?",
+				title: "Submit Pricing Proposal",
+				confirmButtonLabel: "OK",
+				cancelButtonLabel: "Cancel"
+			};
+
+			var dialogOptions = {
+				height: 200,
+				width: 450
+			};
+
+			Xrm.Navigation.openConfirmDialog(confirmStrings, dialogOptions, null).then(
+				async function (success) {
+					if (success.confirmed) {
+						//create task
+						// Handle OK button action here
+						//Xrm.Navigation.openAlertDialog("Need to create Task");
+						//var pricingproposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+						/*var body = {
+							"pricingproposalId": pricingproposalId
+						}*/
+                        
+                        Xrm.Utility.showProgressIndicator();
+                        
+						/*await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 60").then((result) => {
+							value = result.entities[0]["crb_value"];
+						})*/
+                        
+                        
+                        
+						//var url = value;
+						try{
+                           //var message = await CRB.CRM.PJ.PricingProposal.sendRequest(url, body);
+                            Xrm.Utility.closeProgressIndicator();
+                            Xrm.Navigation.openAlertDialog("Pricing Proposal task created Sucessfully.");
+                            formContext.getAttribute(CRB.CRM.PJ.PricingProposal.Attributes.submitTo).setValue(1);
+                            //Xrm.Navigation.openAlertDialog(message);
+							var controls = formContext.ui.controls;
+							controls.forEach(control => {
+								if (control.getName() !== "" || control.getName() !== null)
+									control.setDisabled(true);
+							})
+                            await formContext.data.entity.save();
+						}
+						catch(error){
+							Xrm.Navigation.openAlertDialog(error);
+						}
+					}
+					else {
+						// Handle CANCEL button action here
+						//Xrm.Navigation.openAlertDialog("Task is not being created");
+
+					}
+
+				},
+				function (error) {
+                    console.log(error.message);
+                    Xrm.Navigation.openAlertDialog("Pricing Proposal Task Failed." + error.message);
+				}
+			);
+		}
+		else {
+			//
+			Xrm.Utility.alertDialog("No Approval required");
+		}
+
+	},
+    sendRequest: function(url, body) {
+		return new Promise((resolve, reject) => {
+			var req = new XMLHttpRequest();
+			req.open("POST", url, true);
+			req.setRequestHeader('Content-Type', 'application/json');
+			req.send(JSON.stringify(body));
+			req.onloadend = function () {
+				Xrm.Utility.closeProgressIndicator();
+				if(this.status === 202){
+					resolve("Pricing Proposal Task Sent Successfully.");
+				}
+				else {
+					reject("Pricing Proposal Task Failed.");
+				}
+			}
+		});
+	},
+	makeFieldsReadOnly: async function (context,approvaltypevalue) {
+        var formContext = context; //primaryControl or executioncontext.getFormcontext();
+        var pricingproposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+		await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_pricingproposal_task($select=crb_pricingproposalid)&$filter=(crb_approvaltype eq "+approvaltypevalue+" and crb_approvalstatus eq null and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+			function success(results) {
+				if (results.entities.length > 0) {
+					var controls = formContext.ui.controls;
+					controls.forEach(control => {
+						if (control.getName() !== "" || control.getName() !== null)
+							control.setDisabled(true);
+					})
+				}
+			},
+			function error(err) {
+				console.log(err);
+			})
+
+	},
+	makeSubGridsReadOnly: async function (context) {
+		var formContext = context.getFormContext();		//we ll get coontext of subgrid record we selected
+		var subgridSelectedRecordId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+
+		var pageContext = Xrm.Utility.getPageContext();
+		var pricingproposalId = pageContext.input.entityId;
+		Xrm.Utility.showProgressIndicator();
+		await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$expand=regardingobjectid_crb_pricingproposal_task($select=crb_pricingproposalid)&$filter=(crb_approvaltype eq 2 and crb_approvalstatus eq null and _regardingobjectid_value eq '" + pricingproposalId + "')").then(
+			function success(results) {
+				Xrm.Utility.closeProgressIndicator();
+				if (results.entities.length > 0) {
+					var eventContext = context;
+					eventContext.getEventSource().attributes.forEach(function (attr) {
+						attr.controls.forEach(function (myField) {
+							myField.setDisabled(true);
+						});
+					});
+				}
+			},
+			function error(err) {
+				Xrm.Utility.closeProgressIndicator();
+				console.log(err);
+			})
+	},
+    onStatuschange: async function (executionContext) {
+    "use strict";
+    var formContext = executionContext.getFormContext();
+    var status = formContext.getAttribute(this.Attributes.PricingProposalStatus).getValue();
+    var pricingProposalId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+    if (status !== 5) {
+        Xrm.Navigation.openAlertDialog(
+            "This feature is not enabled until the Partner Portal is functional. In the meantime, please change the sub-status to Pricing Proposal Completed."
+        ).then(
+            function (success) {  
+            },
+            function (error) {
+            });
+        var previousStatusValue = null;
+        await Xrm.WebApi.retrieveRecord("crb_pricingproposal",pricingProposalId, "?$select=crb_pricingproposalstatus").then(
+            function success(result) {
+                previousStatusValue = result["crb_pricingproposalstatus"];
+            },
+            function(error) {
+            }
+        );
+        formContext.getAttribute(CRB.CRM.PJ.PricingProposal.Attributes.PricingProposalStatus).setValue(previousStatusValue)
+        
+    }
+    
+}
+
+}	
+			
+async function showHideTabs(executionContext) {
+	"use strict";
+	var formContext = executionContext.getFormContext();
+	var product = formContext.getAttribute("crb_productname").getValue();
+	var productName = product[0].name;
+	var value;
+	var tabSchemaNames;
+	var tabSchemaName;
+	if (product !== null) {
+		await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_name eq '" + productName + "'").then((result) => {
+			value = result.entities[0]["crb_value"];
+			var tabarraynames = JSON.parse(value);
+			//tabSchemaNames = value.split(',');
+			for (var i = 0; i < tabarraynames.length; i++) {
+				tabSchemaName = tabarraynames[i];
+				formContext.ui.tabs.get(tabSchemaName).setVisible(true);
+			}
+		});
+	}
+}
+
+
+
+	
