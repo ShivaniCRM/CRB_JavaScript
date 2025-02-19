@@ -1,0 +1,92 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Intake = CRB.CRM.PJ.Intake || {};
+CRB.CRM.PJ.Intake = {
+    Attributes: {
+        Intake: {
+            legalEntityName: "crb_name",
+            doingBusinessAs: "crb_dba",
+            taxID: "crb_taxid",
+            businessPhoneNumber: "crb_telephone1",
+            businessEmailAddress: "crb_emailaddress",
+            website: "crb_websiteurl",
+            industry: "crb_industry",
+            numberOfEmployees: "crb_numberofemployees",
+            numberOfLocations: "crb_numberoflocations",
+            numberOfSubsidiaries: "crb_numberofsubsidiaries",
+            opportunity: "crb_opportunity",
+            companyDescription: "crb_companydescription",
+            productDescription: "crb_productdescription",
+            doesCompanyHaveAParentCompany: "crb_doescompanyhaveaparentcompany",
+            parentCompanyNote: "crb_parentcompnaynote",
+            companyEngagedInABankingRelationship: "crb_companyengagedinbankingrelationship",
+            bankingRelationshipNote: "crb_bankingrelationshipnote",
+            companyMaintainStateLendingLicenses: "crb_doescompanymaintainlicenses",
+            stateLendingLicensesNote: "crb_statelendinglicensesnote",
+            chiefComplianceOfficerorUtilizeACMS: "crb_chiefcomplianceofficerorutilize",
+            chiefComplianceOfficerNote: "crb_chiefcomplianceofficernote",
+            doesCompanyHaveAnAMLPolicyorEquivalent: "crb_doesyourcompanyhaveamlpolicyorequivalent",
+            AMLPolicyOthers: "crb_amlpolicyothers",
+            overviewOfTeamIvestorsandFunding: "crb_overviewofteaminvestorfunding",
+            flowOfFunds: "crb_flowoffunds",
+            comment: "crb_intakeflowcomment",
+            businessAddressLine1: "crb_addressline1",
+            businessAddressLine2: "crb_addressline2",
+            city: "crb_city",
+            country: "crb_country",
+            state: "crb_state",
+            stateOther: "crb_stateother",
+            zip: "crb_zipcode"
+        },
+    },
+    TabName: {
+        intakeTab: "Tab_Intake"
+    },
+    Section: {
+        companyOverview: "Section_Company_Overview",
+        companyDetails: "Tab_Intake_section_Company Information_Details",
+        businessAddress: "Tab_Intake_section_Business",
+        timeline: "Tab_Intake_section_4"
+    },
+    onLoadOfTask: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+    },
+    onSaveTask: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+    },
+     updatePartner: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var updatepartner = formContext.getAttribute("crb_updatepartner").getValue();
+        if(updatepartner === true)
+        {
+        var alertStrings = { confirmButtonLabel: "Okay", text: "By switching this toggle to “Yes” you will be automatically updating any matching fields on the Partner Record.", title: "Partner Update Alert" };
+        var alertOptions = { height: 250, width: 260 };
+        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+        function (success) {
+            //console.log("Alert dialog closed");
+            },
+        function (error) {
+            //console.log(error.message);
+            }
+        );
+        }
+     }
+//    validatePhoneNumber: function (executionContext) {
+//  "use strict";
+//        var formContext = executionContext.getFormContext();
+//        var fieldText = formContext.getAttribute(this.Attributes.Intake.businessPhoneNumber).getValue();
+//        if (fieldText === null) return;
+//        if (!fieldText.match("^[0-9]*$")) {
+//            formContext.getControl(this.Attributes.Intake.businessPhoneNumber).setNotification("Please enter only Numbers", 102);
+//            return false;
+//        }
+//        else {
+//            formContext.getControl(this.Attributes.Intake.businessPhoneNumber).clearNotification(102);
+//            return true;
+//        }
+//    }
+}
