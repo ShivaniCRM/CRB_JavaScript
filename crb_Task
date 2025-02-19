@@ -1,0 +1,934 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Task = CRB.CRM.PJ.Task || {};
+CRB.CRM.PJ.Task = {
+    Attributes: {
+        Task: {
+            taskType: "crb_tasktypecode",
+            taskSubType: "crb_tasksubtype",
+            whenWasTheDocumentSubmitted: "crb_whenwasthedocumentsubmitted",
+            subject: "subject",
+            comments: "description",
+            sharepointLink :"crb_sharepointlink",
+            productName: "crb_productname",
+            approver1: "crb_approver1",
+            approver2: "crb_approver2",
+            documentSubType: "crb_documentsubtype",
+            approvalType: "crb_approvaltype",
+            approvalStatus: "crb_approvalstatus",
+            regarding: "regardingobjectid",
+            priority: "prioritycode",
+            due: "scheduledend",
+            activityStatus: "statecode",
+            owner: "ownerid",
+	        upload: "crb_upload",
+            location: "crb_location",
+            communcation : "crb_communicationid",
+            SaveAndSendEmail : "crb_saveandsendemail",
+            DateofReview: "crb_dateofreview",
+            AssessmentOfUnderwritingModels: "crb_assessmentofunderwritingmodels",
+            ModelName: "crb_modelname",
+            Summary: "crb_summary",
+            SecondLineShouldReceiveUpdatesOnTHisProcess: "crb_secondlineshouldreceiveupdatesonthisprocess",
+            PleaseSpecify: "crb_pleasespecify",
+            NotApplicable:"crb_notapplicable",
+            partnerName:"crb_partnername",
+            formName: "crb_formname",
+            ciqForm:"crb_ciqform",
+            requesttype : "crb_requesttype",
+			documentupload: "crb_documentupload",
+			vrolridrequestform : "crb_vrolridrequestform",
+            requestform: "crb_requestform",
+            duediligencetype: "crb_duediligencetype",
+            implementationtype: "crb_implementationtype",
+            requestTypeMA:"crb_requesttype1",
+            confirmationnumber : "crb_confirmationnumber",
+            ddmemosharepointLink:"crb_ddmemosharepointurl",
+            documentsent: "crb_documentssent",
+            documenttype:"crb_documenttype",
+            emailReference: "crb_emailreference",
+            opportunity: "crb_opportunitytaskview"
+        },
+    },
+    TabName: {
+        Task: "TASK_TAB"
+    },
+    Section: {
+        Task: "TASK",
+        taskDetails: "task details"
+    },
+    SubGrids:{
+        AssessmentOfUnderwritingModels: "Assessment_Of_Underwriting_Models",
+    },
+    LOV: {
+       //taskType: {
+           // Internal: 1,
+           // External: 2,
+          //  ApprovalTask: 3,
+       //s },
+        TaskSubType: {
+            InitialDueDiligence: 2,
+            InitialDueDiligenceFlowActionRequired: 7,
+            IntakeFlow: 1,
+            PricingProposal: 3,
+            AdditionalDocumentRequest: 4,
+            UpdateDocumentRequest: 5,
+            IntakeFlowActionRequired: 6,
+            PricingProposalActionRequired: 8,
+            WalkthroughMeetingRequest: 9,
+            GoLiveRiskChecklist: 10,
+            COSAccountOpening: 11,
+            OperationsTeam: 12,
+            ImplementationTeam: 13,
+            NetworkTeam: 14,
+            TransactionMonitoring: 15,
+            Manager: 16,
+            DueDiligenceMemo: 17,
+            AdHoc: 18,
+            DueDiligence: 19,
+            Implementation: 20,
+            CreditReviewModelAssessment: 21,
+            OversightReminders: 28,
+            DueDiligenceApproval: 29,
+            PreOnboardingApproval: 30,
+            TermSheet: 31,
+        },
+        SecondLineShouldReceiveUpdatesOnTHisProcess: {
+            Yes: true,
+            No: false
+
+        },
+        approvalStatus: {
+            Reviewed: 1,
+            ReviewedWithChanges: 2,
+            Approved: 3,
+            Rejected: 4,
+            Returned: 5,
+            ApprovedWithChanges: 6,
+        },
+        taskType:{
+            Internal:1,
+            External:2,
+            Approval:3,
+        }
+    },
+
+    onLoadOfTask: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.UpdateTaskSubject(executionContext);
+        this.UpdateOpprtunity(executionContext);
+        formContext.getControl(this.Attributes.Task.documentSubType).addPreSearch(CRB.CRM.PJ.Task.AddCustomLookupFilterForDocumentType);
+        this.showHideFields(executionContext);
+	//this.hideExternalTaskType(executionContext);
+        this.hideExternalTaskTypeUsingConfig(executionContext);
+        this.HideAndSHowValuesOnTaskSubType(executionContext);
+        //this.UpdatingOnboaringForComunication(executionContext);
+        this.OnChangeOfTaskTypeInternalAndExternal(executionContext);
+        this.setRegardingFieldUsingCommunication(executionContext);
+        this.showHideCreditReviewModelAssessmentRelatedFields(executionContext);
+        //formContext.getControl(this.Attributes.Task.partnerName).setVisible(false);
+        formContext.getControl(this.Attributes.Task.formName).setVisible(false);
+        formContext.getControl(this.Attributes.Task.ciqForm).setVisible(false);
+        this.HideandShowFieldsOperationTeam(executionContext);
+        this.HideDocumentUpload(executionContext);
+        this.HideandShowImplementFields(executionContext);
+        this.showHideDueDillegence(executionContext);
+        //this.HideandshowfieldsforAmericanExpressTreasuryForm(executionContext);
+        //this.Hideandshowfieldsforinternaloperationtask(executionContext);
+         this.onChangeOfApprovalType(executionContext);
+         this.Hideandshowconfirmationnumberforinternaloperationtask(executionContext);
+         this.AutoPopulateDDMemoSharePointUrl(executionContext);
+         this.ShowAndHideDocumentsSent(executionContext);
+         this.hidefieldforapprovaltask(executionContext);
+         this.showHideEmailReferenceForOversightreminders(executionContext);
+         //formContext.getAttribute(this.Attributes.Task.approvalStatus).addOnChange(this.autocloseofapprovaltask);
+        
+    },
+    onSaveTask: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        //this.autocloseofapprovaltask(executionContext);
+        this.assignRecord(executionContext);
+        //this.UpdateTaskSubject(executionContext);
+       
+    },    
+    
+    onChangeTaskType: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.showHideCreditReviewModelAssessmentRelatedFields(executionContext);
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        this.AutoPopulateDDMemoSharePointUrl(executionContext);
+        this.onChangeOfApprovalType(executionContext)
+        this.hidefieldforapprovaltask(executionContext);
+        this.showHideEmailReferenceForOversightreminders(executionContext);
+        this.OnChangeofTasktypefortitle(executionContext);
+        if (taskType === 2) {
+            var alertStrings = { confirmButtonLabel: "Ok", text: "Please note that selecting this task type means that anything provided in the task, including the comments section, will be visible to our partners on the Partner Portal. Once you click \"Send to Partner\",an email notification will be sent to the partner. If you are not intending to send anything to the partner, please choose a different Task Type.", title: "Alert" };
+            var alertOptions = { height: 300, width: 260 };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                function (success) { },
+                function (error) { }
+            );
+        }
+        else return
+    },
+    onChangeOfTaskSubType: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        
+        this.showHideCreditReviewModelAssessmentRelatedFields(executionContext);
+        this.HideandShowFieldsOperationTeam(executionContext);
+        this.AutoPopulateDDMemoSharePointUrl(executionContext);
+        this.showHideEmailReferenceForOversightreminders(executionContext);
+        //this.Onchangeoftasksubtypeforsubject(executionContext);
+       
+    },
+    onChangeOfApprovalType: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        if (taskType === 3) {
+            //formContext.getControl(this.Attributes.Task.approvalStatus).setVisible(true);
+            var approvalStatusControl = formContext.getControl(this.Attributes.Task.approvalStatus);
+
+            approvalStatusControl.clearOptions();
+
+            var approvalType = formContext.getAttribute(this.Attributes.Task.approvalType).getValue();
+            if (approvalType === 1) {
+                approvalStatusControl.addOption({ value: 3, text: "Approved" });
+                approvalStatusControl.addOption({ value: 1, text: "Reviewed" });
+                approvalStatusControl.addOption({ value: 2, text: "Reviewed with Changes" });
+            }
+            else if (approvalType === 2) {
+                approvalStatusControl.addOption({ value: 3, text: "Approved" });
+                approvalStatusControl.addOption({ value: 6, text: "Approved with Changes" });
+                approvalStatusControl.addOption({ value: 4, text: "Rejected" });
+            }
+            else if (approvalType === 3 || approvalType === 4) {
+                approvalStatusControl.addOption({ value: 3, text: "Approved" });
+                approvalStatusControl.addOption({ value: 5, text: "Returned" });
+                approvalStatusControl.addOption({ value: 4, text: "Rejected" });
+            }
+            else if (approvalType === 5) {
+                approvalStatusControl.addOption({ value: 3, text: "Approved" });
+                approvalStatusControl.addOption({ value: 4, text: "Rejected" });
+            }
+            else if(approvalType === null) {
+                approvalStatusControl.addOption({ value: 3, text: "Approved" });
+                approvalStatusControl.addOption({ value: 4, text: "Rejected" });
+               // approvalStatusControl.addOption({ value: 6, text: "Approved with Changes" });
+                //formContext.getControl(this.Attributes.Task.approvalStatus).setVisible(false);
+            }
+        }
+        else {
+            formContext.getControl(this.Attributes.Task.approvalStatus).setVisible(false);
+        }
+    },
+    sendtoPartner: async function (PrimaryControl) {
+        var formContext = PrimaryControl;
+        var comments = formContext.getAttribute("description").getValue();
+        if (comments != null) {
+            formContext.getAttribute("crb_sendtopartner").setValue(true);
+            formContext.data.entity.save("saveandclose");
+        } else {
+            var alertStrings = { confirmButtonLabel: "Ok", text: "Please fill the Comments field in order to Send to Partner .", title: "Alert" };
+            var alertOptions = { height: 70, width: 160  };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                function (success) { },
+                function (error) { }
+            );
+        }
+
+        /*
+        var TaskId = formContext.data.entity.getId().replace("{", "").replace("}", "");        
+        var value;
+        Xrm.Utility.showProgressIndicator("Sending...");
+        await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 61").then((result) => {
+            value = result.entities[0]["crb_value"];
+        })
+        var url = value;
+        var body = {
+            "taskId": TaskId
+        }
+        var req = new XMLHttpRequest();
+        req.open("POST", url, true);
+        req.setRequestHeader('Content-Type', 'application/json');
+        req.send(JSON.stringify(body));
+        req.onreadystatechange = await function () {
+    
+            if (this.readyState === 4) {
+                if (this.status === 202) {
+                    Xrm.Utility.closeProgressIndicator();
+                    formContext.ui.close();
+                } else {
+                    Xrm.Navigation.openAlertDialog("Sending Failed.");
+                    Xrm.Utility.closeProgressIndicator();
+                }
+            }
+        }
+        */
+    },
+   showHideFields: function (executionContext) {
+    "use strict";
+        var formContext = executionContext.getFormContext();
+        var regardingpp = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.regarding).getValue();
+        if(regardingpp !== null && regardingpp !== undefined){
+            var regEntity = regardingpp[0].entityType;
+            var appType = formContext.getAttribute(this.Attributes.Task.approvalType).getValue();
+            var docLoc = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.location);    
+            if(regEntity === "crb_pricingproposal" && appType === 1 && (docLoc.getValue() === null))
+            {
+            formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.upload).setVisible(true);
+            formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.location).setVisible(false);
+            }
+            else if((docLoc.getValue() !== null)) {
+            formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.upload).setVisible(false);
+            formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.location).setVisible(true);
+            }
+            else {
+            formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.location).setVisible(false);
+            }
+        }
+    },
+    //autocloseofapprovaltask: function (executionContext) {
+    //debugger;
+    //var formContext = executionContext.getFormContext();
+
+   // var approvalstatus = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.approvalStatus).getValue();
+   // if (approvalstatus === 1 || approvalstatus === 3) {
+        
+        //formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.activityStatus).setValue(1);
+        
+        //formContext.data.refresh(true);
+        //formContext.data.entity.save("saveandclose");
+       //}
+       //else{
+        //formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.activityStatus).setValue(0);
+       //}
+    //},
+    HideAndSHowValuesOnTaskSubType: function (executionContext) {
+    "use strict";
+        var formContext = executionContext.getFormContext();
+	var regarding = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.regarding).getValue();
+        if(regarding !== null && regarding !== undefined){
+	var regEntityType = regarding[0].entityType;
+	var taskSubType = formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.taskSubType);
+	 taskSubType.clearOptions();
+            if (regEntityType !== null && regEntityType === "crb_intakeflow") {
+                taskSubType.addOption({ value: 1, text: "Intake Flow" });
+                taskSubType.addOption({ value: 6, text: "Intake Flow Action Required" });
+                taskSubType.addOption({ value: 4, text: "Additional Document Request" });
+                taskSubType.addOption({ value: 5, text: "Updated Document Request" });
+                formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.taskSubType).setVisible(true);
+		}
+            else if (regEntityType !== null && regEntityType === "crb_initialduediligence") {
+                taskSubType.addOption({ value: 2, text: "Initial Due Diligence Flow" });
+                taskSubType.addOption({ value: 7, text: "Initial Due Diligence Flow Action Required" });
+                //taskSubType.addOption({ value: 4, text: "Additional Document Request" });
+                taskSubType.addOption({ value: 5, text: "Updated Document Request" });
+            }
+            else if (regEntityType !== null && regEntityType === "crb_pricingproposal") {
+                taskSubType.addOption({ value: 3, text: "Pricing Proposal" });
+                taskSubType.addOption({ value: 8, text: "Pricing Proposal Action Required" });
+                taskSubType.addOption({ value: 4, text: "Additional Document Request" });
+                taskSubType.addOption({ value: 5, text: "Updated Document Request" });
+            }
+            else if (regEntityType !== null && regEntityType === "opportunity") {
+                taskSubType.addOption({ value: 4, text: "Additional Document Request" });
+                taskSubType.addOption({ value: 5, text: "Updated Document Request" });
+            }
+            else {
+                formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.taskSubType).setVisible(false);
+            }
+        }
+    },
+//Added for INFO-2993 to hide external task until portal is created
+    hideExternalTaskType: function (executionContext) { 
+    "use strict";
+        var formContext = executionContext.getFormContext();      
+            var taskType = formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.taskType);
+            taskType.removeOption(2);
+            
+    },
+    hideExternalTaskTypeUsingConfig:async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var showExternalTask = await CRB.CRM.PJ.Common.showExternal(formContext);
+        if (!showExternalTask) {
+            var taskObj = CRB.CRM.PJ.Task;
+            var taskType = formContext.getControl(taskObj.Attributes.Task.taskType);
+            var taskTypeOptions = taskType.getAttribute().getOptions();
+            taskTypeOptions.forEach((option) => {
+                if (option.value === taskObj.LOV.taskType.External) {
+                    taskType.removeOption(option.value);
+                }
+            })
+        }
+    },
+    UpdatingOnboaringForComunication: function (executionContext) {
+        debugger;
+        var formContext = executionContext.getFormContext();
+        if (formContext.ui.getFormType() !== 1) {
+            var communcationId = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.communcation).getValue()[0].id.replace(/{|}/g, "");
+            if (communcationId) {
+                Xrm.WebApi.retrieveRecord("crb_communication", communcationId, "?$select=_regardingobjectid_value").then(
+                    function success(result) {
+                        var onboardingId = result["_regardingobjectid_value"];
+                        console.log(onboardingId);
+                        Xrm.WebApi.retrieveMultipleRecords("opportunity", "?$select=opportunityid&$filter=_crb_onboarding_value eq '" + onboardingId + "'").then(
+                            function success(results) {
+                                console.log(results);
+                                for (var i = 0; i < results.entities.length; i++) {
+                                    var result = results.entities[0];
+                                    var opportunityid = result["opportunityid"];
+                                    var crb_opportunityName = result["crb_opportunityid"];
+                                    formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.regarding).setValue([{
+                                        id: opportunityid,
+                                        name: crb_opportunityName,
+                                        entityType: "opportunity"
+                                    }]);
+                                }
+                            },
+                            function (error) {
+                                console.log(error.message);
+                            }
+                        );
+                    },
+                    function (error) {
+                        console.log(error.message);
+                    }
+                );
+            }
+        }
+    },
+    assignRecord: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var tasktype = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        if (formContext.ui.getFormType() === 1 && (tasktype === this.LOV.taskType.Internal || tasktype === this.LOV.taskType.Approval)) {
+            let confirmStrings = {
+                cancelButtonLabel: 'Cancel',
+                confirmButtonLabel: 'Assign',
+                subtitle: 'Click Assign to proceed',
+                text: 'Would you like to assign this record to someone?',
+                title: 'Confirmation Dialog'
+            };
+            let confirmOptions = { height: 200, width: 450 };
+
+            Xrm.Navigation.openConfirmDialog(confirmStrings, confirmOptions).then(
+                function (success) {
+                    if (success.confirmed) {
+                        var primaryControlEntityType = formContext.data.entity.getEntityName();
+                        XrmCore.Commands.Assign.assignObject(primaryControlEntityType)
+
+
+                    } else {
+                        //do nothing
+                    }
+                },
+                function (error) {
+                    // handle error conditions
+                    let alertStrings = { confirmButtonLabel: 'Yes', text: 'Internal Error' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                }
+            );
+        }
+
+    },
+    
+    OnChangeOfTaskTypeInternalAndExternal: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        var taskSubtype = formContext.getControl(this.Attributes.Task.taskSubType);
+        taskSubtype.clearOptions();
+        if (taskType !== null && taskType === 1) {
+            formContext.getControl(this.Attributes.Task.taskSubType).setVisible(true);
+            taskSubtype.addOption({ value: 9, text: "Walkthrough/Meeting Request" });
+            taskSubtype.addOption({ value: 10, text: "Go Live Risk Checklist" });
+            taskSubtype.addOption({ value: 12, text: "Operations Team" });
+            taskSubtype.addOption({ value: 13, text: "Implementation Team" });
+            taskSubtype.addOption({ value: 14, text: "Network Team" });
+            taskSubtype.addOption({ value: 16, text: "Manager" });
+            taskSubtype.addOption({ value: 21, text: "Credit Risk-Model Assessment" });
+            taskSubtype.addOption({ value: 22, text: "Document Review" });
+            taskSubtype.addOption({ value: 17, text: "Due Diligence Memo" });
+            taskSubtype.addOption({ value: 18, text: "Ad Hoc" });
+            taskSubtype.addOption({ value: 24, text: "Committee Review" });
+            taskSubtype.addOption({ value: 28, text: "Oversight Reminders" });
+            //formContext.getControl(this.Attributes.Task.DateofReview).setVisible(false);
+        }
+      else if (taskType === 2) {
+//            formContext.getControl(this.Attributes.Task.taskSubType).setVisible(true);
+//            taskSubtype.addOption({ value: 1, text: "Intake Flow" });
+//            taskSubtype.addOption({ value: 2, text: "Initial Due Diligence Flow" });
+//            taskSubtype.addOption({ value: 3, text: "Pricing Proposal" });
+//            taskSubtype.addOption({ value: 4, text: "Additional Document Request" });
+//            taskSubtype.addOption({ value: 5, text: "Updated Document Request" });
+//            taskSubtype.addOption({ value: 6, text: "Intake Flow Action Required" });
+//            taskSubtype.addOption({ value: 7, text: "Initial Due Diligence Flow Action Required" });
+//            taskSubtype.addOption({ value: 8, text: "Pricing Proposal Action Required" });
+//            taskSubtype.addOption({ value: 19, text: "Due Diligence" });
+//            taskSubtype.addOption({ value: 20, text: "Implementation " });
+//           // taskSubtype.addOption({ value: 9, text: "Walkthrough/Meeting Request" });
+            formContext.getControl(this.Attributes.Task.partnerName).setVisible(true);
+               var regarding = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.regarding).getValue();
+            if(regarding !== null && regarding !== undefined){
+                var regEntityType = regarding[0].entityType;
+                formContext.getControl(this.Attributes.Task.taskSubType).setVisible(true);
+
+                if (regEntityType !== null && regEntityType === "crb_intakeflow") {
+                    taskSubtype.addOption({ value: 1, text: "Intake Flow" });
+                    taskSubtype.addOption({ value: 6, text: "Intake Flow Action Required" });
+                    taskSubtype.addOption({ value: 4, text: "Additional Document Request" });
+                    taskSubtype.addOption({ value: 5, text: "Updated Document Request" });
+
+                }
+                else if (regEntityType !== null && regEntityType === "crb_initialduediligence") {
+                    taskSubtype.addOption({ value: 2, text: "Initial Due Diligence Flow" });
+                    taskSubtype.addOption({ value: 7, text: "Initial Due Diligence Flow Action Required" });
+                    taskSubtype.addOption({ value: 4, text: "Additional Document Request" });
+                    taskSubtype.addOption({ value: 5, text: "Updated Document Request" });
+                }
+                else if (regEntityType !== null && regEntityType === "crb_pricingproposal") {
+                    taskSubtype.addOption({ value: 3, text: "Pricing Proposal" });
+                    taskSubtype.addOption({ value: 8, text: "Pricing Proposal Action Required" });
+                    taskSubtype.addOption({ value: 4, text: "Additional Document Request" });
+                    taskSubtype.addOption({ value: 5, text: "Updated Document Request" });
+                }
+                else if (regEntityType !== null && regEntityType === "crb_onboarding") {
+                    taskSubtype.addOption({ value: 19, text: "Due Diligence" });
+                    taskSubtype.addOption({ value: 20, text: "Implementation" });
+                    taskSubtype.addOption({ value: 4, text: "Additional Document Request" });
+                    taskSubtype.addOption({ value: 5, text: "Updated Document Request" });
+                    taskSubtype.addOption({ value: 25, text: "Sandbox Testing" });
+                    taskSubtype.addOption({ value: 26, text: "Production Testing" });
+                    taskSubtype.addOption({ value: 27, text: "Statement Request" });
+                }
+                else if(regEntityType && (regEntityType === "crb_docreview" || regEntityType ==="opportunity")){
+                    taskSubtype.addOption({ value: 4, text: "Additional Document Request" });
+                    taskSubtype.addOption({ value: 5, text: "Updated Document Request" });
+                    taskSubtype.addOption({ value: 27, text: "Statement Request" });
+                }
+            }
+       }
+        else if(taskType === 3) {
+            formContext.getControl(this.Attributes.Task.taskSubType).setVisible(true);
+            taskSubtype.addOption({ value: 11, text: "COS Account Opening" });
+            taskSubtype.addOption({ value: 12, text: "Operations Team" });
+            taskSubtype.addOption({ value: 13, text: "Implementation Team" });
+            taskSubtype.addOption({ value: 14, text: "Network Team" });
+            taskSubtype.addOption({ value: 15, text: "Transaction Monitoring" });
+            taskSubtype.addOption({ value: 16, text: "Manager" });
+            taskSubtype.addOption({ value: 17, text: "Due Diligence Memo" });
+            taskSubtype.addOption({ value: 18, text: "Ad Hoc" });
+            taskSubtype.addOption({ value: 29, text: "Due Diligence Approval" });
+            taskSubtype.addOption({ value: 30, text: "Pre Onboarding Approval" });
+            taskSubtype.addOption({ value: 3, text: "Pricing Proposal" });
+            taskSubtype.addOption({ value: 31, text: "Term Sheet" });  
+            
+         
+        }
+        else {
+            formContext.getControl(this.Attributes.Task.taskSubType).setVisible(false);
+        }
+    },
+    SaveAndSendTaskEmail : async function(primaryControl){
+	"use strict";
+	 var formContext = primaryControl;
+	 var TaskId = formContext.data.entity.getId().replace("{", "").replace("}", ""); 
+	 formContext.getAttribute(this.Attributes.Task.SaveAndSendEmail).setValue(true);
+	 formContext.data.save();
+    },
+
+    setRegardingFieldUsingCommunication: function (executionContext) 
+{
+	var formContext = executionContext.getFormContext();
+	//var ComId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+	var regarding = formContext.getAttribute(this.Attributes.Task.regarding).getValue();
+	var communcation = formContext.getAttribute(this.Attributes.Task.communcation).getValue();
+
+	if(communcation && !regarding)
+	{
+		//formContext.getAttribute(this.Attributes.Task.regarding).setValue(communcation);
+        formContext.getControl(this.Attributes.Task.regarding).setVisible(false);
+		formContext.getControl(this.Attributes.Task.communcation).setVisible(true);
+	}
+},
+    showHideCreditReviewModelAssessmentRelatedFields: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+        if (taskType === this.LOV.taskType.Internal && taskSubType === this.LOV.TaskSubType.CreditReviewModelAssessment) {
+            formContext.getControl(this.Attributes.Task.comments).setVisible(false);
+            formContext.getControl(this.Attributes.Task.sharepointLink).setVisible(false);
+            formContext.getControl(this.Attributes.Task.NotApplicable).setVisible(true);
+        }
+        else {
+            //formContext.getControl(this.Attributes.Task.comments).setVisible(true);
+            //formContext.getControl(this.Attributes.Task.sharepointLink).setVisible(true);
+            formContext.getControl(this.Attributes.Task.NotApplicable).setVisible(false);
+        }
+        this.showHideBasedOnNotApplicable(executionContext);
+    },
+    showHideBasedOnNotApplicable: function (executionContext) { 
+        var formContext = executionContext.getFormContext();
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+        var NotApplicable = formContext.getAttribute(this.Attributes.Task.NotApplicable).getValue();
+        if (taskType === this.LOV.taskType.Internal && taskSubType === this.LOV.TaskSubType.CreditReviewModelAssessment && !NotApplicable) {
+            if(formContext.ui.getFormType() !== 1)
+                formContext.getControl(this.SubGrids.AssessmentOfUnderwritingModels).setVisible(true);
+            formContext.getControl(this.Attributes.Task.SecondLineShouldReceiveUpdatesOnTHisProcess).setVisible(true);
+
+            formContext.getControl(this.Attributes.Task.PleaseSpecify).setVisible(false);
+
+            //uncomment below line to reset field value
+            //formContext.getAttribute(this.Attributes.Task.PleaseSpecify).setValue("");
+        }
+        else if(taskType === this.LOV.taskType.Internal && taskSubType === this.LOV.TaskSubType.CreditReviewModelAssessment && NotApplicable){
+            if(formContext.ui.getFormType() !== 1)
+                formContext.getControl(this.SubGrids.AssessmentOfUnderwritingModels).setVisible(false);
+            formContext.getControl(this.Attributes.Task.SecondLineShouldReceiveUpdatesOnTHisProcess).setVisible(false);
+
+            //uncomment below line to reset field value
+            //formContext.getAttribute(this.Attributes.Task.SecondLineShouldReceiveUpdatesOnTHisProcess).setValue(this.LOV.SecondLineShouldReceiveUpdatesOnTHisProcess.No);
+
+            formContext.getControl(this.Attributes.Task.PleaseSpecify).setVisible(true);
+        }
+        else {
+            if(formContext.ui.getFormType() !== 1)
+                formContext.getControl(this.SubGrids.AssessmentOfUnderwritingModels).setVisible(false);
+            formContext.getControl(this.Attributes.Task.SecondLineShouldReceiveUpdatesOnTHisProcess).setVisible(false);
+
+            //uncomment below line to reset field value
+            //formContext.getAttribute(this.Attributes.Task.SecondLineShouldReceiveUpdatesOnTHisProcess).setValue(this.LOV.SecondLineShouldReceiveUpdatesOnTHisProcess.No);
+
+            formContext.getControl(this.Attributes.Task.PleaseSpecify).setVisible(false);
+
+            //uncomment below line to reset field value
+            //formContext.getAttribute(this.Attributes.Task.PleaseSpecify).setValue("");
+        }
+    },
+    HideandShowFieldsOperationTeam: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+        if (taskType === this.LOV.taskType.Approval && (taskSubType === this.LOV.TaskSubType.OperationsTeam || taskSubType === this.LOV.TaskSubType.NetworkTeam)) {
+            var approval = formContext.getControl(this.Attributes.Task.approvalStatus);
+            approval.clearOptions();
+            formContext.getControl(this.Attributes.Task.partnerName).setVisible(true);
+            formContext.getControl(this.Attributes.Task.formName).setVisible(true);
+            formContext.getControl(this.Attributes.Task.ciqForm).setVisible(true);
+            approval.addOption({ value: 3, text: "Approved" });
+            approval.addOption({ value: 4, text: "Rejected" });
+        }
+        else {
+            //formContext.getControl(this.Attributes.Task.partnerName).setVisible(false);
+            formContext.getControl(this.Attributes.Task.formName).setVisible(false);
+            formContext.getControl(this.Attributes.Task.ciqForm).setVisible(false);
+            var approval1 = formContext.getControl(this.Attributes.Task.approvalStatus);
+            approval1.clearOptions();
+            approval1.addOption({ value: 3, text: "Approved" });
+            approval1.addOption({ value: 4, text: "Rejected" });
+            approval1.addOption({ value: 2, text: "Reviewed with changes" });
+            
+        }
+        //for internal and operational team
+		if (taskType === this.LOV.taskType.Internal && (taskSubType === this.LOV.TaskSubType.OperationsTeam || taskSubType === this.LOV.TaskSubType.NetworkTeam)) {
+            
+            formContext.getControl(this.Attributes.Task.partnerName).setVisible(true);
+            formContext.getControl(this.Attributes.Task.requesttype).setVisible(true);
+            formContext.getControl(this.Attributes.Task.documentupload).setVisible(true);
+			formContext.getControl(this.Attributes.Task.vrolridrequestform).setVisible(true);
+			
+			var requestType = formContext.getControl(this.Attributes.Task.requesttype);
+            requestType.clearOptions();
+            requestType.addOption({ value: 100000000, text: "VROL RID Request" });
+            requestType.addOption({ value: 100000001, text: "VROL Enrollment Form(Disputes)" });
+			requestType.addOption({ value: 100000002, text: "PRM And TPA Registrations" });
+            requestType.addOption({ value: 100000003, text: "Net Settlement Information Form(NSIF)" });
+			requestType.addOption({ value: 100000004, text: "Server Provider Registration" });
+        }
+        else {
+            //formContext.getControl(this.Attributes.Task.partnerName).setVisible(false);
+            formContext.getControl(this.Attributes.Task.requesttype).setVisible(false);
+            formContext.getControl(this.Attributes.Task.documentupload).setVisible(false);
+			formContext.getControl(this.Attributes.Task.vrolridrequestform).setVisible(false);
+            
+        }
+    },
+    HideDocumentUpload: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var vrolridrequestform = formContext.getAttribute(this.Attributes.Task.vrolridrequestform).getValue();
+        var requestformtask = formContext.getAttribute(this.Attributes.Task.requestform).getValue();
+		if(vrolridrequestform !== null || requestformtask !== null){
+			formContext.getControl(this.Attributes.Task.documentupload).setVisible(false);
+		}
+        
+        
+	},
+     showHideDueDillegence: function(executionContext){
+var formContext = executionContext.getFormContext();
+var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+    if(taskSubType === 19){
+       formContext.getControl(this.Attributes.Task.duediligencetype).setVisible(true);
+       formContext.getControl(this.Attributes.Task.implementationtype).setVisible(false);
+    }else if(taskSubType === 20){
+        formContext.getControl(this.Attributes.Task.implementationtype).setVisible(true);
+        formContext.getControl(this.Attributes.Task.duediligencetype).setVisible(false);
+    }
+    else {
+        formContext.getControl(this.Attributes.Task.duediligencetype).setVisible(false);
+         formContext.getControl(this.Attributes.Task.implementationtype).setVisible(false);
+    }
+},
+    
+     HideandShowImplementFields: function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var regarding = formContext.getAttribute(this.Attributes.Task.regarding);
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+        if(formContext.getAttribute(this.Attributes.Task.regarding).getValue() != null){
+            var regardingEntity = regarding.getValue()[0].entityType;
+            var regardingname = regarding.getValue()[0].name;
+            if(regardingEntity === "crb_implementationform" && taskType === this.LOV.taskType.Internal && (taskSubType === this.LOV.TaskSubType.OperationsTeam || taskSubType === this.LOV.TaskSubType.NetworkTeam)){
+                //formContext.getControl(this.Attributes.Task.partnerName).setVisible(true);
+                //formContext.getControl(this.Attributes.Task.documentupload).setVisible(true);
+                formContext.getControl(this.Attributes.Task.requestTypeMA).setVisible(true);
+                formContext.getControl(this.Attributes.Task.requestform).setVisible(true);
+                formContext.getControl(this.Attributes.Task.vrolridrequestform).setVisible(false);
+                formContext.getControl(this.Attributes.Task.requesttype).setVisible(false);
+            }
+            else if(regardingEntity === "crb_implementationform" && taskType === this.LOV.taskType.Approval && (taskSubType === this.LOV.TaskSubType.OperationsTeam || taskSubType === this.LOV.TaskSubType.NetworkTeam)){
+                formContext.getControl(this.Attributes.Task.requestTypeMA).setVisible(true);
+                formContext.getControl(this.Attributes.Task.requestform).setVisible(true);
+                //formContext.getControl(this.Attributes.Task.vrolridrequestform).setVisible(false);
+                //formContext.getControl(this.Attributes.Task.requesttype).setVisible(false);
+                formContext.getControl(this.Attributes.Task.formName).setVisible(false);
+                formContext.getControl(this.Attributes.Task.ciqForm).setVisible(false);
+                formContext.getControl(this.Attributes.Task.approvalType).setVisible(false);
+                
+            }
+            
+            formContext.getAttribute(this.Attributes.Task.requestTypeMA).setValue(regardingname);
+            
+        }
+    },
+    Hideandshowconfirmationnumberforinternaloperationtask: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var regarding = formContext.getAttribute(this.Attributes.Task.regarding);
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+
+        if (formContext.getAttribute(this.Attributes.Task.regarding).getValue() != null) {
+            var regardingEntity = regarding.getValue()[0].entityType;
+            var regardingname = regarding.getValue()[0].name;
+            if (regardingEntity == "crb_implementationform" && taskType === this.LOV.taskType.Internal && taskSubType === this.LOV.TaskSubType.OperationsTeam && (regardingname == "Net Settlement Information Form (NSIF) ")) {
+                
+                formContext.getControl(this.Attributes.Task.confirmationnumber).setVisible(true);
+            }
+            else{
+                formContext.getControl(this.Attributes.Task.confirmationnumber).setVisible(false);
+            }
+
+        }
+    },
+	AutoPopulateDDMemoSharePointUrl: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+		var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+		if (formContext.getAttribute(this.Attributes.Task.regarding).getValue() !== null) {
+            var regarding = formContext.getAttribute(this.Attributes.Task.regarding).getValue()[0].id.replace("{", "").replace("}", "");
+            if (taskType !== null && taskType !== undefined && taskType === 1 && taskSubType !== null && taskSubType !== undefined && taskSubType === 17) {
+                Xrm.WebApi.retrieveRecord("crb_docreview", regarding, "?$select=_crb_document_value").then(
+                    function success(result) {
+                        console.log(result);
+                        var documentId = result["_crb_document_value"];
+                        Xrm.WebApi.retrieveRecord("crb_document", documentId, "?$select=crb_file,crb_filepath").then(
+                            function success(result) {
+                                console.log(result);
+                                var filePath = result["crb_filepath"];
+                                formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.sharepointLink).setValue(filePath);
+                                formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.sharepointLink).setVisible(true);
+                            },
+                            function (error) {
+                                console.log(error.message);
+                            }
+                        );
+
+                    },
+                    function (error) {
+                        console.log(error.message);
+                    }
+                );
+            }
+            else {
+                formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.sharepointLink).setVisible(false);
+            }
+        }
+	},
+    ShowAndHideDocumentsSent: function (executionContext) {
+    var formContext = executionContext.getFormContext();
+    var tasktype = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.taskType).getValue();
+    var tasksubtype = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.taskSubType).getValue();
+
+    if (tasktype == 2 && tasksubtype == 19) {
+        formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.documentsent).setVisible(true);
+    }
+   
+    },
+    hidefieldforapprovaltask:function (executionContext) {
+    
+        var formContext = executionContext.getFormContext();
+        var taskobject = CRB.CRM.PJ.Task
+       var tasktype = formContext.getAttribute(taskobject.Attributes.Task.taskType).getValue();
+      
+        if(tasktype !== null && tasktype === taskobject.LOV.taskType.Approval){
+            formContext.getControl(taskobject.Attributes.Task.documenttype).setVisible(false);
+        }  
+},
+    UpdateOpprtunity: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var regarding = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.regarding).getValue();
+        if (regarding) {
+            Xrm.WebApi.retrieveRecord(regarding[0].entityType, regarding[0].id.replace("{", "").replace("}", ""), "?$select=_crb_opportunity_value").then(
+                function success(result) {
+                    console.log(result);
+                    var lookup = [];
+                    lookup[0] = {};
+                    lookup[0].id = result["_crb_opportunity_value"];
+                    lookup[0].name = result["_crb_opportunity_value@OData.Community.Display.V1.FormattedValue"];
+                    lookup[0].entityType = result["_crb_opportunity_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+                    formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.opportunity).setValue(lookup);
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+        }
+    },
+    AddCustomLookupFilterForDocumentType: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var regarding = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.regarding).getValue();
+        var opportunity = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.opportunity).getValue();
+        if (!regarding || !opportunity) {
+            return;
+        }
+        var type = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.whenWasTheDocumentSubmitted).getText();
+        if (type) {
+            var filter = "<filter type='and'><condition attribute='crb_opportunity' operator='eq' value='" + opportunity[0].id + "' /><condition attribute='crb_name' operator='like' value='%" + type + "%' /></filter>";
+            if (filter) {
+                formContext.getControl(CRB.CRM.PJ.Task.Attributes.Task.documentSubType).addCustomFilter(filter);
+            }
+        }
+    },
+//    HideandshowfieldsforAmericanExpressTreasuryForm: function (executionContext) {
+//    var formContext = executionContext.getFormContext();
+//    var regarding = formContext.getAttribute(this.Attributes.Task.regarding);
+//    var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+//    var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+//
+//    if (formContext.getAttribute(this.Attributes.Task.regarding).getValue() != null) {
+//        var regardingEntity = regarding.getValue()[0].entityType;
+//        var regardingname = regarding.getValue()[0].name;
+//        
+//        if (regardingEntity == "crb_implementationform" && taskType === this.LOV.taskType.Approval && taskSubType === this.LOV.TaskSubType.OperationsTeam && (regardingname == "American Express Treasury Form" || "SRE Hierarchy Form" || "APW Form")) {
+//        formContext.getControl(this.Attributes.Task.formName).setVisible(true);
+//        formContext.getControl(this.Attributes.Task.requestTypeMA).setVisible(true);
+//        formContext.getControl(this.Attributes.Task.requestform).setVisible(true);
+//        formContext.getControl(this.Attributes.Task.ciqForm).setVisible(false);
+//        formContext.getControl(this.Attributes.Task.approvalType).setVisible(false);
+//        formContext.getControl(this.Attributes.Task.vrolridrequestform).setVisible(false);
+//        formContext.getControl(this.Attributes.Task.requesttype).setVisible(false);
+//        }
+//
+//    }
+//
+//    },
+//    Hideandshowfieldsforinternaloperationtask: function (executionContext) {
+//    var formContext = executionContext.getFormContext();
+//    var regarding = formContext.getAttribute(this.Attributes.Task.regarding);
+//    var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+//    var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+//
+//    if (formContext.getAttribute(this.Attributes.Task.regarding).getValue() != null) {
+//        var regardingEntity = regarding.getValue()[0].entityType;
+//        var regardingname = regarding.getValue()[0].name;
+//
+//        if (regardingEntity == "crb_implementationform" && taskType === this.LOV.taskType.Internal && taskSubType === this.LOV.TaskSubType.OperationsTeam && (regardingname == "PRM and TPA Registrations" || regardingname == "VROL Enrollment Form (Disputes) " || regardingname == "Server Provider Registration ")) {
+//            formContext.getControl(this.Attributes.Task.formName).setVisible(false);
+//            formContext.getControl(this.Attributes.Task.requestTypeMA).setVisible(false);
+//            formContext.getControl(this.Attributes.Task.requestform).setVisible(true);
+//            formContext.getControl(this.Attributes.Task.ciqForm).setVisible(false);
+//            formContext.getControl(this.Attributes.Task.approvalType).setVisible(false);
+//            formContext.getControl(this.Attributes.Task.vrolridrequestform).setVisible(false);
+//            formContext.getControl(this.Attributes.Task.requesttype).setVisible(true);
+//        }
+//         if (regardingEntity == "crb_implementationform" && taskType === this.LOV.taskType.Internal && taskSubType === this.LOV.TaskSubType.OperationsTeam && (regardingname == "Net Settlement Information Form (NSIF) ")) {
+//            
+//            formContext.getControl(this.Attributes.Task.confirmationnumber).setVisible(true);
+//        }
+//        else{
+//            formContext.getControl(this.Attributes.Task.confirmationnumber).setVisible(false);
+//        }
+//
+//    }
+//    }
+
+      UpdateTaskSubject: async function (executionContext) {
+      var formContext = executionContext.getFormContext();
+      var taskSubTypeAttribute = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.taskSubType).getValue();
+      var taskTypeAttribute = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.taskType).getValue();
+      var taskSubTypeLabel = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.taskSubType).getText();
+      var doc = formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.documentSubType).getValue();
+      var docName;
+      if (taskSubTypeAttribute !== 4 && taskSubTypeAttribute !== null) {
+
+          formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.subject).setValue(taskSubTypeLabel);
+      }
+      if (taskSubTypeAttribute === 5 && doc !== null) {
+          //docName = doc[0].name;
+
+          var docid = doc[0].id.slice(1, -1);
+          docName = await Xrm.WebApi.retrieveRecord("crb_document", docid, "?$select=_crb_documentsubtype_value").then(
+              function success(result) {
+                  console.log("Documentsubtypte: " + result["_crb_documentsubtype_value@OData.Community.Display.V1.FormattedValue"]);
+                  return result["_crb_documentsubtype_value@OData.Community.Display.V1.FormattedValue"];
+                  // perform operations on record retrieval
+              },
+              function (error) {
+                  return null;
+                  // handle error conditions
+              }
+          );
+          formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.subject).setValue(docName);
+          //debugger;
+      }
+      if (taskSubTypeAttribute === null || taskSubTypeAttribute == 4) {
+          formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.subject).setValue(null);
+      }
+
+  },
+ OnChangeofTasktypefortitle: function(executionContext){
+    var formContext = executionContext.getFormContext();
+    formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.subject).setValue(null);
+    formContext.getAttribute(CRB.CRM.PJ.Task.Attributes.Task.taskSubType).setValue(null);
+},
+
+   showHideEmailReferenceForOversightreminders: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var taskType = formContext.getAttribute(this.Attributes.Task.taskType).getValue();
+        var taskSubType = formContext.getAttribute(this.Attributes.Task.taskSubType).getValue();
+        if (taskType === this.LOV.taskType.Internal && taskSubType === this.LOV.TaskSubType.OversightReminders) {
+            formContext.getControl(this.Attributes.Task.emailReference).setVisible(true);
+        }
+        else {
+            formContext.getControl(this.Attributes.Task.emailReference).setVisible(false);
+        }
+    },
+  
+}
+
+ 
