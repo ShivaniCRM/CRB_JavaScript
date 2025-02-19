@@ -1,0 +1,296 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Conditions = CRB.CRM.PJ.Conditions || {};
+CRB.CRM.PJ.Conditions = {
+    Attributes: {
+        Fields: {
+            typeOfReview: "crb_typeofreview",
+            OnboardingConditionId: "crb_onboardingconditionid",
+            ConditionStatus: "crb_conditionstatus",
+            ClosedDate: "crb_closeddate",
+            ConditionRequiredTiming: "crb_conditionrequiredtiming",
+            PhaseForPreLaunch: "crb_phaseforprelaunch",
+            ConditionTiming: "crb_conditiontiming",
+            ConditionDueDate: "crb_conditionduedatelatest1",
+        },
+        Sections: {},
+        Tabs: {},
+        SubGrids: {},
+        LOV: {
+            typeOfReview: {
+                FunctionalApproval: 100000009,
+                CreditRiskReview: 100000000,
+                CardPaymentsOperationReview: 100000001,
+                WireOperationsReview: 100000002,
+                RTPOperationsReview: 100000003,
+                BSAAMLReview: 100000004,
+                RegComplianceReview: 100000005,
+                ITComplianceReview: 100000006,
+                ACHOperationsReview: 100000007,
+                GDDReview: 100000008,
+            },
+            ConditionStatus: {
+                Open: 100000000,
+                Closed: 100000001,
+                PastDue: 100000002,
+            },
+            ConditionRequiredTiming: {
+                PriorToLaunch: 100000000,
+                AfterLaunch: 100000001,
+            },
+            ConditionTiming: {
+                Within30Days: 100000000,
+                Within90Days: 100000001,
+                Within180Days: 100000002,
+                Within270Days: 100000003,
+                Within360Days: 100000004
+            },
+        },
+        Others:{
+            OnboardingPaymentsTabSectionNames:{
+                FuntionalReview:"FunctionalReview",
+                CreditRiskReview:"CreditRiskReview",
+                CardPaymentOperationsReview:"CardPaymentOperationsReview",
+                WireOperationsReview:"WireOperationsReview",
+                RTPOperationsReview:"RTPOperationsReview",
+                BSAAMLReview:"BSA/AMLReview",
+                RegulatoryComplianceReview:"Regulatory Compliance Review",
+                ITComplianceReview:"IT Compliance Review",
+                ACHOperationsReview:"ACHOperationsReview",
+                DDReview:"DDReview",
+            }
+        }
+    },
+    OnLoadOfConditionsQuickCreate: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        this.populateTypeOfReview(executionContext);
+        this.autoPopulateConditionDueDate(executionContext);
+    },
+    OnSaveOfConditionsQuickCreate: function (executionContext) {
+
+    },
+    populateTypeOfReview: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var sectionName;
+        var queryStringParameters = formContext.context.getQueryStringParameters();
+       
+        if (queryStringParameters["creatingConditionParentSectionName"]) {
+            sectionName = queryStringParameters["creatingConditionParentSectionName"];
+        }
+        else {
+            var OnboardingConditionId = formContext.getAttribute(this.Attributes.Fields.OnboardingConditionId).getValue();
+            if (OnboardingConditionId) {
+                var id = OnboardingConditionId[0].id.replace("{", "").replace("}", "");
+
+                var options = "?$select=crb_creatingconditionssectionname";
+                await Xrm.WebApi.retrieveRecord('crb_onboarding', id, options).then(
+                    function success(result) {
+                        sectionName = result.crb_creatingconditionssectionname;
+                    },
+                    function (error) {
+                        let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Onboarding record' };
+                        let alertOptions = { height: 120, width: 260 };
+
+                        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+
+                    }
+                );
+            }
+        }
+        //var sectionName = OnboardingFormContext.getAttrbute(OnboardingRef.Attributes.CreatingConditionsSectionName).getvalue()
+        var sectionNameList = this.Attributes.Others.OnboardingPaymentsTabSectionNames;
+        switch (sectionName) {
+            case sectionNameList.FuntionalReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.FunctionalApproval);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.CreditRiskReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.CreditRiskReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.CardPaymentOperationsReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.CardPaymentsOperationReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.WireOperationsReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.WireOperationsReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.RTPOperationsReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.RTPOperationsReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.BSAAMLReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.BSAAMLReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.RegulatoryComplianceReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.RegComplianceReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.ITComplianceReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.ITComplianceReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.ACHOperationsReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.ACHOperationsReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            case sectionNameList.DDReview:
+                formContext.getAttribute(this.Attributes.Fields.typeOfReview).setValue(this.Attributes.LOV.typeOfReview.GDDReview);
+                formContext.getControl(this.Attributes.Fields.typeOfReview).setDisabled(true);
+                break;
+            default:
+                break;
+        }
+    },
+    onChangeOfConditionStatus: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        condtionObject.populateClosedDateOnConditionStatusClose(executionContext);
+    },
+    populateClosedDateOnConditionStatusClose: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        var conditionStatus = formContext.getAttribute(condtionObject.Attributes.Fields.ConditionStatus).getValue();
+        if (conditionStatus === condtionObject.Attributes.LOV.ConditionStatus.Closed) {
+            formContext.getAttribute(condtionObject.Attributes.Fields.ClosedDate).setValue(new Date());
+        }
+        else {
+            formContext.getAttribute(condtionObject.Attributes.Fields.ClosedDate).setValue(null);
+        }
+    },
+    onChangeOfConditionRequiredTiming: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        condtionObject.showHidePhaseForPreLaunch(executionContext);
+        condtionObject.nullifyConditionTiming(executionContext);
+    },
+    showHidePhaseForPreLaunch: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        var conditionRequiredTiming = formContext.getAttribute(condtionObject.Attributes.Fields.ConditionRequiredTiming).getValue();
+        if (conditionRequiredTiming === condtionObject.Attributes.LOV.ConditionRequiredTiming.PriorToLaunch) {
+            formContext.getControl(condtionObject.Attributes.Fields.PhaseForPreLaunch).setVisible(true);
+        }
+        else {
+            formContext.getControl(condtionObject.Attributes.Fields.PhaseForPreLaunch).setVisible(false);
+        }
+    },
+    onChangeOfConditionTiming: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        condtionObject.autoPopulateConditionDueDate(executionContext);
+    },
+    autoPopulateConditionDueDate: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        var conditionRequiredTiming = formContext.getAttribute(condtionObject.Attributes.Fields.ConditionRequiredTiming).getValue();
+        var conditionTiming = formContext.getAttribute(condtionObject.Attributes.Fields.ConditionTiming).getValue();
+        var onboardingId = formContext.getAttribute(condtionObject.Attributes.Fields.OnboardingConditionId).getValue();
+        if (onboardingId) {
+            var onboardingOptions = "?$select=_crb_opportunity_value";
+            Xrm.WebApi.retrieveRecord('crb_onboarding', onboardingId[0].id.replace("{", "").replace("}", ""), onboardingOptions).then((result) => {
+                var options = "?$select=crb_targetgolivedate";
+                Xrm.WebApi.retrieveRecord('opportunity', result._crb_opportunity_value, options).then(
+                    function success(result) {
+                        // perform operations on on retrieved records
+                        if (result) {
+                            var targetGoLiveDate = result.crb_targetgolivedate;
+                            if (targetGoLiveDate !== null) {
+                                if (conditionRequiredTiming === condtionObject.Attributes.LOV.ConditionRequiredTiming.PriorToLaunch) {
+                                    condtionObject.updateConditionDueDateForPriorToLaunch(executionContext, targetGoLiveDate, conditionTiming);
+                                }
+                                else if (conditionRequiredTiming === condtionObject.Attributes.LOV.ConditionRequiredTiming.AfterLaunch) {
+                                    condtionObject.updateConditionDueDateForAfterLaunch(executionContext, targetGoLiveDate, conditionTiming);
+                                }
+                                else {
+                                    var targetGoLiveDateInDateObject = new Date(targetGoLiveDate);
+                                    targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate());
+                                    formContext.getAttribute(condtionObject.Attributes.Fields.ConditionDueDate).setValue(targetGoLiveDateInDateObject);
+                                }
+                            }
+                            else {
+                                formContext.getAttribute(condtionObject.Attributes.Fields.ConditionDueDate).setValue(null);
+                            }
+                        }
+                    },
+                    function (error) {
+                        let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed To get related Onboarding' };
+                        let alertOptions = { height: 120, width: 260 };
+
+                        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                    }
+                );
+            }),
+                (error) => {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed To get related Onboarding' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                }
+        }
+    },
+    updateConditionDueDateForPriorToLaunch: function (executionContext, targetGoLiveDate, conditionTiming) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        var targetGoLiveDateInDateObject = new Date(targetGoLiveDate);
+        var conditionTiming = formContext.getAttribute(condtionObject.Attributes.Fields.ConditionTiming).getValue();
+        switch (conditionTiming) {
+            case condtionObject.Attributes.LOV.ConditionTiming.Within30Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() - 30);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within90Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() - 90);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within180Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() - 180);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within270Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() - 270);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within360Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() - 360);
+                break;
+            default:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate());
+                break;
+        }
+        formContext.getAttribute(condtionObject.Attributes.Fields.ConditionDueDate).setValue(targetGoLiveDateInDateObject);
+        
+    },
+    updateConditionDueDateForAfterLaunch: function (executionContext, targetGoLiveDate, conditionTiming) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        var targetGoLiveDateInDateObject = new Date(targetGoLiveDate);
+        var conditionTiming = formContext.getAttribute(condtionObject.Attributes.Fields.ConditionTiming).getValue();
+        switch (conditionTiming) {
+            case condtionObject.Attributes.LOV.ConditionTiming.Within30Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() + 30);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within90Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() + 90);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within180Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() + 180);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within270Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() + 270);
+                break;
+            case condtionObject.Attributes.LOV.ConditionTiming.Within360Days:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate() + 360);
+                break;
+            default:
+                targetGoLiveDateInDateObject.setDate(targetGoLiveDateInDateObject.getDate());
+                break;
+        }
+        formContext.getAttribute(condtionObject.Attributes.Fields.ConditionDueDate).setValue(targetGoLiveDateInDateObject);
+    },
+    nullifyConditionTiming: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var condtionObject = CRB.CRM.PJ.Conditions;
+        formContext.getAttribute(condtionObject.Attributes.Fields.ConditionTiming).setValue(null);
+        condtionObject.autoPopulateConditionDueDate(executionContext);
+     }
+}
