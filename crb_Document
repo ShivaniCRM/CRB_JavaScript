@@ -1,0 +1,586 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.CRBDocument = CRB.CRM.PJ.CRBDocument || {};
+CRB.CRM.PJ.CRBDocument = {
+	Attributes: {
+		Fields: {
+            name : "crb_name",
+			LOB: "crb_lineofbusiness",
+			documentType: "crb_documenttype",
+			documentSubType: "crb_documentsubtype",
+			documentLocation: "crb_documentlocation",
+            upload : "crb_documentupload",
+            file: "crb_file",
+            isFileUploaded: "crb_isfileuploaded",
+            opportunity: "crb_opportunity",
+			onboarding: "crb_onboarding",
+            expirationDate:"crb_expirationdateifapplicable",
+            filepath : "crb_filepath",
+            documentlocation : "crb_documentlocation",
+            isDocumentInternalOrExternal : "crb_docinternalexternal",
+            sentOn: "crb_senton",
+            versionNumber: "crb_versionnumber",
+            dueDeligenceTopic: "crb_duediligencetopic1",
+            remarks: "crb_remarks",
+            issueOrApprovalDate: "crb_issueapprovaldate",
+            receivedOn: "crb_receivedon",
+            Title: "crb_documenttitle",
+            opportunity:"crb_opportunity",
+            partner:"crb_partner"
+		},
+        LOV: {
+            isDocumentInternalOrExternal : {
+                Internal : false,
+                External : true
+            }
+        },
+	},
+    Team: {
+        operationTeams: "Operation Team",
+        ImpTeam: "Implementation Team"
+    },
+	onLoadOfCRBDocument: function (executionContext) {
+		this.ShowLOBField(executionContext);
+		//this.HideUploadField(executionContext);
+        this.LOBRequired(executionContext);
+        this.makeUploadFileOptionalWhenFilePathExists(executionContext);
+        this.populateOpportunityLookupFromOnboardingIfEmpty(executionContext);
+        this.AlertExpireDate(executionContext);
+        this.showDocumentLocation(executionContext);
+        //this.lockName(executionContext);
+		this.MakeFieldsReadOnly(executionContext);
+		this.AddChangeEvents(executionContext);
+        this.HideAndShowFilePathForFairlending(executionContext);
+        this.HIdeAndShowFilepathField(executionContext);
+        this.DisableAndEnableFieldsPushToCardOnboardingChecklist(executionContext);
+        this.HideFieldsForInternalDocuments(executionContext);
+        
+	},
+	onSaveOfCRBDocument: function (executionContext) {
+    // this.SetValueInName(executionContext);
+    //this.duplicatedetection(executionContext);
+		
+	},
+    MakeFieldsReadOnly: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var fields = [this.Attributes.Fields.name];
+		fields.forEach((field)=>{
+			formContext.getControl(field).setDisabled(true);
+		})
+	},
+	AddChangeEvents: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		formContext.getAttribute(this.Attributes.Fields.documentType).addOnChange(this.onChangeOfDocumentType);
+		formContext.getAttribute(this.Attributes.Fields.documentSubType).addOnChange(this.onChangeDocumentSubType);
+	},
+    makeUploadFileOptionalWhenFilePathExists(executionContext){
+		var formContext = executionContext.getFormContext();
+		var filePath = formContext.getAttribute(this.Attributes.Fields.filepath).getValue();
+		if(filePath){
+			formContext.getAttribute(this.Attributes.Fields.upload).setRequiredLevel('none');
+		}else{
+			formContext.getAttribute(this.Attributes.Fields.upload).setRequiredLevel('required');
+		}
+	},
+	onChangeOfDocumentType: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var documentObject = CRB.CRM.PJ.CRBDocument;
+		documentObject.autoPopulateName(executionContext,documentObject.Attributes.Fields.documentType);
+	},
+	onChangeDocumentSubType: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var documentObject = CRB.CRM.PJ.CRBDocument;
+		documentObject.autoPopulateName(executionContext,documentObject.Attributes.Fields.documentSubType);
+	},
+	autoPopulateName: function (executionContext, usingField) {
+        var formContext = executionContext.getFormContext();
+        var documentType = formContext.getAttribute(this.Attributes.Fields.documentType).getValue();
+        var documentSubType = formContext.getAttribute(this.Attributes.Fields.documentSubType).getValue();
+        var documentTypeName = "";
+        var documentSubTypeName = "";
+        if (documentType !== null) {
+            documentTypeName = documentType[0].name;
+        }
+        if (documentSubType !== null) {
+            documentSubTypeName = documentSubType[0].name;
+        }
+        var name = documentTypeName + ((documentTypeName && documentSubTypeName) ? "-" : "") + documentSubTypeName
+        formContext.getAttribute(this.Attributes.Fields.name).setValue(name);
+    },
+	Make_Visible: function (formContext, Keys) {
+		for (i = 0; i < Keys.length; i++) {
+			var control = formContext.getControl(Keys[i]);
+			if (control !== null) {
+				control.setVisible(true);
+			}
+		}
+	},
+	HideFiled: function (formContext, Keys) {
+		for (i = 0; i < Keys.length; i++) {
+			var control = formContext.getControl(Keys[i]);
+			if (control !== null) {
+				control.setVisible(false);
+			}
+		}
+	},
+	Make_Required: function (formContext, Keys) {
+		for (i = 0; i < Keys.length; i++) {
+			var attribute = formContext.getAttribute(Keys[i]);
+			if (attribute !== null) {
+				attribute.setRequiredLevel("required");
+			}
+		}
+	},
+	ShowLOBField: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+		var documentType = formContext.getAttribute(this.Attributes.Fields.documentType).getValue();
+		var documentSubType = formContext.getAttribute(this.Attributes.Fields.documentSubType).getValue();
+		if (documentType !== null && documentType[0].name === "Pricing Proposal" && documentSubType !== null && documentSubType[0].name === "Pricing Proposal") {
+			var keys = [this.Attributes.Fields.LOB]
+			this.Make_Visible(formContext, keys);
+		}
+        else{
+             var keys = [this.Attributes.Fields.LOB]
+             this.HideFiled(formContext, keys);
+            }
+	},
+	HideUploadField: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var fileUploaded = formContext.getAttribute(this.Attributes.Fields.isFileUploaded).getValue();
+        if (fileUploaded === true) {
+			//var keys = [this.Attributes.Fields.documentLocation]
+            var keys1 = [this.Attributes.Fields.upload]
+			this.HideFiled(formContext, keys1);
+			//this.Make_Visible(formContext, keys);
+		}
+	},
+    showDocumentLocation: async function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var fileUploaded = formContext.getAttribute(this.Attributes.Fields.isFileUploaded).getValue();
+		if(fileUploaded){
+			var userId = Xrm.Utility.getGlobalContext().userSettings.userId;
+			var isRegulatoryComplianceTeammember = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId,"Regulatory Compliance");
+			var documentName  = formContext.getAttribute(this.Attributes.Fields.documentType).getValue();
+			if(documentName && documentName[0].name === "Go Live Risk Checklist" && isRegulatoryComplianceTeammember){
+				
+                var TeamOptions = "?$select=teamid&$filter=(name eq 'Regulatory Compliance')";
+				var teamId = "";
+				await Xrm.WebApi.retrieveMultipleRecords('team', TeamOptions).then(
+					function success(result) {
+						// perform operations on on retrieved records
+						if (result.entities.length > 0) {
+							for (let i = 0; i < result.entities.length; i++) {
+								teamId = result.entities[i].teamid;
+								break;
+							}
+						}
+					},
+					function (error) {
+						// handle error conditions
+						let alertStrings = { confirmButtonLabel: 'Ok', text: 'Unexpected Error' };
+						let alertOptions = { height: 120, width: 260 };
+
+						Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+					}
+				);
+                
+                var documentId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+				//var options = `?$select=crb_reviewdstatus&$filter=(_crb_document_value eq ${documentId} and _crb_reviewedby2_value@OData.Community.Display.V1.FormattedValue eq 'Regulatory Compliance')`;
+                //var options = "?$select=crb_reviewdstatus&$filter=(_crb_document_value eq "+documentId+" and _crb_reviewedby2_value@OData.Community.Display.V1.FormattedValue eq 'Regulatory Compliance')"
+                var options = "?$select=crb_reviewdstatus&$filter=(_crb_document_value eq " + documentId + " and _crb_reviewedby2_value eq " + teamId + ")";
+				Xrm.WebApi.retrieveMultipleRecords('crb_docreview', options).then(
+					function success(result) {
+						// perform operations on on retrieved records
+						if(result.entities.length > 0){
+							for(let i =0 ; i< result.entities.length; i++){
+								var reviewedstatus = result.entities[i].crb_reviewdstatus;
+								if(reviewedstatus === 100000001){
+									var keys = [CRB.CRM.PJ.CRBDocument.Attributes.Fields.documentLocation]
+									CRB.CRM.PJ.CRBDocument.Make_Visible(formContext, keys);
+									break;
+								}
+							}
+						}
+					},
+					function (error) {
+                    console.log(error)
+						// handle error conditions
+						let alertStrings = { confirmButtonLabel: 'Ok', text: 'Unexpected Error' };
+						let alertOptions = { height: 120, width: 260 };
+						
+						Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+					}
+				);
+			}
+			else{
+				var keys = [this.Attributes.Fields.documentLocation]
+				this.Make_Visible(formContext, keys);
+			}
+		}
+	},
+    LOBRequired : function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var documentType = formContext.getAttribute(this.Attributes.Fields.documentType).getValue();
+		var documentSubType = formContext.getAttribute(this.Attributes.Fields.documentSubType).getValue();
+        if (documentType !== null && documentType[0].name === "Pricing Proposal" && documentSubType !== null && documentSubType[0].name === "Pricing Proposal") {
+			var keys = [this.Attributes.Fields.LOB]
+			this.Make_Required(formContext, keys);
+		}
+    },
+    docreviewbutton : function (PrimaryControl, SelectedControlSelectedItemIds) {
+    "use strict";
+    var formcontext = PrimaryControl;
+    var documentIds = "";
+    
+    console.log(SelectedControlSelectedItemIds);
+    for (var i = 0; i < SelectedControlSelectedItemIds.length; i++) {
+        if (i < (SelectedControlSelectedItemIds.length - 1))
+            documentIds = documentIds + SelectedControlSelectedItemIds[i] + ",";
+        else {
+            documentIds = documentIds + SelectedControlSelectedItemIds[i];
+        }
+    }
+    console.log("documentId:", documentIds);
+    
+    // Construct the URL of the web resource with parameters
+    var webResourceUrl = "/WebResources/crb_docreview?documentIds=" + encodeURIComponent(documentIds);
+    console.log("webResourceUrl:", webResourceUrl);
+
+    // Open the web resource in a dialog
+    Xrm.Utility.openWebResource("crb_docreview", webResourceUrl, 800, 500);
+
+},
+    
+    populateOpportunityLookupFromOnboardingIfEmpty: async function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var opportunity = formContext.getAttribute(this.Attributes.Fields.opportunity).getValue();
+		var onboarding = formContext.getAttribute(this.Attributes.Fields.onboarding).getValue();
+		if (opportunity === null && onboarding !== null) {
+			var onboardingid = onboarding[0].id.replace("{", "").replace("}", "");
+			await Xrm.WebApi.retrieveRecord("crb_onboarding", onboardingid, "?$select=_crb_opportunity_value").then(
+				function success(result) {
+					console.log(result);
+					// Columns
+					var crb_opportunity = result["_crb_opportunity_value"]; // Lookup
+					var crb_opportunity_formatted = result["_crb_opportunity_value@OData.Community.Display.V1.FormattedValue"];
+					var crb_opportunity_lookuplogicalname = result["_crb_opportunity_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+					var lookup = new Array();
+					lookup[0] = new Object();
+					lookup[0].id = crb_opportunity;
+					lookup[0].name = crb_opportunity_formatted;
+					lookup[0].entityType = crb_opportunity_lookuplogicalname;
+					formContext.getAttribute(CRB.CRM.PJ.CRBDocument.Attributes.Fields.opportunity).setValue(lookup);
+				}).catch(
+					function (error) {
+						let alertStrings = { confirmButtonLabel: 'Ok', text: 'Unexpected Error' };
+						let alertOptions = { height: 120, width: 260 };
+
+						Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+					})
+		}
+
+
+
+	},
+    lockName: function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var formType = formContext.ui.getFormType();
+        if (formType !== 1) {
+        formContext.getControl("crb_name").setDisabled(true);
+        }
+    },
+    AlertExpireDate: function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var crrmExpireDate = formContext.getControl(this.Attributes.Fields.expirationDate);
+        var crrmExpireDateValue = formContext.getAttribute(this.Attributes.Fields.expirationDate).getValue();
+        if(crrmExpireDate != null && crrmExpireDateValue != null)
+        {
+            CRB.CRM.PJ.Common.showExpirationDateAlert(crrmExpireDate,crrmExpireDateValue);            
+        }       
+    },
+    HideAndShowFilePathForFairlending: async function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var documentName = formContext.getAttribute(this.Attributes.Fields.name).getValue();
+        
+        if(documentName === "Fair Lending Risk Assesment"){
+            var currentUser = Xrm.Utility.getGlobalContext().userSettings;
+            var userId = currentUser.userId.replace("{", "").replace("}", "");
+            var flag = false;
+            var teams = [];
+            teams = await CRB.CRM.PJ.Common.getTeamsbasedonUserId(userId);
+            teams.forEach(function(team){
+                if(team.name === "Fair Lending" || team.name ==="General Due Diligence"){
+                    flag = true;
+                }
+            })
+            if(flag){
+                formContext.getControl(this.Attributes.Fields.filepath).setVisible(true);
+            }
+            else{
+                formContext.getControl(this.Attributes.Fields.filepath).setVisible(false);
+                formContext.getControl(this.Attributes.Fields.documentlocation).setVisible(false);
+            }
+        }
+        if (documentName === "Fair Lending Models DD Checklist") {
+			var currentUser = Xrm.Utility.getGlobalContext().userSettings;
+			var userId1 = currentUser.userId.replace("{", "").replace("}", "");
+			var flag1 = false;
+			var teams = [];
+			teams1 = await CRB.CRM.PJ.Common.getTeamsbasedonUserId(userId1);
+			teams1.forEach(function (team) {
+				if (team.name === "Fair Lending Due Diligence") {
+					flag1 = true;
+				}
+			})
+			if (flag1) {
+				formContext.getControl(this.Attributes.Fields.filepath).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.documentlocation).setVisible(false);
+				var controls = formContext.ui.controls.get();
+				for (var i in controls) {
+					var control = controls[i];
+					control.setDisabled(false);
+				}
+			}
+			else {
+				formContext.getControl(this.Attributes.Fields.filepath).setVisible(false);
+				formContext.getControl(this.Attributes.Fields.documentlocation).setVisible(false);
+				var controls = formContext.ui.controls.get();
+				for (var i in controls) {
+					var control = controls[i];
+					control.setDisabled(true);
+				}
+			}
+		}
+
+    },
+    HIdeAndShowFilepathField : function(executionContext){
+		var formContext = executionContext.getFormContext();
+        var onboarding = formContext.getAttribute(this.Attributes.Fields.onboarding).getValue();
+		if( onboarding !== null){
+			formContext.getControl(this.Attributes.Fields.file).setVisible(true)
+		}
+	},
+    DisableAndEnableFieldsPushToCardOnboardingChecklist: async function (executionContext) {
+        debugger
+        var formContext = executionContext.getFormContext();
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var docName = formContext.getAttribute(this.Attributes.Fields.name).getValue();
+        if (docName !== null && docName !== undefined && docName === "Push to Card Onboarding Checklist") {
+            var isMemberOfTeams = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, this.Team.operationTeams);
+            if (isMemberOfTeams) {
+                var controls = formContext.ui.controls.get();
+                for (var i in controls) {
+                    var control = controls[i];
+                    control.setDisabled(false);
+                    formContext.getControl(this.Attributes.Fields.documentLocation).setDisabled(false);
+                }
+            } else {
+                var controls = formContext.ui.controls.get();
+                for (var i in controls) {
+                    var control = controls[i];
+                    control.setDisabled(true);
+                }
+            }
+            
+            formContext.getControl(this.Attributes.Fields.documentLocation).setDisabled(true);
+        }
+        if (docName !== null && docName !== undefined && docName === "Tabapay/ISO Onboarding Sheet") {
+            var isMemberOfTeams = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, this.Team.ImpTeam);
+            if (isMemberOfTeams) {
+                var controls = formContext.ui.controls.get();
+                for (var i in controls) {
+                    var control = controls[i];
+                    control.setDisabled(false);
+                   // formContext.getControl(this.Attributes.Fields.documentLocation).setDisabled(false);
+                }
+            } else {
+                var controls = formContext.ui.controls.get();
+                for (var i in controls) {
+                    var control = controls[i];
+                    control.setDisabled(true);
+                }
+            }
+            formContext.getControl(this.Attributes.Fields.documentLocation).setDisabled(true);
+        }
+    },
+    HideFieldsForInternalDocuments : function(executionContext){
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var isDocInternalorExternal = formContext.getAttribute(this.Attributes.Fields.isDocumentInternalOrExternal).getValue();
+        var keys = [this.Attributes.Fields.sentOn, this.Attributes.Fields.versionNumber,this.Attributes.Fields.expirationDate, this.Attributes.Fields.dueDeligenceTopic, this.Attributes.Fields.remarks, this.Attributes.Fields.issueOrApprovalDate, this.Attributes.Fields.receivedOn];  
+        if (isDocInternalorExternal === this.Attributes.LOV.isDocumentInternalOrExternal.Internal) {
+            this.HideFiled(formContext, keys);
+        }
+        
+    },
+     openUrlfield : function (executionContext){
+        var formContext = executionContext.getFormContext();
+        var envelopeUrl = formContext.getAttribute("crb_envelopeurl").getValue();
+        if(envelopeUrl != null){
+            var openUrlOptions = {
+                    height: 800,
+                    width: 800
+            };
+            Xrm.Navigation.openUrl(envelopeUrl,openUrlOptions);
+        }
+    },
+    showandhideGetSignatureButton: function (primaryControl) {
+        var formContext = primaryControl;
+        var docType = formContext.getAttribute(this.Attributes.Fields.documentType).getValue();
+        if(docType[0].name === "NDA"){           
+                return true;
+            }else{            
+                return false;
+            }
+                     
+    },
+    ExecuteGetSignatureWorkflow: async function(primaryControl){
+         //"use strict";
+         var formContext =  primaryControl;
+         var docId = formContext.data.entity.getId().substring(1, 37);
+         var workflowID = "";
+         Xrm.Utility.showProgressIndicator("Creating Envelope");
+         var query = "?$select=name,workflowid,_parentworkflowid_value&$filter=( name eq 'CRB_DocuSign workflow' and _parentworkflowid_value eq null and category eq 0)"
+         await Xrm.WebApi.retrieveMultipleRecords("workflow", query).then(
+         function success(result) {
+             if (result !== null && result.entities.length > 0) {
+                 workflowID = result.entities[0]["workflowid"];
+             }
+         },
+         function (error) {
+         });
+         var executeWorkflowRequest = {
+             entity: { entityType: "workflow", id: workflowID  },
+             EntityId: { guid: docId },
+
+             getMetadata: function () {
+                 return {
+                     boundParameter: "entity",
+                     parameterTypes: {
+                         entity: { typeName: "mscrm.workflow", structuralProperty: 5 },
+                         EntityId: { typeName: "Edm.Guid", structuralProperty: 1 }
+                     },
+                     operationType: 0, operationName: "ExecuteWorkflow"
+                 };
+             }
+         };
+         await Xrm.WebApi.execute(executeWorkflowRequest).then(
+             function success(response) {
+                 if(response.ok){}    
+             }
+         ).then(function (responseBody) {
+            setTimeout(() => {
+            formContext.data.refresh(true);
+            Xrm.Utility.closeProgressIndicator("Creating Envelope");
+            CRB.CRM.PJ.CRBDocument.redirectToEnvelope(docId);
+            }, 5000);
+            
+            var result = responseBody;        
+        }).catch(function (error) {
+            
+            Xrm.Utility.closeProgressIndicator();
+        });
+     },
+     redirectToEnvelope:async function(docId){
+         var envelope = "";
+          await Xrm.WebApi.retrieveRecord("crb_document",docId,"?$select=crb_envelopeurl").then(
+                function success(result) {
+                    envelope = result["crb_envelopeurl"];
+                    var openUrlOptions = {
+                            height: 800,
+                            width: 800
+                    };
+                    Xrm.Navigation.openUrl(envelope);
+                },
+                function(error) {
+            
+                }
+         );
+     },
+    RefreshRibbononDocChange: function (executionContext) {
+        var formContext = executionContext.getFormContext();        
+        formContext.ui.refreshRibbon();
+        //}
+
+    },
+    duplicatedetection: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var formType = formContext.ui.getFormType();
+        var documentname = formContext.getAttribute(this.Attributes.Fields.documentSubType);
+        var opportunity = formContext.getAttribute(this.Attributes.Fields.opportunity);
+        var onboarding = formContext.getAttribute(this.Attributes.Fields.onboarding);
+        var partner = formContext.getAttribute(this.Attributes.Fields.partner);
+        var url = parent.window.location.href;
+        var documentid;
+        var parentUrl;
+        var filter;
+        if(formType === 1){
+        if (documentname.getValue() != null && opportunity.getValue() != null) {
+            //console.log("Opportunity ID:"+ opportunity.getValue()[0].id.replace("{", "").replace("}", ""));
+            filter = "?$filter=(_crb_documentsubtype_value eq '" + documentname.getValue()[0].id.replace("{", "").replace("}", "") + "' and _crb_opportunity_value eq '" + opportunity.getValue()[0].id.replace("{", "").replace("}", "") + "' )";
+        }
+        else if (documentname.getValue() != null && onboarding.getValue() != null) {
+            filter = "?$filter=(_crb_documentsubtype_value eq '" + documentname.getValue()[0].id.replace("{", "").replace("}", "") + "' and _crb_onboarding_value eq '" + onboarding.getValue()[0].id.replace("{", "").replace("}", "") + "' )";
+        }
+        else if (documentname.getValue() != null && partner.getValue() != null) {
+            filter = "?$filter=(_crb_documentsubtype_value eq '" + documentname.getValue()[0].id.replace("{", "").replace("}", "") + "' and _crb_partner_value eq '" + partner.getValue()[0].id.replace("{", "").replace("}", "") + "' )";
+        }
+        else { }
+        //if (documentname.getValue() != null && opportunity.getValue() != null) {
+        if (filter !== null && filter !== undefined) {
+            await Xrm.WebApi.retrieveMultipleRecords("crb_document", filter).then(
+                async function success(results) {
+                    console.log(results);
+                    if (results.entities.length > 0) {
+                        results.entities.forEach(function (result) {
+                            documentid = result["crb_documentid"];
+                        });
+                        parentUrl = url + '&id=' + documentid;
+                        let confirmStrings = {
+                            confirmButtonLabel: 'Open Document',
+                            cancelButtonLabel: 'Cancel',
+                            text: "A document record already exists for this document type, Please 'Open Document' to upload the newest version of the document.",
+                            title: 'Duplicate Document'
+                        };
+                        let confirmOptions = {
+                            height: 220,
+                            width: 460
+                        };
+                        await Xrm.Navigation.openConfirmDialog(confirmStrings, confirmOptions).then(
+                            function (success) {
+                                if (success.confirmed) {
+                                    formContext.getAttribute(CRB.CRM.PJ.CRBDocument.Attributes.Fields.documentType).setValue(null);
+                                    formContext.getAttribute(CRB.CRM.PJ.CRBDocument.Attributes.Fields.documentSubType).setValue(null);
+                                    formContext.getAttribute(CRB.CRM.PJ.CRBDocument.Attributes.Fields.name).setValue(null);
+                                    Xrm.Navigation.openUrl(parentUrl);
+                                    console.log("Alert dialog closed");
+                                }
+                                else {
+                                    formContext.getAttribute(CRB.CRM.PJ.CRBDocument.Attributes.Fields.documentType).setValue(null);
+                                    formContext.getAttribute(CRB.CRM.PJ.CRBDocument.Attributes.Fields.documentSubType).setValue(null);
+                                    formContext.getAttribute(CRB.CRM.PJ.CRBDocument.Attributes.Fields.name).setValue(null);
+                                }
+
+                            },
+                            function (error) {
+                                console.log(error.message);
+                            }
+                        );
+                    }
+
+                    // for (var i = 0; i < results.entities.length; i++) {
+                    // 	var result = results.entities[i];
+                    // 	var crb_documentid = result["crb_documentid"]; // Guid
+                    // }
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+        }
+        }
+    }  
+ 
+    
+}
