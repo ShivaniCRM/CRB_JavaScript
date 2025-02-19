@@ -1,0 +1,2497 @@
+var FORM_ID_TO_HIDE_BPF = "89D0DA42-799D-4248-95DD-E1F049E50040";
+var LOB_RECORD = {
+    SBALending: "d6689759-6479-ef11-a671-6045bdd9aaf1",
+    CapitalMarkets: "b08f6a66-6479-ef11-a671-6045bdd9aaf1",
+    DigitalBanking: "a98f6a66-6479-ef11-a671-6045bdd9aaf1",
+    SDL: "f4b37b73-6479-ef11-a671-6045bdd9aaf1",
+    CRE: "04b47b73-6479-ef11-a671-6045bdd9aaf1",
+};
+var OpportunityCustomStatus = {
+    Open: 1,
+    Close: 100000004
+};
+var FormType = {
+    CreateForm: 1,
+    UpdateForm: 2,
+    ReadOnlyForm: 3
+};
+var FirstStage = {
+    DigitalBanking: 3,
+    CapitalMarkets: 16,
+    SBALending: 2,
+    SDL: 2
+};
+var BPF_ProcessId = {
+    DigitalBanking: "9a2f164b-0d77-ef11-a670-000d3a1200ca",
+    CapitalMarkets: "9436db10-2877-ef11-a670-000d3a1200ca",
+    SBALending: "8dc42d6d-2877-ef11-a670-000d3a18693a",
+    SDL: "8538588b-2877-ef11-a670-000d3a1200ca"
+};
+var StageMatrix = {
+    DigitalBanking: [{
+            StageName: "Assessment",
+            StageNameValue: 3,
+            Status: 1,
+            Sequence: 1
+        },
+        {
+            StageName: "Negotiation",
+            StageNameValue: 8,
+            Status: 1,
+            Sequence: 2
+        },
+        {
+            StageName: "Onboarding",
+            StageNameValue: 14,
+            Status: 1,
+            Sequence: 3
+        },
+        {
+            StageName: "Completion",
+            StageNameValue: 26,
+            Status: 1,
+            Sequence: 4
+        },
+        {
+            StageName: "Closed Won",
+            StageNameValue: 30,
+            Status: 100000004,
+            Sequence: 5
+        },
+        {
+            StageName: "Closed Lost",
+            StageNameValue: 31,
+            Status: 100000004,
+            Sequence: 6
+        }
+    ],
+    CapitalMarkets: {
+
+    },
+    SBALending: {
+
+    },
+    SDL: {
+
+    }
+};
+
+var forms = {
+    CreateForm: "Create Form",
+    DigitalBanking: "Digital Banking",
+    CapitalMarkets: "Capital Markets",
+    SBALending: "SBA Lending",
+    SBALendingReports: "SBA Lending Reports",
+    SDL: "SDL",
+    SFOpportunity: "SF Opportunities",
+    DMSFOpportunityCustom: "DM SF Opportunity Custom",
+}
+
+var formIds = {
+    CreateForm: "0a423799-1399-ef11-8a69-6045bdd7f981",
+    CapitalMarket: "437050ce-1b87-4f9b-9cb9-60bf24212abf",
+    DigitalBanking: "18dc2e45-7c79-ef11-a671-6045bdd55ab5",
+    SBALending: "472a756c-7c79-ef11-a671-6045bdd55ab5",
+    SBALendingReports: "89d0da42-799d-4248-95dd-e1f049e50040",
+    SDL:"37c79da0-7979-ef11-a671-6045bdd9aaf1",
+    SFOpportunity: "0f61f7e7-0dbf-ef11-b8e8-6045bda8f7ce"
+}
+
+var OtherDispositionCategory = {
+    Denied: 1,
+    Withdrawn: 2,
+    "Closed For Incompleteness": 3,
+    "Inactive Inquiry": 4,
+    "CRB Passed Cash Flow": 5,
+    "CRB Passed Collateral": 6,
+    "Withdrawn by client Rate": 7,
+    "Withdrawn by client Timing SBA": 8,
+    NA: 9,
+};
+
+var OptyTypeToFormMap = {
+    [LOB_RECORD.SBALending]: formIds.SBALending,
+    [LOB_RECORD.CapitalMarkets]: formIds.CapitalMarket,
+    [LOB_RECORD.DigitalBanking]: formIds.DigitalBanking,
+    [LOB_RECORD.SDL]: formIds.SDL
+}
+
+//Main - OnLoad Opportunity Custom
+function onLoadOpportunityCustom(executionContext,loadedFromCreateForm = false) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var formType = formContext.ui.getFormType();
+    
+    if (!loadedFromCreateForm) {
+        if (!doOpportunityTypeAndFormMatch(executionContext)) {
+            return;
+        }
+    }
+    
+    
+    //Step1: hide active process
+    //Step2: set BPF as per Opportunity Type and make it Visible
+    //Step3: set the specific Form
+    hideAllActiveBPFs(executionContext);
+    
+//    function isFormSFOpportunity() {
+//        return formContext.ui.formSelector.getCurrentItem().getLabel() === forms.SFOpportunity;
+//    }
+//
+//    if (isFormSFOpportunity()) {
+//        return;
+//    }
+
+    addDynamicOnChangeEventForStage(executionContext); //TODO: Enable after fixing the method
+
+    if (formType === FormType.CreateForm) {
+        filterLookupWithSpecificValues(executionContext);
+        setCreateForm(executionContext);
+        showFormsDynamically(executionContext);
+    }
+
+
+
+    var processId = showBPFBasedOnOpportunityType(formContext);
+    if (processId) {
+        formContext.data.process.setActiveProcess(processId, function (result) {
+            //debugger;
+            if (result === "success") {
+                formContext.ui.process.setVisible(true);
+                writeToConsole("BPF set successfully and made Visible");
+
+                setFormBasedOnOpportunityType(executionContext);
+                showFormsDynamically(executionContext);
+                writeToConsole("Opportunity Specific Form Loaded");
+                setBusinessProcessStageByStageName(executionContext);
+                setCurrentDateforFirstStage(executionContext);
+                //showSFOpportunityForm(executionContext);
+            } else {
+                
+                writeToConsole("Failed to set BPF and Opportunity Specific Form load function will not fire");
+            }
+        });
+    } else {
+        setFormBasedOnOpportunityType(executionContext);
+        writeToConsole("No matching BPF found for the Opportunity Type & and Opportunity Specific Form load function will not fire");
+    }
+
+    //restrictFormSwitching(executionContext);
+
+    if (formType != FormType.CreateForm) {
+        formContext.getControl("crb_opportunitytype").setDisabled(true);
+
+        filterOptionSetBasedOnLookup(executionContext);
+        registerStageChange(executionContext);
+        fireFormulaForCalculatedFields(executionContext);
+        specialisedValidations(executionContext);
+        
+        showFormsDynamically(executionContext);
+        
+        //saveIfBPFAndStageNameSame(executionContext);
+        //saveIfDirty(executionContext);
+    }
+
+
+
+    writeToConsole("*** Main Onload Fired: " + new Date().toISOString() + " ***");
+}
+
+//Specialised OnLoad - SBA Lending
+function onLoadSBALending(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var formType = formContext.ui.getFormType();
+    if(!doOpportunityTypeAndFormMatch(executionContext)){
+        redirectToCreateForm(executionContext);
+        return;
+    }
+    if (formType != FormType.CreateForm) {
+        makeBrokerFieldMandatory(executionContext);
+        showHideProjectedCloseDate(executionContext);
+        showHideWatchListSection(executionContext);
+        registerOnchangeEventsForWatchList(executionContext);
+        registerOnchangeofApplicationDate(executionContext);
+        registerOnchangeEventsForPastDueDate(executionContext);
+        //    enableAndDisableThirdPartySection(executionContext);
+        calculateProbabilitySBALending(executionContext);
+//        setCurrentDateforFirstStage(executionContext);
+        formContext.data.process.addOnStageChange(this.calculateProbabilitySBALending);
+//        updateLastActivityModifiedSBALending(executionContext);
+        formContext.data.process.addOnStageChange(this.updateLastActivityModifiedSBALending);
+        updateStaleAge(executionContext);
+        formContext.data.process.addOnStageChange(this.updateStaleAge);
+        
+        //showSFOpportunityForm(executionContext);
+        
+        writeToConsole("*** onLoadSBALending Fired: " + new Date().toISOString() + " ***");
+
+        saveIfBPFAndStageNameSame(executionContext);
+        //saveIfDirty(executionContext);
+    }
+}
+
+//Specialised OnLoad - Capital Markets
+function onLoadCapitalMarkets(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var formType = formContext.ui.getFormType();
+    if(!doOpportunityTypeAndFormMatch(executionContext)){
+        redirectToCreateForm(executionContext);
+        return;
+    }
+    if (formType != FormType.CreateForm) {
+        showFieldsForMarlettePlatform(executionContext);
+        CalulateProbabilityCapitalMarkets(executionContext);
+        //        setCurrentDateforFirstStage(executionContext);
+        ShowandHideLostOpportunityFieldsCapitalMarket(executionContext);
+        formContext.data.process.addOnStageChange(this.CalulateProbabilityCapitalMarkets);
+        formContext.data.process.addOnStageChange(this.ShowandHideLostOpportunityFieldsCapitalMarket);
+        
+        //showSFOpportunityForm(executionContext);
+
+        writeToConsole("*** onLoadCapitalMarkets Fired: " + new Date().toISOString() + " ***");
+
+        saveIfBPFAndStageNameSame(executionContext);
+        //saveIfDirty(executionContext);
+    }
+}
+
+//Specialised OnLoad - Digital Banking
+function onLoadDigitalBanking(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var formType = formContext.ui.getFormType();
+    if(!doOpportunityTypeAndFormMatch(executionContext)){
+        redirectToCreateForm(executionContext);
+        return;
+    }
+    if (formType != FormType.CreateForm) {
+        calculateAgesofStagesDigitalBanking(executionContext);
+//        setCurrentDateforFirstStage(executionContext);
+        //        updateLastStageDateDigitalBanking(executionContext);
+        calculateProbabilityDigitalBanking(executionContext);
+        formContext.data.process.addOnStageChange(this.calculateProbabilityDigitalBanking);
+        formContext.data.process.addOnStageChange(this.calculateAgesofStagesDigitalBanking);
+        formContext.data.process.addOnStageChange(this.updateLastStageDateDigitalBanking);
+        //formContext.data.process.addOnStageChange(this.updateOpportunityCloseQuarter);
+        
+        //showSFOpportunityForm(executionContext);
+
+        writeToConsole("*** onLoadDigitalBanking Fired: " + new Date().toISOString() + " ***");
+
+        saveIfBPFAndStageNameSame(executionContext);
+        //saveIfDirty(executionContext);
+    }
+}
+
+//Specialised OnLoad - SDL
+function onLoadSDL(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var formType = formContext.ui.getFormType();
+    if(!doOpportunityTypeAndFormMatch(executionContext)){
+        redirectToCreateForm(executionContext);
+        return;
+    }
+    if (formType != FormType.CreateForm) {
+        calculateProbabilitySDL(executionContext);
+//        setCurrentDateforFirstStage(executionContext);
+        formContext.data.process.addOnStageChange(this.calculateProbabilitySDL);
+        formContext.data.process.addOnStageChange(this.calculateProbabilityWeightedNIM);
+        formContext.data.process.addOnStageChange(this.calculateWeightedAmount);
+        formContext.data.process.addOnStageChange(this.updateLastStageDate);
+        formContext.data.process.addOnStageChange(this.calculateAgesofStages);
+        
+        //showSFOpportunityForm(executionContext);
+
+        writeToConsole("*** onLoadSDL Fired: " + new Date().toISOString() + " ***");
+
+        saveIfBPFAndStageNameSame(executionContext);
+        //saveIfDirty(executionContext);
+    }
+}
+
+function onLoadSFOpportunity(executionContext){
+    var formContext = executionContext.getFormContext();
+    hideAllActiveBPFs(executionContext);
+    if(formContext.ui.getFormType() === 1){    //create 
+        redirectToCreateForm(executionContext);
+    }
+    filterLookupWithSpecificValues(executionContext);
+    showFormsDynamically(executionContext);
+}
+
+function onLoadSBALendingReports(executionContext){
+    var formContext = executionContext.getFormContext();
+    checkOpportunityType(executionContext);
+    showFormsDynamically(executionContext);
+}
+
+function doOpportunityTypeAndFormMatch(executionContext){
+    var formContext = executionContext.getFormContext();
+    var optyType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if(optyType){
+        var optyTypeId = optyType[0].id.replace('{', '').replace('}', '').toLowerCase();
+        var formId = formContext.ui.formSelector.getCurrentItem().getId().replace('{', '').replace('}', '').toLowerCase();
+        if(OptyTypeToFormMap[optyTypeId] && OptyTypeToFormMap[optyTypeId].toLowerCase() === formId){
+            return true;
+        }
+    }
+    return false;
+}
+
+function checkOpportunityType(executionContext){
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if(opportunityType){
+        var opportunityTypeId = opportunityType[0].id.replace('{', '').replace('}', '').toLowerCase();
+        if(opportunityTypeId === LOB_RECORD.SBALending){
+            return;
+        }
+    }
+    redirectToCreateForm(executionContext);
+}
+
+function saveIfBPFAndStageNameSame(executionContext) {
+
+    var formContext = executionContext.getFormContext();
+    var bpf = formContext.data.process.getActiveProcess();
+    var stageName = formContext.getAttribute("crb_stagename").getValue();
+    if (bpf && stageName) {
+        var currentBPFStage = formContext.data.process.getActiveStage().getName();
+        var bpfStageFieldLabel = formContext.getAttribute("crb_stagename").getText();
+        if (currentBPFStage === bpfStageFieldLabel) {
+            saveIfDirty(executionContext);
+        }
+    }
+}
+
+
+function redirectToCreateForm(executionContext){
+    var formContext = executionContext.getFormContext();
+    formContext.ui.formSelector.items.forEach(function (form) {
+        if (form.getLabel() === forms.CreateForm) {
+            form.navigate();
+        }
+    })
+}
+
+function showFormsDynamically(executionContext) {
+    var formcontext = executionContext.getFormContext();
+    var currentFormLabel = formcontext.ui.formSelector.getCurrentItem().getLabel();
+    var currentFormId = formcontext.ui.formSelector.getCurrentItem().getId();
+
+    formcontext.ui.formSelector.items.forEach((form) => {
+
+        var optyType = formcontext.getAttribute("crb_opportunitytype").getValue();
+        if (optyType) {
+
+            if (form.getId() === formIds.SFOpportunity) {
+                return;
+            }
+
+            var optyTypeId = optyType[0].id.replace('{', '').replace('}', '').toLowerCase();
+            var formId = form.getId().replace('{', '').replace('}', '').toLowerCase();
+
+            if (optyTypeId === LOB_RECORD.SBALending) {
+                if (formId !== formIds.SBALending && formId !== formIds.SBALendingReports) {
+                    form.setVisible(false);
+                }
+            }
+
+            else if (optyTypeId === LOB_RECORD.CapitalMarkets) {
+                if (formId !== formIds.CapitalMarket) {
+                    form.setVisible(false);
+                }
+            }
+
+            else if (optyTypeId === LOB_RECORD.DigitalBanking) {
+                if (formId !== formIds.DigitalBanking) {
+                    form.setVisible(false);
+                }
+            }
+
+            else if (optyTypeId === LOB_RECORD.SDL) {
+                if (formId !== formIds.SDL) {
+                    form.setVisible(false);
+                }
+            }
+            else{
+                form.setVisible(false);
+            }
+        }
+        else{
+            var formId = form.getId().replace('{', '').replace('}', '').toLowerCase();
+            if(formId !== formIds.CreateForm){
+                form.setVisible(false);
+            }
+        }
+
+    })
+}
+
+function showSFOpportunityForm(executionContext) {  //not in use
+    var formContext = executionContext.getFormContext();
+
+    var targetFormName = forms.SFOpportunity;
+
+    formContext.ui.formSelector.items.forEach(function (form) {
+        if (form.getLabel() === targetFormName) {
+            writeToConsole("FormIdentified: SF Opportunities");
+            form.setVisible(true);
+        }
+    });
+
+}
+
+//ShowHide BPF based on Opportunity Type: Function 1 (Main)
+function showBPFBasedOnOpportunityType(formContext) {
+    //debugger;
+    var formType = formContext.ui.getFormType();
+    if (formType === FormType.CreateForm) {
+        if (formContext.getAttribute("crb_opportunitytype").getValue() === null) {
+            writeToConsole("Create Form: No BPF Will be Shown for Create Form");
+            writeToConsole("Create Form: Set Name of the Record with the Opportunity Type");
+
+            return null;
+        }
+    } else if (formType === FormType.UpdateForm) {
+        if (formContext.getAttribute("crb_opportunitytype").getValue() != null) {
+            writeToConsole("Create Form: BPF Will be Shown based on Opportunity Type");
+
+            var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+            var opportunityTypeId = opportunityType[0].id.replace('{', '').replace('}', '').toLowerCase();
+            var processIdToLoad = null;
+            switch (opportunityTypeId) {
+                case LOB_RECORD.CapitalMarkets:
+                    processIdToLoad = BPF_ProcessId.CapitalMarkets;
+                    break;
+                case LOB_RECORD.DigitalBanking:
+                    processIdToLoad = BPF_ProcessId.DigitalBanking;
+                    break;
+                case LOB_RECORD.SBALending:
+                    processIdToLoad = BPF_ProcessId.SBALending;
+                    break;
+                case LOB_RECORD.SDL:
+                    processIdToLoad = BPF_ProcessId.SDL;
+                    break;
+            }
+            if (processIdToLoad != null) {
+                writeToConsole("Matched BPF: " + processIdToLoad);
+            }
+            return processIdToLoad;
+        }
+    }
+}
+
+//ShowHide BPF based on Opportunity Type: Helper Function 3 : Hide Process onLoad/Create
+function hideAllActiveBPFs(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var processControl = formContext.data.process;
+    if (processControl != null && processControl.getActiveProcess() != null) {
+        formContext.ui.process.setVisible(false);
+    }
+}
+
+//Set Forms Based on Opportunity Type
+function setFormBasedOnOpportunityType(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var formType = formContext.ui.getFormType();
+
+    if (formContext.getAttribute("crb_opportunitytype").getValue() != null && formType != FormType.CreateForm && !doOpportunityTypeAndFormMatch(executionContext)) {
+        var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+        var opportunityTypeId = opportunityType[0].id.replace('{', '').replace('}', '').toLowerCase();
+        let requiredFormFound = false;
+
+        if (opportunityTypeId === LOB_RECORD.DigitalBanking) {
+            var targetFormName = "Digital Banking";
+            var currentFormName = formContext.ui.formSelector.getCurrentItem().getLabel();
+            if (currentFormName !== targetFormName) {
+                formContext.ui.formSelector.items.forEach(function (form) {
+                    if (form.getLabel() === targetFormName) {
+                        writeToConsole("FormIdentified: Digital Banking");
+                        requiredFormFound = true;
+                        form.navigate();
+                    }
+                });
+            }
+            else{
+                requiredFormFound = true;
+            }
+        } else if (opportunityTypeId === LOB_RECORD.SBALending) {
+            var targetFormName = "SBA Lending";
+            var currentFormName = formContext.ui.formSelector.getCurrentItem().getLabel();
+            if (currentFormName !== targetFormName) {
+                formContext.ui.formSelector.items.forEach(function (form) {
+                    if (form.getLabel() === targetFormName) {
+                        writeToConsole("FormIdentified: SBA Lending");
+                        requiredFormFound = true;
+                        form.navigate();
+                    }
+                });
+            }
+            else{
+                requiredFormFound = true;
+            }
+        } else if (opportunityTypeId === LOB_RECORD.SDL) {
+            var targetFormName = "SDL";
+            var currentFormName = formContext.ui.formSelector.getCurrentItem().getLabel();
+            if (currentFormName !== targetFormName) {
+                formContext.ui.formSelector.items.forEach(function (form) {
+                    if (form.getLabel() === targetFormName) {
+                        writeToConsole("FormIdentified: SDL");
+                        requiredFormFound = true;
+                        form.navigate();
+                    }
+                });
+            }
+            else{
+                requiredFormFound = true;
+            }
+        } else if (opportunityTypeId === LOB_RECORD.CapitalMarkets) {
+            var targetFormName = "Capital Markets";
+            var currentFormName = formContext.ui.formSelector.getCurrentItem().getLabel();
+            if (currentFormName !== targetFormName) {
+                formContext.ui.formSelector.items.forEach(function (form) {
+                    if (form.getLabel() === targetFormName) {
+                        writeToConsole("FormIdentified: Capital Markets");
+                        requiredFormFound = true;
+                        form.navigate();
+                    }
+                });
+            }
+            else{
+                requiredFormFound = true;
+            }
+        }else{
+            var targetFormName = forms.SFOpportunity;
+            var currentFormName = formContext.ui.formSelector.getCurrentItem().getLabel();
+            if (currentFormName !== targetFormName) {
+                formContext.ui.formSelector.items.forEach(function (form) {
+                    if (form.getLabel() === targetFormName) {
+                        writeToConsole("FormIdentified: SF Opportunity");
+                        requiredFormFound = true;
+                        form.navigate();
+                    }
+                });
+            }
+            else {
+                requiredFormFound = true;
+            }
+        }
+        
+        if(!requiredFormFound){
+            writeToConsole("No matching form found for the Opportunity Type as User dont have required Secuirty Roles");
+            let alertStrings = { confirmButtonLabel: 'Ok', text: `You are missing security roles to view ${opportunityType[0].name} forms` };
+            let alertOptions = { height: 120, width: 260 };
+            
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+        }
+    }
+}
+
+//Set Name of the Record: OnChange: OpportunityType, Account
+function setName(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var lookupFieldValueOpprtunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var lookupFieldValueAccount = formContext.getAttribute("crb_accountid").getValue();
+    var lookupFieldValueOpprtunityTypeName = "";
+    var lookupFieldValueAccountName = "";
+    if (lookupFieldValueOpprtunityType !== null) {
+        lookupFieldValueOpprtunityTypeName = lookupFieldValueOpprtunityType[0].name;
+    }
+    if (lookupFieldValueAccount != null) {
+        lookupFieldValueAccountName = lookupFieldValueAccount[0].name;
+    }
+
+    var name = lookupFieldValueOpprtunityTypeName + " " + lookupFieldValueAccountName;
+    formContext.getAttribute("crb_name").setValue(name);
+}
+
+//Set the form named "Create Form" onLoad
+function setCreateForm(executionContext) {
+    var formContext = executionContext.getFormContext();
+    writeToConsole("Create Form: Show Minimal Create Form");
+    var targetFormName = "Create Form";
+    var currentFormName = formContext.ui.formSelector.getCurrentItem().getLabel();
+    if (currentFormName !== targetFormName) {
+        formContext.ui.formSelector.items.forEach(function (form) {
+            if (form.getLabel() === targetFormName) {
+                form.navigate();
+            }
+        });
+    }
+    
+    //showSFOpportunityForm(executionContext);
+}
+
+//Switch Forms: Conditionally: Prevent Opening for Cross Opportunities
+function restrictFormSwitching(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var lookupFieldValue = formContext.getAttribute("crb_opportunitytype").getValue();
+    var allowedForms = ["SBA Lending", "SBA Lending Reports"];
+    if (lookupFieldValue !== null && lookupFieldValue[0].id === LOB_RECORD.SBALending) {
+        formContext.ui.formSelector.items.forEach(function (form) {
+            if (allowedForms.includes(form.getLabel())) {
+                form.setVisible(true);
+            } else {
+                if (form.getLabel() !== forms.SFOpportunity) {  //didnot work as expected
+                    form.setVisible(false);
+                }
+                else{
+                    form.setVisible(true);
+                }
+            }
+        });
+        writeToConsole("Form switching is enabled only for specified forms.");
+    } else {
+        formContext.ui.formSelector.items.forEach(function (form) {
+            if (form.getLabel() !== forms.SFOpportunity) {  //didnot work as expected
+                form.setVisible(false);
+            }
+            else{
+                    form.setVisible(true);
+                }
+        });
+        writeToConsole("Form switching is disabled because the lookup field does not have the required value.");
+    }
+}
+
+//Save the Form only If there are Dirty Fields
+function saveIfDirty(executionContext) {
+    var formContext = executionContext.getFormContext();
+    if (formContext.data.entity.getIsDirty()) {
+        formContext.data.entity.save();
+        writeToConsole("Form saved as there are dirty fields.");
+    } else {
+        writeToConsole("No changes detected; form save skipped.");
+    }
+}
+
+//Filter Lookup of LoB
+function filterLookupWithSpecificValues(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var lookupControl = formContext.getControl("crb_opportunitytype");
+    lookupControl.removePreSearch(filterFunction);
+    lookupControl.addPreSearch(filterFunction);
+}
+
+function filterFunction() {
+    var filterXml = "<filter type='and'>" +
+        "<condition attribute='crb_lineofbusinessid' operator='in'>" +
+        "<value>d6689759-6479-ef11-a671-6045bdd9aaf1</value>" +
+        "<value>b08f6a66-6479-ef11-a671-6045bdd9aaf1</value>" +
+        "<value>a98f6a66-6479-ef11-a671-6045bdd9aaf1</value>" +
+        "<value>f4b37b73-6479-ef11-a671-6045bdd9aaf1</value>" +
+        "<value>04b47b73-6479-ef11-a671-6045bdd9aaf1</value>" +
+        "</condition>" +
+        "</filter>";
+    var lookupControl = Xrm.Page.getControl("crb_opportunitytype");
+    lookupControl.addCustomFilter(filterXml);
+}
+
+//Set First Stage: OnChange event of OpportunityType
+//TODO: try to use this method to set the first stage date
+function setFirstStageOnCreate(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var formType = formContext.ui.getFormType();
+    if (formType == FormType.CreateForm && formContext.getAttribute("crb_opportunitytype").getValue() != null) {
+        var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+        var opportunityTypeId = opportunityType[0].id.replace('{', '').replace('}', '').toLowerCase();
+        var optionSetValue = 0;
+        switch (opportunityTypeId) {
+            case LOB_RECORD.DigitalBanking:
+                optionSetValue = FirstStage.DigitalBanking;
+                break;
+            case LOB_RECORD.CapitalMarkets:
+                optionSetValue = FirstStage.CapitalMarkets;
+                break;
+            case LOB_RECORD.SBALending:
+                optionSetValue = FirstStage.SBALending;
+                break;
+            case LOB_RECORD.SDL:
+                optionSetValue = FirstStage.SDL;
+                break;
+            default:
+        }
+
+        if (optionSetValue > 0) {
+            setOptionSetValue(formContext, "crb_stagename", optionSetValue);
+            //saveIfDirty(executionContext);
+        }
+    }
+}
+
+function setCurrentDateforFirstStage(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+//    if (opportunityType !== null && opportunityType[0].name !== "Capital Markets") {
+      if (opportunityType !== null && (opportunityType[0].name === "SDL" || opportunityType[0].name === "Digital Banking" || opportunityType[0].name === "SBA Lending")) {
+        var typeToDateAttributeMap = {
+            "SDL": "crb_prospect_date",
+            "Digital Banking": "crb_assessment_date",
+            "SBA Lending": "crb_prospect_date"
+        };
+        var dateAttributeName = typeToDateAttributeMap[opportunityType[0].name];
+        var dateField = formContext.getAttribute(dateAttributeName).getValue();
+        if (dateField === null) {
+            var currentDate = new Date();
+            var dateAttribute = formContext.getAttribute(dateAttributeName);
+            dateAttribute.setValue(currentDate);
+        }
+
+    }
+}
+
+function setBusinessProcessStageByStageName(executionContext) {
+        //debugger;
+        var formContext = executionContext.getFormContext();
+
+        var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+        if (opportunityType !== null) {
+            var opportunityId = opportunityType[0].id.replace('{', '').replace('}', '').toLowerCase();
+            var sequence = {
+                DigitalBanking:{
+                    "Assessment":1,
+                    "Negotiation":2,
+                    "Onboarding":3,
+                    "Completion":4,
+                    "Closed Won":5, //these three have same sequence as they are rendered dynamically
+                    "Closed Lost":5,    //these three have same sequence as they are rendered dynamically
+                },
+                CapitalMarkets:{
+                    "Diligence":1,
+                    "Closed Won":2, //these three have same sequence as they are rendered dynamically
+                    "Closed Lost":2,    //these three have same sequence as they are rendered dynamically
+                    "Closed Decline":2, //these three have same sequence as they are rendered dynamically
+                },
+                SBALending:{
+                    "Prospect":1,
+                    "Application":2,
+                    "Underwriting":3,
+                    "In Closing":4,
+                    "Funded":5,
+                    "Other Disposition":5
+                },
+                SDL:{
+                    "Prospect":1,
+                    "Business Development":2,
+                    "Investment Team":3,
+                    "Term Sheet":4,
+                    "Term Sheet Executed":5,
+                    "Closed Won":6, //these three have same sequence as they are rendered dynamically
+                    "Closed Lost":6,    //these three have same sequence as they are rendered dynamically
+                    "Closed Decline":6, //these three have same sequence as they are rendered dynamically
+                }
+            }
+            
+            var depth = 10;
+            
+            switch (opportunityId) {
+                case LOB_RECORD.DigitalBanking:
+                    changeBPFStageBasedOnStageField(executionContext,sequence.DigitalBanking, depth);
+                    //#region Commented Code
+                    //var DigitalBankingArray = this.StageMatrix.DigitalBanking;
+
+                    //for each item inside DigitalBankingArray
+                    //Match the Stage and find its sequence
+                    //If Sequence is NOT first and last: allow moveNext and movePrevious
+                    //If sequence is First: allow moveNext
+                    //If seuqnce is Last: allow moveNext
+
+                    // var optionSetValue = formContext.getAttribute("crb_stagename").getValue();
+                    // var currentStageName = formContext.data.process.getActiveStage().getName();  
+                    // formContext.data.process.movePrevious();
+                    // formContext.data.process.moveNext();
+                    //#endregion
+                    break;
+                case LOB_RECORD.CapitalMarkets:
+                    changeBPFStageBasedOnStageField(executionContext,sequence.CapitalMarkets, depth);
+                    break;
+                case LOB_RECORD.SBALending:
+                    changeBPFStageBasedOnStageField(executionContext,sequence.SBALending, depth);
+                    break;
+                case LOB_RECORD.SDL:
+                    changeBPFStageBasedOnStageField(executionContext,sequence.SDL, depth);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+
+// TODO: //Set BPF Stage Based on StageName Change: NOT WORKING
+function addDynamicOnChangeEventForStage(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+
+    
+
+    var fieldControl = formContext.getAttribute("crb_stagename");
+    if (fieldControl) {
+        fieldControl.addOnChange(setBusinessProcessStageByStageName);
+//        setBusinessProcessStageByStageName(executionContext);
+    }
+}
+
+var stageChangeByUser = true;
+
+//Set BPF Stage Based on StageName Change: Helper Function
+function changeBPFStageBasedOnStageField(executionContext, sequence, depth) {
+    var formContext = executionContext.getFormContext();
+    var fieldControl = formContext.getAttribute("crb_stagename");
+    var fieldLabel = fieldControl.getText();
+    
+    var currentStage = formContext.data.process.getActiveStage().getName();
+    
+    if (fieldLabel === currentStage || depth === 0) {
+            return;
+        }
+
+    //Saving as moveNext(),movePrevious() are not working without Saving the form
+    formContext.data.save().then(() => {
+        
+        
+        
+        if(fieldLabel !== currentStage && sequence[fieldLabel] === sequence[currentStage]){
+            stageChangeByUser = false;
+            formContext.data.process.movePrevious(() => {
+                stageChangeByUser = false;
+                formContext.data.process.moveNext(() => {
+                    changeBPFStageBasedOnStageField(executionContext, sequence, --depth);
+                });
+            });
+        }
+
+        var x = sequence[currentStage]; // added to be helpfull while debugging
+        var y = sequence[fieldLabel];   // added to be helpfull while debugging
+
+        var fieldValue = fieldControl.getValue();
+        if (sequence[currentStage] < sequence[fieldLabel]) {
+            //await formContext.data.process.moveNext();
+            stageChangeByUser = false;
+            formContext.data.process.moveNext(() => {
+                changeBPFStageBasedOnStageField(executionContext, sequence, --depth);
+            });
+        }
+
+        if (sequence[currentStage] > sequence[fieldLabel]) {
+            //await formContext.data.process.movePrevious();
+            stageChangeByUser = false;
+            formContext.data.process.movePrevious(() => {
+                changeBPFStageBasedOnStageField(executionContext, sequence, --depth);
+            });
+        }
+
+        //changeBPFStageBasedOnStageField(executionContext,sequence);
+    },
+        (error) => {
+
+        })
+
+
+
+}
+
+//Validation Function
+function specialisedValidations(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+
+    enableAndDisableThirdPartySection(executionContext);
+    //setOptionSetBasedOnBPFStage(executionContext);
+    formContext.data.entity.addOnSave(updateOpportunityCloseDate);
+    formContext.data.entity.addOnSave(updateOpportunityCloseQuarterforSBALending);
+    formContext.data.entity.addOnSave(calculateCECLImpact$);
+    disableCalculatedFields(executionContext);
+    filterOptionSetsBasedonLOB(executionContext);
+}
+
+//Validation: Set OptionSets based on LOBs
+function filterOptionSetsBasedonLOB(executionContext) {
+    //debugger;
+    const formContext = executionContext.getFormContext();
+    var opportunityTypeId = formContext.getAttribute("crb_opportunitytype").getValue()[0].id;
+
+    const applicableOptions = {
+        capitalMarket: {
+            businessType: ["Initial Purchase", "Recurring Business"],
+            platform: ["BorrowersFirst", "Bread", "CRE", "FFAM", "Freedom C+", "Freedom F+", "Lending Club", "Loan Depot", "Marlette", "NCA", "Rockloans", "Rock Loans HI", "Sunlight HI", "Sunlight Solar", "Upgrade", "Upstart"],
+        },
+        sdl: {
+            priority: ["Low", "Medium", "High"],
+            platform: ["Above Average", "Avg", "Below Avg"],
+        },
+        sbaLending: {
+            source: ["Broker", "Direct", "CDC/RBAC"],
+        },
+        digitalBanking: {
+            contractStatus: ["NDA Requested", "NDA Submitted to Legal", "NDA executed", "Contract details pending client", "Contract requested in LawVu", "Contract Routed to Client", "Contract Signed"],
+            platform: ["Above Average", "Avg", "Below Avg"],
+        }
+    };
+
+    switch (opportunityTypeId.replace('{', '').replace('}', '').toLowerCase()) {
+        case LOB_RECORD.CapitalMarkets:
+            var businessTypeControl = formContext.getControl("crb_business_type");
+            if (!isNullorUndefinedorEmpty(businessTypeControl)) {
+                updateOptions(businessTypeControl, applicableOptions.capitalMarket.businessType);
+            }
+
+            var platformControl = formContext.getControl("crb_platform");
+            if (!isNullorUndefinedorEmpty(platformControl)) {
+                updateOptions(platformControl, applicableOptions.capitalMarket.platform);
+            }
+
+            break;
+        case LOB_RECORD.SDL:
+            var priorityControl = formContext.getControl("crb_priority");
+            if (!isNullorUndefinedorEmpty(priorityControl)) {
+                updateOptions(priorityControl, applicableOptions.sdl.priority);
+            }
+
+            var platformControlsdl = formContext.getControl("crb_platform");
+            if (!isNullorUndefinedorEmpty(platformControlsdl)) {
+                updateOptions(platformControlsdl, applicableOptions.sdl.platform);
+            }
+            break;
+        case LOB_RECORD.DigitalBanking:
+            var contractStatusControl = formContext.getControl("crb_contract_status");
+            if (!isNullorUndefinedorEmpty(contractStatusControl)) {
+                updateOptions(contractStatusControl, applicableOptions.digitalBanking.contractStatus);
+            }
+
+            var platformControldb = formContext.getControl("crb_platform");
+            if (!isNullorUndefinedorEmpty(platformControldb)) {
+                updateOptions(platformControldb, applicableOptions.digitalBanking.platform);
+            }
+            break;
+        case LOB_RECORD.SBALending:
+            var sourceControl = formContext.getControl("crb_source");
+            if (!isNullorUndefinedorEmpty(sourceControl)) {
+                updateOptions(sourceControl, applicableOptions.sbaLending.source);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+//Validation: Disable Calculated Fields
+function disableCalculatedFields(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType !== null && opportunityType[0].name === "Capital Markets") {
+        var listOfAttributes = ["crb_locom_price", "crb_collat_accrued", "crb_mark_to_fmv", "crb_gain_on_sale", "crb_valuation_allowance_release", "crb_gross_execution", "crb_gain_on_sales", "crb_net_execution_over_par",
+            "crb_peeriq_fees_rate", "crb_estimated_piq_fees", "crb_closing_wire_to_crb", "crb_net_execution_ex_accrued_interest", "crb_weight_ex_accrued_interest", "crb_t_3", "crb_t_20"
+        ];
+        listOfAttributes.forEach(function (attribute) {
+            var control = formContext.getControl(attribute);
+            if (control) {
+                control.setDisabled(true);
+            }
+        });
+    } else if (opportunityType !== null && opportunityType[0].name === "SDL") {
+        var listOfAttributes = ["crb_prospect_date", "crb_business_development", "crb_investment_team_date", "crb_term_sheet_date", "crb_term_sheet_executed_date", "crb_opportunity_close_date", "crb_initial_due_diligence_completed", "crb_initial_diligence", "crb_roe", "crb_weighted_amount", "crb_net_interest_margin", "crb_probability_weighted_nim", "crb_last_stage_update", "crb_days_in_current_stage", "crb_prospect_age", "crb_business_development_age", "crb_investment_team_age", "crb_terms_sheet_stage_age", "crb_term_sheet_executed_age"];
+        listOfAttributes.forEach(function (attribute) {
+            var control = formContext.getControl(attribute);
+            if (control) {
+                control.setDisabled(true);
+            }
+        });
+    } else if (opportunityType !== null && opportunityType[0].name === "Digital Banking") {
+        var listOfAttributes = ["crb_completion_age", "crb_current_stage_age", "crb_opportunity_close_quarter", "crb_onboarding_age", "crb_negotiation_age", "crb_assessment_age", "crb_assessment_date", "crb_negotiation_date", "crb_onboarding_date", "crb_completion_date", "crb_opportunity_close_date", "crb_last_stage_update"];
+        listOfAttributes.forEach(function (attribute) {
+            var control = formContext.getControl(attribute);
+            if (control) {
+                control.setDisabled(true);
+            }
+        });
+    } else if (opportunityType !== null && opportunityType[0].name === "SBA Lending") {
+        var listOfAttributes = ["crb_prospect_date", "crb_application", "crb_underwriting", "crb_in_closing", "crb_opportunity_close_quarter", "crb_last_activity_modified_date", "crb_stale_age"];
+        listOfAttributes.forEach(function (attribute) {
+            var control = formContext.getControl(attribute);
+            if (control) {
+                control.setDisabled(true);
+            }
+        });
+    }
+}
+
+//Validation: Populate Dates SDL
+function populateDatesBasedOnCurrentStageSDL(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var activeStageName = formContext.data.process.getActiveStage().getName();
+    var currentForm = formContext.ui.formSelector.getCurrentItem().getLabel();
+    if (opportunityType !== null && opportunityType[0].name === "SDL" && currentForm === forms.SDL) {
+        var currentDate = new Date();
+        if (activeStageName === "Prospect") {
+            var prospectDate = formContext.getAttribute("crb_prospect_date");
+            prospectDate.setValue(currentDate);
+        } else if (activeStageName === "Business Development") {
+            var businessDevelopmentDate = formContext.getAttribute("crb_business_development");
+            businessDevelopmentDate.setValue(currentDate);
+        } else if (activeStageName === "Investment Team") {
+            var investmentTeamDate = formContext.getAttribute("crb_investment_team_date");
+            investmentTeamDate.setValue(currentDate);
+        } else if (activeStageName === "Term Sheet") {
+            var termSheetDate = formContext.getAttribute("crb_term_sheet_date");
+            termSheetDate.setValue(currentDate);
+        } else if (activeStageName === "Term Sheet Executed") {
+            var termSheetExecutedDate = formContext.getAttribute("crb_term_sheet_executed_date");
+            termSheetExecutedDate.setValue(currentDate);
+        }
+    }
+}
+
+//Validation: Function to make enbale or disable fields in Third Party Section based on Application Date
+function enableAndDisableThirdPartySection(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var applicationdateAttribute = formContext.getAttribute("crb_application_date");
+    if (applicationdateAttribute) {
+        var applicationDate = formContext.getAttribute("crb_application_date").getValue();
+        var thirdPartySection = formContext.ui.tabs.get("Details").sections.get("ThirdParty");
+        var controls = thirdPartySection.controls.get();
+        var disableControls = applicationDate ? false : true;
+        for (var i in controls) {
+            var control = controls[i];
+            control.setDisabled(disableControls);
+        }
+    }
+}
+
+//Validation: Set OptionSet based on Stage
+function setOptionSetBasedOnBPFStage(executionContext) {
+    var formContext = executionContext.getFormContext();
+    if (stageChangeByUser) {
+        var process = formContext.data.process;
+        var processControl = formContext.ui.process;
+        var isVisible = processControl.getVisible();
+        if (isVisible) {
+            var activeStage = process.getActiveStage();
+            var activeStageName = activeStage.getName();
+            var stageName = formContext.getAttribute("crb_stagename");
+            var currentStageName = stageName.getText();
+            if (currentStageName !== activeStageName) {
+                var stageNameOptions = stageName.getOptions();
+                for (var i = 0; i < stageNameOptions.length; i++) {
+                    if (stageNameOptions[i].text === activeStageName) {
+                        stageName.setValue(stageNameOptions[i].value);
+                        stageName.fireOnChange();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    stageChangeByUser = true;
+}
+
+//Validation: Register OnStageChange for Form
+function registerStageChange(executionContext) {
+    ////debugger;
+    var formContext = executionContext.getFormContext();
+    var processControl = formContext.data.process;
+    if (processControl != null && processControl.getActiveProcess() != null) {
+        //processControl.addOnStageChange(handleStageChange); //TODO: Handle Stage Change in Incomplete, Doesn't handle all LoB Stages
+        processControl.addOnStageChange(setOptionSetBasedOnBPFStage);
+        processControl.addOnStageChange(populateDatesBasedOnCurrentStageSDL);
+        processControl.addOnStageChange(populateDatesBasedOnCurrentStageDigitalBanking);
+        processControl.addOnStageChange(populateDatesBasedOnCurrentStageforSBALending);
+    }
+}
+
+//Validation: onLoad of Form + onChange of Opportunity Topic
+function filterOptionSetBasedOnLookup(executionContext) {
+    ////debugger;
+    // Get the form context
+    var formContext = executionContext.getFormContext();
+    var schemaNameOpportunityType = "crb_opportunitytype";
+    var schemaNameStageName = "crb_stagename"
+    // Get the value of the lookup field (replace 'your_lookup_field' with the actual lookup field schema name)
+    var lookupFieldValue = formContext.getAttribute(schemaNameOpportunityType).getValue();
+    // Get the OptionSet field (replace 'your_optionset_field' with the actual OptionSet field schema name)
+    var optionSetField = formContext.getAttribute(schemaNameStageName);
+    if (lookupFieldValue !== null) {
+        var lookupId = lookupFieldValue[0].id; // Get the GUID of the lookup record
+        var lookupName = lookupFieldValue[0].name; // Get the name of the lookup record
+        // Clear all options in the OptionSet (optional, if you want to reset before adding custom options)
+        optionSetField.controls.forEach(function (control) {
+            control.clearOptions();
+        });
+        var status = formContext.getAttribute("statuscode").getValue();
+        if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.SBALending.toLowerCase() && (status == OpportunityCustomStatus.Open)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [2, 7, 15, 24]);
+        } else if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.SBALending.toLowerCase() && (status == OpportunityCustomStatus.Close)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [35, 36]);
+        } else if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.CapitalMarkets.toLowerCase() && (status == OpportunityCustomStatus.Open)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [16]);
+        } else if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.CapitalMarkets.toLowerCase() && (status == OpportunityCustomStatus.Close)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [30, 31, 34]);
+        } else if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.DigitalBanking.toLowerCase() && (status == OpportunityCustomStatus.Open)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [3, 8, 14, 26]);
+        } else if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.DigitalBanking.toLowerCase() && (status == OpportunityCustomStatus.Close)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [30, 31]);
+        } else if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.SDL.toLowerCase() && (status == OpportunityCustomStatus.Open)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [2, 4, 13, 20, 22]);
+        } else if (lookupId.toLowerCase().replace('{', '').replace('}', '') == LOB_RECORD.SDL.toLowerCase() && (status == OpportunityCustomStatus.Close)) {
+            addOptionSetOptions(formContext, schemaNameStageName, [30, 31, 34]);
+        }
+    } else {
+        // Handle when lookup field is empty (optional)
+        writeToConsole("No value in the lookup field.");
+    }
+}
+
+//Validation: Show Subplatform Fields for Marlette
+function showFieldsForMarlettePlatform(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var platformValue = formContext.getAttribute("crb_platform").getText();
+    var fields = ["crb_subplatform3", "crb_subplatform4", "crb_subplatform5", "crb_subplatform6", "crb_subplatform3_percent", "crb_subplatform4_percent", "crb_subplatform5_percent", "crb_subplatform6_percent"];
+    if (platformValue !== null && platformValue === "Marlette") {
+        fields.forEach(function (field) {
+            formContext.getControl(field).setVisible(true);
+        });
+    } else {
+        fields.forEach(function (field) {
+            formContext.getControl(field).setVisible(false);
+        });
+    }
+}
+
+//Validation: Fire Formula for Calculated Fields
+function fireFormulaForCalculatedFields(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var locomPrice = formContext.getAttribute("crb_locom_price");
+    var collatAndAccrued = formContext.getAttribute("crb_collat_accrued");
+    var netProceeds = formContext.getAttribute("crb_net_proceeds");
+    var markToFMV = formContext.getAttribute("crb_mark_to_fmv");
+    var gainOnSaleIn$ = formContext.getAttribute("crb_gain_on_sale");
+    var valuationAllowanceRelease$ = formContext.getAttribute("crb_valuation_allowance_release");
+    if (locomPrice !== null) {
+        calculateLoComPrice(executionContext);
+        registerOnChangeEventsForLoComPrice(executionContext);
+    }
+    if ((netProceeds !== null) || (collatAndAccrued !== null)) {
+        updateNetProceedsAndCollatandAccrued(executionContext);
+        registerOnChangeEventsForNetProceedsAndCollatandAccrued(executionContext);
+    }
+    if (markToFMV !== null) {
+        calculateMarkToFMV(executionContext);
+        registerOnChangeEventsForMarkToFMV(executionContext);
+    }
+    if ((gainOnSaleIn$ !== null) || valuationAllowanceRelease$ !== null) {
+        calculateGainOnSale$AndValuationAllowanceRelease$(executionContext);
+        registerOnChangeEventsForGainOnSale$AndValuationAllowanceRelease$(executionContext);
+    }
+    var grossExecution = formContext.getAttribute("crb_gross_execution");
+    if (grossExecution !== null) {
+        calculateGrossExecution(executionContext);
+        registerOnChangeEventsForGrossExecution(executionContext);
+    }
+    var gainOnSales = formContext.getAttribute("crb_gain_on_sales");
+    var netExecutionOverPar = formContext.getAttribute("crb_net_execution_over_par");
+    if ((gainOnSales !== null) || (netExecutionOverPar !== null)) {
+        calculateGainonSalesAndNetExecutionOverPar(executionContext);
+        registerOnChangeEventsForGainonSalesAndNetExecutionOverPar(executionContext);
+    }
+    var peerIQFeesRate = formContext.getAttribute("crb_peeriq_fees_rate");
+    if (peerIQFeesRate !== null) {
+        calculatePeerIQFeesRate(executionContext);
+        registerOnChangeEventsForPeerIQFeesRate(executionContext);
+    }
+    var estimatedPIQFees = formContext.getAttribute("crb_estimated_piq_fees");
+    if (estimatedPIQFees !== null) {
+        calculateEstimatedPIQFees(executionContext);
+        registerOnChangeEventsForEstimatedPIQFees(executionContext);
+    }
+    var closingWireToCRB = formContext.getAttribute("crb_closing_wire_to_crb");
+    if (closingWireToCRB !== null) {
+        calculateClosingWireToCRB(executionContext);
+        registerOnChangeEventsForClosingWireToCRB(executionContext);
+    }
+    var netExecutionexAccruedInterest = formContext.getAttribute("crb_net_execution_ex_accrued_interest");
+    if (netExecutionexAccruedInterest !== null) {
+        calculateNetExecutionexAccruedInterest(executionContext);
+        registerOnChangeEventsForNetExecutionexAccruedInterest(executionContext);
+    }
+    var weightExAccruedInterest = formContext.getAttribute("crb_weight_ex_accrued_interest");
+    if (weightExAccruedInterest !== null) {
+        calculateWeightExAccruedInterest(executionContext);
+        registerOnChangeEventsForWeightExAccruedInterest(executionContext);
+    }
+    var tplus3 = formContext.getAttribute("crb_t_3");
+    var tplus20 = formContext.getAttribute("crb_t_20");
+    if ((tplus3 !== null) && (tplus20 !== null)) {
+        calculateTplus3AndTplus20(executionContext);
+        registerOnChangeEventsForTplus3AndTplus20(executionContext);
+    }
+//    var ceclImpact$ = formContext.getAttribute("crb_cecl_impact_amt");
+//    if (ceclImpact$ !== null) {
+//        calculateCECLImpact$(executionContext);
+//        registerOnChangeEventsForCECLImpact$(executionContext);
+//    }
+    var initialDueDiligence = formContext.getAttribute("crb_initial_due_diligence_completed");
+    if (initialDueDiligence !== null) {
+        calculateInitialDueDiligenceCompleted(executionContext);
+        registerOnChangeEventsForInitialDueDiligence(executionContext);
+    }
+    var initialDueDiligence = formContext.getAttribute("crb_initial_diligence");
+    if (initialDueDiligence !== null) {
+        calculateInitialDiligence(executionContext);
+        registerOnChangeEventsForInitialDiligence(executionContext);
+    }
+    var roe = formContext.getAttribute("crb_roe");
+    var netInterestMargin = formContext.getAttribute("crb_net_interest_margin");
+    if ((roe !== null) || (netInterestMargin !== null)) {
+        calculateNetInterestMarginAndROE(executionContext);
+        registerOnChangeEventsForNetInterestMarginAndROE(executionContext);
+    }
+    var weightedAmount = formContext.getAttribute("crb_weighted_amount");
+    if (weightedAmount !== null) {
+        calculateWeightedAmount(executionContext);
+        registerOnChangeEventsForWeightedAmount(executionContext);
+    }
+    var probabilityWeightedNIM = formContext.getAttribute("crb_probability_weighted_nim");
+    if (probabilityWeightedNIM !== null) {
+        calculateProbabilityWeightedNIM(executionContext);
+    }
+}
+
+//Validation: Update Net Proceeds and Collat Accrued 
+function updateNetProceedsAndCollatandAccrued(executionContext) {
+    var formContext = executionContext.getFormContext();
+    // Update Net Proceeds
+    var netProceeds = formContext.getAttribute("crb_net_proceeds");
+    var collateralBalance = formContext.getAttribute("crb_collateral_balance").getValue();
+    var netExecution = formContext.getAttribute("crb_net_execution").getValue();
+    var accruedInterest = formContext.getAttribute("crb_accrued_interest").getValue();
+    if (collateralBalance !== null && netExecution !== null && accruedInterest !== null) {
+        netProceeds.setValue((collateralBalance * netExecution + accruedInterest) * 100);
+    } else {
+        netProceeds.setValue(null);
+    }
+    // Update Collateral and Accrued
+    var collatAndAccrued = formContext.getAttribute("crb_collat_accrued");
+    if (collateralBalance !== null && accruedInterest !== null) {
+        collatAndAccrued.setValue(collateralBalance + accruedInterest);
+    } else {
+        collatAndAccrued.setValue(null);
+    }
+}
+
+//Validation: Register Events for Net Proceeds and Collat Accrued
+function registerOnChangeEventsForNetProceedsAndCollatandAccrued(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_collateral_balance", "crb_net_execution", "crb_accrued_interest"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(updateNetProceedsAndCollatandAccrued);
+        formContext.getAttribute(field).addOnChange(calculateNetExecutionexAccruedInterest);
+        formContext.getAttribute(field).addOnChange(calculateGrossExecution);
+        formContext.getAttribute(field).addOnChange(calculateClosingWireToCRB);
+    });
+}
+
+//Helper: Update Option in Option Sets
+function updateOptions(control, applicableOptions) {
+    const options = control.getOptions();
+    options.forEach(option => {
+        if (!applicableOptions.includes(option.text)) {
+            control.removeOption(option.value);
+        }
+    });
+}
+
+//Validation: 
+function ShowandHideLostOpportunityFieldsCapitalMarket(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var stageName = formContext.getAttribute("crb_stagename").getValue();
+    var bpfStage = formContext.data.process.getActiveStage();
+    var currentStageName = bpfStage.getName();
+    if (stageName == 31 && currentStageName == "Closed Lost") {
+        formContext.getControl("crb_opportunity_lost_reasons").setVisible(true);
+        formContext.getControl("crb_lost_pass_reason_comments").setVisible(true);
+    } else {
+        formContext.getControl("crb_opportunity_lost_reasons").setVisible(false);
+        formContext.getControl("crb_lost_pass_reason_comments").setVisible(false);
+    }
+}
+
+//Validation:
+function populateDatesBasedOnCurrentStageDigitalBanking(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var activeStageName = formContext.data.process.getActiveStage().getName();
+    var currentForm = formContext.ui.formSelector.getCurrentItem().getLabel();
+    if (opportunityType !== null && opportunityType[0].name === "Digital Banking" && currentForm === forms.DigitalBanking) {
+        var currentDate = new Date();
+        if (activeStageName === "Assessment") {
+            var prospectDate = formContext.getAttribute("crb_assessment_date");
+            prospectDate.setValue(currentDate);
+        } else if (activeStageName === "Negotiation") {
+            var businessDevelopmentDate = formContext.getAttribute("crb_negotiation_date");
+            businessDevelopmentDate.setValue(currentDate);
+        } else if (activeStageName === "Onboarding") {
+            var investmentTeamDate = formContext.getAttribute("crb_onboarding_date");
+            investmentTeamDate.setValue(currentDate);
+        } else if (activeStageName === "Completion") {
+            var termSheetDate = formContext.getAttribute("crb_completion_date");
+            termSheetDate.setValue(currentDate);
+        }
+    }
+}
+
+//Validation:
+function populateDatesBasedOnCurrentStageforSBALending(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var activeStageName = formContext.data.process.getActiveStage().getName();
+    var currentForm = formContext.ui.formSelector.getCurrentItem().getLabel();
+    if (opportunityType !== null && opportunityType[0].name === "SBA Lending" && currentForm === forms.SBALending) {
+        var currentDate = new Date();
+        if (activeStageName === "Prospect") {
+            var prospectDate = formContext.getAttribute("crb_prospect_date");
+            prospectDate.setValue(currentDate);
+        } else if (activeStageName === "Application") {
+            var applicationDate = formContext.getAttribute("crb_application");
+            applicationDate.setValue(currentDate);
+        } else if (activeStageName === "Underwriting") {
+            var underwritingDate = formContext.getAttribute("crb_underwriting");
+            underwritingDate.setValue(currentDate);
+        } else if (activeStageName === "In Closing") {
+            var inClosingDate = formContext.getAttribute("crb_in_closing");
+            inClosingDate.setValue(currentDate);
+        }
+    }
+}
+
+//Validation: 
+function updateLastStageDate(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType !== null && opportunityType[0].name === "SDL") {
+        var currentDate = new Date();
+        var lastStageUpdate = formContext.getAttribute("crb_last_stage_update");
+        lastStageUpdate.setValue(currentDate);
+    }
+}
+
+//Validation: 
+function updateLastStageDateDigitalBanking(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType !== null && opportunityType[0].name === "Digital Banking") {
+        var currentDate = new Date();
+        var lastStageUpdate = formContext.getAttribute("crb_last_stage_update");
+        lastStageUpdate.setValue(currentDate);
+    }
+}
+
+//validation
+function updateLastActivityModifiedSBALending(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType !== null && opportunityType[0].name === "SBA Lending") {
+        var currentDate = new Date();
+        var lastActivityModified = formContext.getAttribute("crb_last_activity_modified_date");
+        lastActivityModified.setValue(currentDate);
+    }
+}
+
+//Validation: 
+function calculateAgesofStages(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType !== null && opportunityType[0].name === "SDL") {
+        var ages = {
+            prospectAge: null,
+            businessDevelopmentAge: null,
+            investmentTeamAge: null,
+            termSheetAge: null,
+            termSheetExecutedAge: null,
+            opportunityCloseAge: null,
+            daysInCurrentStage: null
+        };
+        var lastStageUpdate = formContext.getAttribute("crb_last_stage_update").getValue();
+        var prospectDate = formContext.getAttribute("crb_prospect_date").getValue();
+        var businessDevelopmentDate = formContext.getAttribute("crb_business_development").getValue();
+        var investmentTeamDate = formContext.getAttribute("crb_investment_team_date").getValue();
+        var termSheetDate = formContext.getAttribute("crb_term_sheet_date").getValue();
+        var termSheetExecutedDate = formContext.getAttribute("crb_term_sheet_executed_date").getValue();
+        var opportunityCloseDate = formContext.getAttribute("crb_opportunity_close_date").getValue();
+        if (prospectDate !== null && businessDevelopmentDate !== null) {
+            ages.prospectAge = calculateAge(prospectDate, businessDevelopmentDate);
+            formContext.getAttribute("crb_prospect_age").setValue(ages.prospectAge);
+        }
+        if (businessDevelopmentDate !== null && investmentTeamDate !== null) {
+            ages.businessDevelopmentAge = calculateAge(businessDevelopmentDate, investmentTeamDate);
+            formContext.getAttribute("crb_business_development_age").setValue(ages.businessDevelopmentAge);
+        }
+        if (investmentTeamDate !== null && termSheetDate !== null) {
+            ages.investmentTeamAge = calculateAge(investmentTeamDate, termSheetDate);
+            formContext.getAttribute("crb_investment_team_age").setValue(ages.investmentTeamAge);
+        }
+        if (termSheetDate !== null && termSheetExecutedDate !== null) {
+            ages.termSheetAge = calculateAge(termSheetDate, termSheetExecutedDate);
+            formContext.getAttribute("crb_terms_sheet_stage_age").setValue(ages.termSheetAge);
+        }
+        var activeStageName = formContext.data.process.getActiveStage().getName();
+        var statusCode = formContext.getAttribute("statuscode").getText();
+        if (statusCode === "Closed" && (activeStageName === "Closed Won" || activeStageName === "Closed Lost") || activeStageName === "Closed Decline") {
+            if (termSheetExecutedDate !== null && lastStageUpdate !== null) {
+                ages.termSheetExecutedAge = calculateAge(termSheetExecutedDate, lastStageUpdate);
+                formContext.getAttribute("crb_term_sheet_executed_age").setValue(ages.termSheetExecutedAge);
+            }
+        }
+        if (lastStageUpdate !== null) {
+            ages.daysInCurrentStage = calculateAge(lastStageUpdate, new Date());
+            formContext.getAttribute("crb_days_in_current_stage").setValue(ages.daysInCurrentStage);
+        }
+    }
+}
+
+//Validation: 
+function calculateAgesofStagesDigitalBanking(executionContext) {
+    //debugger;
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType !== null && opportunityType[0].name === "Digital Banking") {
+        var ages = {
+            AssessmentAge: null,
+            negotiationage: null,
+            onboardingage: null,
+            termSheetAge: null,
+            completionage: null,
+            daysInCurrentStage: null
+        };
+        // var lastStageUpdate = formContext.getAttribute("crb_last_stage_update").getValue();
+        var AssessmentDate = formContext.getAttribute("crb_assessment_date").getValue();
+        var NegotiationDate = formContext.getAttribute("crb_negotiation_date").getValue();
+        var OnboardingDate = formContext.getAttribute("crb_onboarding_date").getValue();
+        var CompletionDate = formContext.getAttribute("crb_completion_date").getValue();
+        var opportunityCloseDate = formContext.getAttribute("crb_opportunity_close_date").getValue();
+        var lastStageUpdate = formContext.getAttribute("crb_last_stage_update").getValue();
+        if (AssessmentDate !== null && NegotiationDate !== null) {
+            ages.AssessmentAge = calculateAge(AssessmentDate, NegotiationDate);
+            formContext.getAttribute("crb_assessment_age").setValue(ages.AssessmentAge);
+        }
+        if (NegotiationDate !== null && OnboardingDate !== null) {
+            ages.negotiationage = calculateAge(NegotiationDate, OnboardingDate);
+            formContext.getAttribute("crb_negotiation_age").setValue(ages.negotiationage);
+        }
+        if (OnboardingDate !== null && CompletionDate !== null) {
+            ages.onboardingage = calculateAge(OnboardingDate, CompletionDate);
+            formContext.getAttribute("crb_onboarding_age").setValue(ages.onboardingage);
+        }
+        var activeStageName = formContext.data.process.getActiveStage().getName();
+        var statusCode = formContext.getAttribute("statuscode").getText();
+        if (statusCode === "Closed" && (activeStageName === "Closed Won" || activeStageName === "Closed Lost")) {
+            if (CompletionDate !== null && lastStageUpdate !== null) {
+                ages.completionage = calculateAge(CompletionDate, lastStageUpdate);
+                formContext.getAttribute("crb_completion_age").setValue(ages.completionage);
+            }
+        }
+        if (lastStageUpdate !== null) {
+            ages.daysInCurrentStage = calculateAge(lastStageUpdate, new Date());
+            formContext.getAttribute("crb_current_stage_age").setValue(ages.daysInCurrentStage);
+        }
+    }
+}
+
+//Validation: 
+function calculateAge(date, nextStageDate) {
+    var diff = nextStageDate - date;
+    var age = Math.floor(diff / 86400000);
+    return age;
+}
+
+//Validation: 
+function showHideProjectedCloseDate(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType && opportunityType[0].name === "SBA Lending") {
+        const projectedCloseDateControl = formContext.getControl("crb_projected_close_date");
+        const projectedCloseDate = formContext.getAttribute("crb_projected_close_date");
+        const applicationDate = formContext.getAttribute("crb_application_date").getValue();
+        const closeDate = formContext.getAttribute("crb_closedate").getValue();
+        if (applicationDate !== null) {
+            projectedCloseDateControl.setVisible(true);
+            projectedCloseDate.setValue(closeDate || null);
+        } else {
+            projectedCloseDateControl.setVisible(false);
+        }
+    }
+}
+
+//Validation: 
+function registerOnchangeofApplicationDate(executionContext) {
+    const formContext = executionContext.getFormContext();
+    formContext.getAttribute("crb_application_date").addOnChange(showHideProjectedCloseDate);
+}
+
+//Validation: 
+function calculateProbabilityDigitalBanking(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var bpfStage = formContext.data.process.getActiveStage();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (bpfStage && opportunityType !== null && opportunityType[0].name === "Digital Banking") {
+        var currentStageName = bpfStage.getName();
+        // Define the order of stages and their corresponding probabilities
+        var stageProbabilities = {
+            "Assessment": 10,
+            "Negotiation": 20,
+            "Onboarding": 50,
+            "Completion": 66,
+            "Closed Won": 100,
+            "Closed Lost": 0
+        };
+        // Get the probability for the current stage
+        var probability = stageProbabilities[currentStageName] || 0;
+        var probabilityField = formContext.getAttribute("crb_probability");
+        probabilityField.setValue(probability);
+    }
+}
+
+//Validation: 
+function updateOpportunityCloseQuarter(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (opportunityType !== null && opportunityType[0].name === "Digital Banking") {
+        var closeDate = formContext.getAttribute("crb_opportunity_close_date").getValue();
+        var opportunityCloseQuarter = formContext.getAttribute("crb_opportunity_close_quarter");
+        if (closeDate !== null) {
+            var quarter = getQuarter(closeDate);
+            opportunityCloseQuarter.setValue(quarter);
+        }
+    }
+}
+
+//Validation: 
+function getQuarter(date) {
+    var quarter = Math.floor((date.getMonth() + 3) / 3);
+    return 'Q' + quarter;
+}
+
+//Validation: 
+function updateOpportunityCloseDate(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+//    var activeStageName = formContext.data.process.getActiveStage().getName();
+    var statusCode = formContext.getAttribute("statuscode").getText();
+    var currentForm = formContext.ui.formSelector.getCurrentItem().getLabel();
+//    if (statusCode === "Closed" && (activeStageName === "Closed Won" || activeStageName === "Closed Lost")) {
+      if (statusCode === "Closed"){
+        var formType = formContext.ui.getFormType();
+        if (formType !== 1 && opportunityType !== null && opportunityType[0].name !== "SBA Lending" && currentForm === forms.SBALending) {
+            var closeDate = formContext.getAttribute("crb_opportunity_close_date");
+            var currentDate = new Date();
+            if(closeDate)
+                closeDate.setValue(currentDate);
+        }
+        if (opportunityType !== null && opportunityType[0].name === "Digital Banking" && currentForm === forms.DigitalBanking) {
+            updateOpportunityCloseQuarter(executionContext);
+        }
+    }
+}
+
+//Validation: 
+function updateOpportunityCloseQuarterforSBALending(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var currentForm = formContext.ui.formSelector.getCurrentItem().getLabel();
+    if (opportunityType !== null && opportunityType[0].name === "SBA Lending" && currentForm === forms.SBALending) {
+        var stateCode = formContext.getAttribute("statuscode").getText();
+//        var activeBpfStage = formContext.data.process.getActiveStage().getName();
+        var opportunityCloseQuarter = formContext.getAttribute("crb_opportunity_close_quarter");
+        var formType = formContext.ui.getFormType();
+//        if (stateCode === "Closed" && (activeBpfStage === "Other Disposition" || activeBpfStage === "Funded") && formType !== 1) {
+          if (stateCode === "Closed"){
+            var closeDate = new Date();
+            var quarter = getQuarter(closeDate);
+            opportunityCloseQuarter.setValue(quarter);
+        }
+    }
+}
+
+//Validation - Capital Markets: Subplatform validation: 
+function validateSubPlatformOnCapitalMarkets(executionContext) {
+    var formContext = executionContext.getFormContext();
+
+    // Define the field names (6 fields total)
+    var fields = ["crb_prime_percent", "crb_madden_percent", "crb_subplatform3_percent", "crb_subplatform4_percent", "crb_subplatform5_percent", "crb_subplatform6_percent"];
+    var fieldsNonSubPlatform = ["crb_prime_percent", "crb_madden_percent", "crb_subplatform3_percent", "crb_subplatform4_percent", "crb_subplatform5_percent", "crb_subplatform6_percent"];
+
+    // Clear any existing notifications
+    formContext.ui.clearFormNotification("total_exceeds_100");
+
+    // Get values of each field and ensure they are between 0 and 100
+    var values;
+
+    var platform = formContext.getAttribute("crb_platform");
+    if (platform && platform.getValue() !== null) {
+        if (platform.getValue() == 12) { //Marlette: 12 optionsetValue
+            values = fields.map(field => formContext.getAttribute(field).getValue() || 0);
+        } else {
+            values = fieldsNonSubPlatform.map(field => formContext.getAttribute(field).getValue() || 0);
+        }
+    } else {
+        values = fieldsNonSubPlatform.map(field => formContext.getAttribute(field).getValue() || 0);
+    }
+
+    values = values.map(value => Math.max(0, Math.min(value, 100)));
+
+    // Check if any field is set to 100; if so, set all other fields to 0
+    if (values.some(value => value === 100)) {
+        values = values.map(value => (value === 100 ? 100 : 0));
+    } else {
+        // Calculate the total and set the sixth field if needed
+        var total = values.reduce((sum, value) => sum + value, 0);
+
+        if (total < 100) {
+            var filledFields = values.filter(value => value > 0).length;
+            if (filledFields === 5) {
+                var emptyIndex = values.findIndex(value => value === 0);
+                values[emptyIndex] = 100 - total;
+                total = 100;
+            }
+        }
+
+        // Check if total exceeds 100 and prevent save if so
+        if (total > 100) {
+            formContext.ui.setFormNotification("Total Subplatform % cannot exceed 100.", "ERROR", "total_exceeds_100");
+            if (executionContext.getEventArgs()) {
+                executionContext.getEventArgs().preventDefault();
+            }
+        } else {
+            formContext.ui.clearFormNotification("total_exceeds_100");
+        }
+    }
+
+    // Set the field values back to the form
+    fields.forEach((field, index) => {
+        formContext.getAttribute(field).setValue(values[index]);
+    });
+}
+
+//Validation: make broker field mandatory on condition: for SBA Lending
+function makeBrokerFieldMandatory(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var sourceValue = formContext.getAttribute("crb_source").getText();
+    var broker = formContext.getAttribute("crb_broker");
+    if (opportunityType !== null && opportunityType[0].name === "SBA Lending") {
+        if (sourceValue !== null && sourceValue === "Broker") {
+            broker.setRequiredLevel("required");
+        } else {
+            broker.setRequiredLevel("none");
+        }
+    }
+}
+
+//Validation: Calculate Probability Capital Markets
+function CalulateProbabilityCapitalMarkets(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var bpfStage = formContext.data.process.getActiveStage();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (bpfStage && opportunityType !== null && opportunityType[0].name === "Capital Markets") {
+        var currentStageName = bpfStage.getName();
+        // Define the order of stages and their corresponding probabilities
+        var stageProbabilities = {
+            "Diligence": 50,
+            "Closed Won": 100,
+            "Closed Lost": 0
+        };
+        // Get the probability for the current stage
+        var probability = stageProbabilities[currentStageName] || 0;
+        var probabilityField = formContext.getAttribute("crb_probability_of_close");
+        probabilityField.setValue(probability);
+    }
+}
+
+//Validation: Calculate Probability SDL
+function calculateProbabilitySDL(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var bpfStage = formContext.data.process.getActiveStage();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (bpfStage && opportunityType !== null && opportunityType[0].name === "SDL") {
+        var currentStageName = bpfStage.getName();
+        // Define the order of stages and their corresponding probabilities
+        var stageProbabilities = {
+            "Prospect": 5,
+            "Business Development": 20,
+            "Investment Team": 50,
+            "Term Sheet": 66,
+            "Term Sheet Executed": 70,
+            "Closed Won": 100,
+            "Closed Lost": 0,
+            "Closed Decline": 0
+        };
+        // Get the probability for the current stage
+        var probability = stageProbabilities[currentStageName] || 0;
+        var probabilityField = formContext.getAttribute("crb_probability");
+        probabilityField.setValue(probability);
+    }
+}
+
+//Validation: Calculate Probability SBA Lending
+function calculateProbabilitySBALending(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var bpfStage = formContext.data.process.getActiveStage();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    if (bpfStage && opportunityType !== null && opportunityType[0].name === "SBA Lending") {
+        var currentStageName = bpfStage.getName();
+        // Define the order of stages and their corresponding probabilities
+        var stageProbabilities = {
+            "Prospect": 5,
+            "Application": 20,
+            "Underwriting": 50,
+            "In Closing": 75,
+            "Closed Won": 100,
+            "Closed Lost": 0,
+            "Closed Decline": 0
+        };
+        var probability = stageProbabilities[currentStageName] || 0;
+        var probabilityField = formContext.getAttribute("crb_probability");
+        probabilityField.setValue(probability);
+    }
+}
+
+//Validation: Set otherDispositionCategory Required on StageChange: SBA Lending
+function setRequiredOtherDispositionSBALending(executionContext) {
+    ////debugger;
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var stagename = formContext.getAttribute("crb_stagename").getValue();
+    var otherDispositionCategory = formContext.getAttribute("crb_other_disposition_category");
+    if (opportunityType !== null && opportunityType[0].id.toLowerCase().replace('{', '').replace('}', '') === LOB_RECORD.SBALending && stagename === 36) {
+        otherDispositionCategory.setRequiredLevel("required");
+        if(otherDispositionCategory.getValue() === null){
+            otherDispositionCategory.setValue(OtherDispositionCategory.NA);
+        }
+    } else {
+        otherDispositionCategory.setRequiredLevel("none");
+        if(otherDispositionCategory.getValue() === OtherDispositionCategory.NA){
+            otherDispositionCategory.setValue(null);
+        }
+    }
+}
+
+//Validation: 
+function calculateMarkToFMV(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var markToFMV = formContext.getAttribute("crb_mark_to_fmv");
+    var hfsInPercent = formContext.getAttribute("crb_hfs").getValue();
+    var principalBalance = formContext.getAttribute("crb_principal_balance").getValue();
+    var cost = formContext.getAttribute("crb_cost").getValue();
+    var locomPrice = formContext.getAttribute("crb_locom_price").getValue();
+    if (hfsInPercent !== null && principalBalance !== null && cost !== null && locomPrice !== null) {
+        markToFMV.setValue(((1 - hfsInPercent) * principalBalance * (cost - locomPrice)) * -1);
+    } else {
+        markToFMV.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForMarkToFMV(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_hfs", "crb_principal_balance", "crb_cost", "crb_locom_price", "crb_fmv"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateMarkToFMV);
+    });
+}
+
+//Validation: 
+function calculateGainOnSale$AndValuationAllowanceRelease$(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const gainOnSaleIn$ = formContext.getAttribute("crb_gain_on_sale");
+    const valuationAllowanceRelease$ = formContext.getAttribute("crb_valuation_allowance_release");
+    const price = formContext.getAttribute("crb_price").getValue();
+    const cost = formContext.getAttribute("crb_cost").getValue();
+    const principalBalance = formContext.getAttribute("crb_principal_balance").getValue();
+    const locomPrice = formContext.getAttribute("crb_locom_price").getValue();
+    if (price !== null && cost !== null && principalBalance !== null) {
+        calculateGainOnSale$(gainOnSaleIn$, price, cost, principalBalance);
+        calculateValuationAllowanceRelease$(valuationAllowanceRelease$, price, cost, locomPrice, principalBalance);
+    } else {
+        gainOnSaleIn$.setValue(null);
+        valuationAllowanceRelease$.setValue(null);
+    }
+}
+
+//Validation: 
+function calculateGainOnSale$(gainOnSaleIn$, price, cost, principalBalance) {
+    if (price > cost) {
+        gainOnSaleIn$.setValue((price - cost) * principalBalance);
+    } else {
+        gainOnSaleIn$.setValue(0);
+    }
+}
+
+//Validation: 
+function calculateValuationAllowanceRelease$(valuationAllowanceRelease$, price, cost, locomPrice, principalBalance) {
+    if (locomPrice !== null) {
+        if (price > cost) {
+            valuationAllowanceRelease$.setValue((cost - locomPrice) * principalBalance);
+        } else {
+            valuationAllowanceRelease$.setValue((price - locomPrice) * principalBalance);
+        }
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForGainOnSale$AndValuationAllowanceRelease$(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_price", "crb_cost", "crb_principal_balance", "crb_locom_price", "crb_fmv"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateGainOnSale$AndValuationAllowanceRelease$);
+    });
+}
+
+//Validation: 
+function calculateLoComPrice(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var locomPrice = formContext.getAttribute("crb_locom_price");
+    var fmv = formContext.getAttribute("crb_fmv").getValue();
+    var cost = formContext.getAttribute("crb_cost").getValue();
+    if (fmv !== null && cost !== null) {
+        if (fmv < cost) {
+            locomPrice.setValue(fmv);
+        } else {
+            locomPrice.setValue(cost);
+        }
+    } else {
+        locomPrice.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForLoComPrice(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_fmv", "crb_cost"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateLoComPrice);
+    });
+}
+
+//Validation: 
+function calculateGrossExecution(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var grossExecution = formContext.getAttribute("crb_gross_execution");
+    var grossProceeds = formContext.getAttribute("crb_gross_proceeds").getValue();
+    var collatAndAccrued = formContext.getAttribute("crb_collat_accrued").getValue();
+    if (grossProceeds !== null && collatAndAccrued !== null) {
+        grossExecution.setValue(grossProceeds / collatAndAccrued);
+    } else {
+        grossExecution.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForGrossExecution(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_gross_proceeds", "crb_collat_accrued"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateGrossExecution);
+    });
+}
+
+//Validation: 
+function calculateGainonSalesAndNetExecutionOverPar(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var gainOnSales = formContext.getAttribute("crb_gain_on_sales");
+    var netExecutionOverPar = formContext.getAttribute("crb_net_execution_over_par");
+    var collateralBalance = formContext.getAttribute("crb_collateral_balance").getValue();
+    var netExecution = formContext.getAttribute("crb_net_execution").getValue();
+    if (collateralBalance !== null && netExecution !== null) {
+        gainOnSales.setValue(collateralBalance * (netExecution - 1));
+    } else {
+        gainOnSales.setValue(null);
+    }
+    if (netExecution !== null) {
+        if (netExecution > 1) {
+            netExecutionOverPar.setValue("Over");
+        } else if (netExecution === 1) {
+            netExecutionOverPar.setValue("Par");
+        } else {
+            netExecutionOverPar.setValue("Under");
+        }
+    } else {
+        netExecutionOverPar.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForGainonSalesAndNetExecutionOverPar(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_collateral_balance", "crb_net_execution"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateGainonSalesAndNetExecutionOverPar);
+    });
+}
+
+//Validation: 
+function calculatePeerIQFeesRate(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var peerIQFeesRate = formContext.getAttribute("crb_peeriq_fees_rate");
+    var peerIQSituation = formContext.getAttribute("crb_peeriq_situation").getText();
+    if (peerIQSituation !== null) {
+        switch (peerIQSituation) {
+            case "1 - PeerIQ is used and no major hiccups":
+                peerIQFeesRate.setValue(0.25);
+                break;
+            case "2 - PeerIQ is used however there are major hiccups":
+                peerIQFeesRate.setValue(0.125);
+                break;
+            case "3 - PeerIQ is not used":
+                peerIQFeesRate.setValue(0);
+                break;
+            default:
+                peerIQFeesRate.setValue(null);
+        }
+    } else {
+        peerIQFeesRate.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForPeerIQFeesRate(executionContext) {
+    const formContext = executionContext.getFormContext();
+    formContext.getAttribute("crb_peeriq_situation").addOnChange(calculatePeerIQFeesRate);
+}
+
+//Validation: 
+function calculateEstimatedPIQFees(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var estimatedPIQFees = formContext.getAttribute("crb_estimated_piq_fees");
+    var peerIQFeesRate = formContext.getAttribute("crb_peeriq_fees_rate").getValue();
+    var collateralBalance = formContext.getAttribute("crb_collateral_balance").getValue();
+    if (peerIQFeesRate !== null && collateralBalance !== null) {
+        estimatedPIQFees.setValue(collateralBalance * peerIQFeesRate);
+    } else {
+        estimatedPIQFees.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForEstimatedPIQFees(executionContext) {
+    const formContext = executionContext.getFormContext();
+    // here based on chaneg of PeerIQFee rate was not working so added the Peer IQ Situation bcoz feerate was populated based on peeriq situation 
+    const fields = ["crb_peeriq_fees_rate", "crb_collateral_balance", "crb_peeriq_situation"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateEstimatedPIQFees);
+    });
+}
+
+//Validation: 
+function calculateClosingWireToCRB(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var closingWireToCRB = formContext.getAttribute("crb_closing_wire_to_crb");
+    var netProceeds = formContext.getAttribute("crb_net_proceeds").getValue();
+    var trueUps = formContext.getAttribute("crb_true_ups_netted").getValue();
+    var retentionFromSecuritizations = formContext.getAttribute("crb_retention_from_securitizations").getValue();
+    if (netProceeds !== null && trueUps !== null && retentionFromSecuritizations !== null) {
+        closingWireToCRB.setValue(netProceeds - trueUps - retentionFromSecuritizations);
+    } else {
+        closingWireToCRB.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForClosingWireToCRB(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_net_proceeds", "crb_true_ups_netted", "crb_retention_from_securitizations"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateClosingWireToCRB);
+    });
+}
+
+//Validation: 
+function calculateNetExecutionexAccruedInterest(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var netExecutionexAccruedInterest = formContext.getAttribute("crb_net_execution_ex_accrued_interest");
+    var collatAndAccrued = formContext.getAttribute("crb_collat_accrued").getValue();
+    var accruedInterest = formContext.getAttribute("crb_accrued_interest").getValue();
+    var netProceeds = formContext.getAttribute("crb_net_proceeds").getValue();
+    var netExecution = formContext.getAttribute("crb_net_execution").getValue();
+    // Ensure all necessary values are not null
+    if (collatAndAccrued !== null && accruedInterest !== null) {
+        if ((collatAndAccrued - accruedInterest) === 0) {
+            netExecutionexAccruedInterest.setValue(netExecution);
+        } else if (netProceeds !== null) {
+            netExecutionexAccruedInterest.setValue((netProceeds - accruedInterest) / (collatAndAccrued - accruedInterest));
+        } else {
+            netExecutionexAccruedInterest.setValue(null);
+        }
+    } else {
+        netExecutionexAccruedInterest.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForNetExecutionexAccruedInterest(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_collat_accrued", "crb_accrued_interest", "crb_net_proceeds", "crb_net_execution"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateNetExecutionexAccruedInterest);
+        formContext.getAttribute(field).addOnChange(calculateWeightExAccruedInterest);
+    });
+}
+
+//Validation: 
+function calculateWeightExAccruedInterest(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var weightExAccruedInterest = formContext.getAttribute("crb_weight_ex_accrued_interest");
+    var netExecutionexAccruedInterest = formContext.getAttribute("crb_net_execution_ex_accrued_interest").getValue();
+    var collateralBalance = formContext.getAttribute("crb_collateral_balance").getValue();
+    if (netExecutionexAccruedInterest !== null && collateralBalance !== null) {
+        weightExAccruedInterest.setValue(netExecutionexAccruedInterest * collateralBalance);
+    } else {
+        weightExAccruedInterest.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForWeightExAccruedInterest(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_net_execution_ex_accrued_interest", "crb_collateral_balance"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateWeightExAccruedInterest);
+    });
+}
+
+//Validation: 
+function calculateTplus3AndTplus20(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var tplus3 = formContext.getAttribute("crb_t_3");
+    var tplus20 = formContext.getAttribute("crb_t_20");
+    var closeDate = formContext.getAttribute("crb_closedate").getValue();
+    if (closeDate !== null) {
+        // Ensure closeDate is treated as a Date object without time
+        closeDate = new Date(closeDate);
+        closeDate.setHours(0, 0, 0, 0);
+        // Define the reference date (1900,1,7)
+        var referenceDate = new Date(1900, 0, 7); // January is 0 in JavaScript Date
+        referenceDate.setHours(0, 0, 0, 0);
+        // Calculate the difference in days
+        var timeDifference = closeDate.getTime() - referenceDate.getTime();
+        var dayDifference = Math.floor(timeDifference / (1000 * 3600 * 24));
+        // Calculate MOD value
+        var modValue = dayDifference % 7;
+        // Define tplus3Date and tplus20Date once
+        var tplus3Date = new Date(closeDate);
+        var tplus20Date = new Date(closeDate);
+        switch (modValue) {
+            case 0:
+                tplus3Date.setDate(tplus3Date.getDate() + 3 + Math.floor((3 - 1) / 5) * 2);
+                tplus3.setValue(tplus3Date);
+                tplus20Date.setDate(tplus20Date.getDate() + 20 + Math.floor((20 - 1) / 5) * 2);
+                tplus20.setValue(tplus20Date);
+                break;
+            case 1:
+                tplus3Date.setDate(tplus3Date.getDate() + 3 + Math.floor((3) / 5) * 2);
+                tplus3.setValue(tplus3Date);
+                tplus20Date.setDate(tplus20Date.getDate() + 20 + Math.floor((20) / 5) * 2);
+                tplus20.setValue(tplus20Date);
+                break;
+            case 2:
+                tplus3Date.setDate(tplus3Date.getDate() + 3 + Math.floor((3 + 1) / 5) * 2);
+                tplus3.setValue(tplus3Date);
+                tplus20Date.setDate(tplus20Date.getDate() + 20 + Math.floor((20 + 1) / 5) * 2);
+                tplus20.setValue(tplus20Date);
+                break;
+            case 3:
+                tplus3Date.setDate(tplus3Date.getDate() + 3 + Math.floor((3 + 2) / 5) * 2);
+                tplus3.setValue(tplus3Date);
+                tplus20Date.setDate(tplus20Date.getDate() + 20 + Math.floor((20 + 2) / 5) * 2);
+                tplus20.setValue(tplus20Date);
+                break;
+            case 4:
+                tplus3Date.setDate(tplus3Date.getDate() + 3 + Math.floor((3 + 3) / 5) * 2);
+                tplus3.setValue(tplus3Date);
+                tplus20Date.setDate(tplus20Date.getDate() + 20 + Math.floor((20 + 3) / 5) * 2);
+                tplus20.setValue(tplus20Date);
+                break;
+            case 5:
+                tplus3Date.setDate(tplus3Date.getDate() + 3 + Math.floor((3 + 4) / 5) * 2);
+                tplus3.setValue(tplus3Date);
+                tplus20Date.setDate(tplus20Date.getDate() + 20 + Math.floor((20 + 4) / 5) * 2);
+                tplus20.setValue(tplus20Date);
+                break;
+            case 6:
+                tplus3Date.setDate(tplus3Date.getDate() - (3 > 0 ? 1 : 0) + 3 + Math.ceil(3 / 5) * 2);
+                tplus3.setValue(tplus3Date);
+                tplus20Date.setDate(tplus20Date.getDate() - (20 > 0 ? 1 : 0) + 20 + Math.ceil(20 / 5) * 2);
+                tplus20.setValue(tplus20Date);
+                break;
+            default:
+                tplus3.setValue(null);
+                tplus20.setValue(null);
+                break;
+        }
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForTplus3AndTplus20(executionContext) {
+    const formContext = executionContext.getFormContext();
+    formContext.getAttribute("crb_closedate").addOnChange(calculateTplus3AndTplus20);
+}
+
+//Validation: 
+function calculateCECLImpact$(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var opportunityType = formContext.getAttribute("crb_opportunitytype").getValue();
+    var currentForm = formContext.ui.formSelector.getCurrentItem().getLabel();
+    if (opportunityType !== null && opportunityType[0].name === "Capital Markets" && currentForm === forms.CapitalMarkets) {
+        var ceclImpact$ = formContext.getAttribute("crb_cecl_impact_amt");
+        if (ceclImpact$ && ceclImpact$.getValue() === null) {
+            var hfsInPercent = formContext.getAttribute("crb_hfs").getValue();
+            var principalBalance = formContext.getAttribute("crb_principal_balance").getValue();
+            var ceclImpactInPercent = formContext.getAttribute("crb_cecl_impact").getValue();
+            if (hfsInPercent !== null && principalBalance !== null && ceclImpactInPercent !== null) {
+                ceclImpact$.setValue((1 - hfsInPercent) * principalBalance * ceclImpactInPercent);
+            } else {
+                ceclImpact$.setValue(null);
+            }
+        }
+    }
+}
+
+
+//Validation: 
+function calculateInitialDueDiligenceCompleted(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var initialDueDiligence = formContext.getAttribute("crb_initial_due_diligence_completed");
+    var attributes = [
+        "crb_corporate_deck",
+        "crb_corporate_financial_model",
+        "crb_audited_unaudited_financials",
+        "crb_asset_tape",
+        "crb_historical_asset_performance_summary",
+        "crb_company_s_projections_summary",
+        "crb_underwriting_and_pricing_guidelines",
+        "crb_servicing_guidelines",
+        "crb_sample_customer_agreement"
+    ];
+    var values = attributes.map(attr => formContext.getAttribute(attr).getValue());
+    if (values.every(value => value !== null)) {
+        var sum = values.reduce((acc, value) => acc + (value === true ? 1 : 0), 0);
+        initialDueDiligence.setValue(sum);
+    } else {
+        initialDueDiligence.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForInitialDueDiligence(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const attributes = [
+        "crb_corporate_deck",
+        "crb_corporate_financial_model",
+        "crb_audited_unaudited_financials",
+        "crb_asset_tape",
+        "crb_historical_asset_performance_summary",
+        "crb_company_s_projections_summary",
+        "crb_underwriting_and_pricing_guidelines",
+        "crb_servicing_guidelines",
+        "crb_sample_customer_agreement"
+    ];
+    attributes.forEach(attr => formContext.getAttribute(attr).addOnChange(calculateInitialDueDiligenceCompleted));
+    attributes.forEach(attr => formContext.getAttribute(attr).addOnChange(calculateInitialDiligence));
+}
+
+//Validation: 
+function calculateInitialDiligence(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var initialDueDiligence = formContext.getAttribute("crb_initial_diligence");
+    var initialDueDiligenceCompleted = formContext.getAttribute("crb_initial_due_diligence_completed").getValue();
+    if (initialDueDiligence !== null) {
+        initialDueDiligence.setValue(initialDueDiligenceCompleted / 9);
+    } else {
+        initialDueDiligence.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForInitialDiligence(executionContext) {
+    const formContext = executionContext.getFormContext();
+    formContext.getAttribute("crb_initial_due_diligence_completed").addOnChange(calculateInitialDiligence);
+}
+
+//Validation: 
+function calculateWeightedAmount(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var weightedAmount = formContext.getAttribute("crb_weighted_amount");
+    var amount = formContext.getAttribute("crb_amount").getValue();
+    var probability = formContext.getAttribute("crb_probability").getValue();
+    if (amount !== null && probability !== null) {
+        weightedAmount.setValue(amount * (probability / 100));
+    } else {
+        weightedAmount.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForWeightedAmount(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_amount", "crb_probability"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateWeightedAmount);
+    });
+}
+
+//Validation: 
+function calculateNetInterestMarginAndROE(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var netInterestMargin = formContext.getAttribute("crb_net_interest_margin");
+    var roe = formContext.getAttribute("crb_roe");
+    var netInterestMarginInPercent = formContext.getAttribute("crb_net_interest_margin_pct").getValue();
+    var avgCapitalDeployed = formContext.getAttribute("crb_avg_capital_deployed").getValue();
+    if (netInterestMarginInPercent !== null) {
+        roe.setValue(((netInterestMarginInPercent) * 10) * 0.73);
+        if (avgCapitalDeployed !== null) {
+            netInterestMargin.setValue(netInterestMarginInPercent * avgCapitalDeployed);
+        }
+    } else {
+        netInterestMargin.setValue(null);
+        roe.setValue(null);
+    }
+}
+
+//Validation: 
+function registerOnChangeEventsForNetInterestMarginAndROE(executionContext) {
+    const formContext = executionContext.getFormContext();
+    const fields = ["crb_net_interest_margin_pct", "crb_avg_capital_deployed"];
+    fields.forEach(field => {
+        formContext.getAttribute(field).addOnChange(calculateNetInterestMarginAndROE);
+        formContext.getAttribute(field).addOnChange(calculateProbabilityWeightedNIM);
+    });
+}
+
+//Validation: 
+function calculateProbabilityWeightedNIM(executionContext) {
+    var formcontext = executionContext.getFormContext();
+    var probabilityWeightedNIM = formcontext.getAttribute("crb_probability_weighted_nim");
+    var netInterestMargin = formcontext.getAttribute("crb_net_interest_margin").getValue();
+    var probability = formcontext.getAttribute("crb_probability").getValue();
+    if (netInterestMargin !== null && probability !== null) {
+        probabilityWeightedNIM.setValue(netInterestMargin * (probability / 100));
+    } else {
+        probabilityWeightedNIM.setValue(null);
+    }
+}
+
+//Generic Helper: Method to handle stage changes on Process
+function handleStageChange(executionContext) {
+    ////debugger;
+    var formContext = executionContext.getFormContext();
+    // Get the BPF control
+    var processControl = formContext.data.process;
+    // Ensure the BPF is available and active
+    if (processControl != null && processControl.getActiveProcess() != null) {
+        var activeStage = processControl.getActiveStage();
+        if (activeStage != null) {
+            var stageName = activeStage.getName(); // Get the name of the current stage
+            // Set OptionSet and Status Reason values based on the current stage
+            switch (stageName) {
+                case "Prospect":
+                    setOptionSetValue(formContext, "crb_stagename", 2);
+                    setStatusReasonValue(formContext, OpportunityCustomStatus.Open);
+                    break;
+                case "Application":
+                    setOptionSetValue(formContext, "crb_stagename", 7);
+                    setStatusReasonValue(formContext, OpportunityCustomStatus.Open);
+                    break;
+                case "Underwriting":
+                    setOptionSetValue(formContext, "crb_stagename", 15);
+                    setStatusReasonValue(formContext, OpportunityCustomStatus.Open);
+                    break;
+                case "In Closing":
+                    setOptionSetValue(formContext, "crb_stagename", 24);
+                    setStatusReasonValue(formContext, OpportunityCustomStatus.Open);
+                    break;
+                case "Funded":
+                    setOptionSetValue(formContext, "crb_stagename", 35);
+                    setStatusReasonValue(formContext, OpportunityCustomStatus.Close);
+                    break;
+                case "Other Disposition":
+                    setOptionSetValue(formContext, "crb_stagename", 36);
+                    setStatusReasonValue(formContext, OpportunityCustomStatus.Close);
+                    break;
+                default:
+                    console.log("Unknown stage: " + stageName);
+                    break;
+            }
+        }
+    }
+}
+
+//Generic Helper: Filter OptionSets
+function filterOptionSet(executionContext, fieldName, allowedValues) {
+    var formContext = executionContext.getFormContext();
+    var optionSetControl = formContext.getControl(fieldName);
+
+    if (!optionSetControl) {
+        console.log(`Field '${fieldName}' not found on the form.`);
+        return;
+    }
+
+    var options = optionSetControl.getOptions();
+
+    options.forEach(function (option) {
+        if (!allowedValues.includes(option.value)) {
+            optionSetControl.removeOption(option.value);
+        }
+    });
+}
+
+//Generic Helper: Write to Console Log
+function writeToConsole(message) {
+    if (typeof console != 'undefined') {
+        console.log(message);
+    }
+}
+
+//Generic Helper: to check Is Null of Empty
+function isNullorUndefinedorEmpty(value) {
+    if (value == undefined || value == null || value == "") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+//Generic Helper: Function to add specific OptionSet values
+function addOptionSetOptions(formContext, optionSetFieldName, optionValues) {
+    var optionSetControl = formContext.getControl(optionSetFieldName);
+    optionValues.forEach(function (optionValue) {
+        optionSetControl.addOption({
+            text: getOptionText(optionValue), // Customize with your option text logic
+            value: optionValue
+        });
+    });
+}
+
+//Generic Helper: Function to return the option text based on the value
+function getOptionText(optionValue) {
+    switch (optionValue) {
+        case 2:
+            return "Prospect"; //SBA Lending
+        case 7:
+            return "Application"; //SBA Lending
+        case 15:
+            return "Underwriting"; //SBA Lending
+        case 24:
+            return "In Closing"; //SBA Lending
+        case 35:
+            return "Funded"; //SBA Lending
+        case 36:
+            return "Other Disposition"; //SBA Lending
+        case 1:
+            return "New";
+        case 3:
+            return "Assessment";
+        case 4:
+            return "Business Development";
+        case 5:
+            return "Preliminary Risk, Pricing and Revenue Review";
+        case 6:
+            return "Documents Sent";
+        case 8:
+            return "Negotiation";
+        case 14:
+            return "Onboarding";
+        case 26:
+            return "Completion";
+        case 30:
+            return "Closed Won";
+        case 31:
+            return "Closed Lost";
+        case 34:
+            return "Closed Decline";
+        case 16:
+            return "Diligence";
+        case 20:
+            return "Term Sheet";
+        case 22:
+            return "Term Sheet Executed";
+        case 13:
+            return "Investment Team";
+        default:
+            return "";
+    }
+}
+
+//Generic Helper: function to set the OptionSet value
+function setOptionSetValue(formContext, optionSetField, value) {
+    var optionSet = formContext.getAttribute(optionSetField);
+    if (optionSet != null) {
+        optionSet.setValue(value);
+    }
+}
+
+//Generic Helper: function to set the Status Reason value
+function setStatusReasonValue(formContext, statusReasonValue) {
+    var statusReasonField = formContext.getAttribute("statuscode"); // Status Reason field is usually "statuscode"
+    if (statusReasonField != null) {
+        statusReasonField.setValue(statusReasonValue);
+    }
+}
+
+function updateStaleAge(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var staleAgeAttribute = formContext.getAttribute("crb_stale_age");
+    var lastActivityModified = formContext.getAttribute("crb_last_activity_modified_date").getValue();
+    
+    if (lastActivityModified !== null) {
+        var currentDate = new Date();
+        var staleAge = Math.floor((currentDate - lastActivityModified) / (1000 * 60 * 60 * 24));
+        staleAgeAttribute.setValue(staleAge);
+    } else {
+        staleAgeAttribute.setValue(null);
+    }
+}
+
+function showHideWatchListSection(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var watchList = formContext.getAttribute("crb_watchlist").getValue();
+    var watchListSection = formContext.ui.tabs.get("Details").sections.get("Details_Watchlist");
+    if (watchList !== null && watchList === true) {
+        watchListSection.setVisible(true);
+    } else {
+        watchListSection.setVisible(false);
+    }  
+}
+function registerOnchangeEventsForWatchList(executionContext) {
+    const formContext = executionContext.getFormContext();
+    formContext.getAttribute("crb_watchlist").addOnChange(showHideWatchListSection);
+}
+
+function updateDayslate(executionContext) {
+    var formContext = executionContext.getFormContext();
+    var pastDueDate = formContext.getAttribute("crb_pastduedate").getValue();
+    var daysLateAttribute = formContext.getAttribute("crb_dayslate");
+    if (pastDueDate !== null) {
+        var currentDate = new Date();
+        var daysLate = Math.floor((currentDate - pastDueDate) / (1000 * 60 * 60 * 24));
+        daysLateAttribute.setValue(daysLate);
+    } else {
+        daysLateAttribute.setValue(null);
+    }
+}
+
+function registerOnchangeEventsForPastDueDate(executionContext) {
+    const formContext = executionContext.getFormContext();
+    formContext.getAttribute("crb_pastduedate").addOnChange(updateDayslate);
+}
+
+function renderHelpHTMlPopup(){
+    Xrm.Navigation.openWebResource('crb_opportunitycustomhelp');
+}
