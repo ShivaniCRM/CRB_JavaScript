@@ -1,0 +1,126 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.ChargebackFees = CRB.CRM.PJ.ChargebackFees || {};
+CRB.CRM.PJ.ChargebackFees = {
+	Attributes: {
+		Fields: {
+			name: "crb_name",
+			MaximumPercentofVolume: "crb_maxvolume",
+			MinimumPercentofVolume: "crb_minvolume",
+			FeePerChargeback: "crb_feeperchargebackcurrency",
+			productname: "crb_productname",
+			pricingProposal: "crb_pricingproposal"
+		},
+		Sections: {},
+		Tabs: {},
+		LOV: {}
+	},
+	onLoadOfChargebackFees: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		this.settingSoftDefaultValues(executionContext);
+        this.makeFieldReadOnlyIfPricingProposalHasActiveSalesTask(executionContext);
+	},
+	onSaveOfChargebackFees: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+        this.restrictSavingIfPricingProposalHasActiveSalesTask(executionContext);
+	},
+	settingSoftDefaultValues: async function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		if (formContext.ui.getFormType() === 1 && formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue() !== null) {
+			var value;
+			var valueJson;
+			await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 15").then((result) => {
+				value = result.entities[0]["crb_value"];
+				valueJson = JSON.parse(value);
+			})
+			//Xrm.Utility.showProgressIndicator();
+			if (formContext.getAttribute(this.Attributes.Fields.productname).getValue() === null) {
+				var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+				if (pricingProposal !== null) {
+			    await Xrm.WebApi.retrieveRecord(pricingProposal[0].entityType, pricingProposal[0].id, "?$select=_crb_productname_value").then((result) => {
+				var productName = [
+					{
+						id: result["_crb_productname_value"],
+						name: result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"],
+						entityType: result["_crb_productname_value@Microsoft.Dynamics.CRM.lookuplogicalname"]
+					}]
+                    
+				formContext.getAttribute(this.Attributes.Fields.name).setValue(result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"]);
+				formContext.getAttribute(this.Attributes.Fields.productname).setValue(productName);
+}               )
+				}
+			}
+			//Xrm.Utility.closeProgressIndicator();
+			if (formContext.getAttribute(this.Attributes.Fields.MaximumPercentofVolume).getValue() === null) {
+				formContext.getAttribute(this.Attributes.Fields.MaximumPercentofVolume).setValue(valueJson["MaximumPercentofVolume"]);
+			}
+			if (formContext.getAttribute(this.Attributes.Fields.MinimumPercentofVolume).getValue() === null) {
+				formContext.getAttribute(this.Attributes.Fields.MinimumPercentofVolume).setValue(valueJson["MinimumPercentofVolume"]);
+			}
+			if (formContext.getAttribute(this.Attributes.Fields.FeePerChargeback).getValue() === null) {
+				formContext.getAttribute(this.Attributes.Fields.FeePerChargeback).setValue(valueJson["FeePerChargeback"]);
+			}
+		}
+	},
+    makeFieldReadOnlyIfPricingProposalHasActiveSalesTask : async function(executionContext){
+
+		//crb_ProgramFee_crb_pricingproposal_crb_pr
+		//crb_pricingproposal_Tasks
+		var formContext = executionContext.getFormContext();
+		var programFeeID = formContext.data.entity.getId();
+		var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+		if (pricingProposal !== null) {
+			Xrm.Utility.showProgressIndicator();
+			//await Xrm.WebApi.retrieveRecord("crb_task",programFeeID,"?$select=crb_approvalstatus,crb_approvaltype&$expand=crb_ProgramFee_crb_pricingproposal_crb_pr($expand=crb_pricingproposal_Tasks($select=crb_approvalstatus,crb_approvaltype&$filter=(crb_approvaltype eq 2 and crb_approvalstatus eq null))").then(
+			await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and crb_approvalstatus eq null and _regardingobjectid_value eq '" + pricingProposal[0].id + "')").then(
+				(results) => {
+					Xrm.Utility.closeProgressIndicator();
+					if (results.entities.length > 0) {
+						Xrm.Navigation.openAlertDialog({ text: "There is Pending Task For the associated Pricing Proposal,  Please refrain from doing any changes", confirmButtonLabel: "OK" });
+						formContext.ui.controls.forEach(function (control, i) {
+							control.setDisabled(true);
+						});
+					}
+				},
+				(error) => {
+					Xrm.Utility.closeProgressIndicator();
+				}
+			)
+		}	
+		
+	},
+	restrictSavingIfPricingProposalHasActiveSalesTask: function (executionContext) {
+		var results;
+		var formContext = executionContext.getFormContext();
+		var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue()[0].id.replace("{", "").replace("}", "");
+		Xrm.Utility.showProgressIndicator();
+		var req = new XMLHttpRequest();
+		req.open("GET", Xrm.Utility.getGlobalContext().getClientUrl() + "/api/data/v9.2/tasks?$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and crb_approvalstatus eq null and _regardingobjectid_value eq "+pricingProposal+")", false);
+		req.setRequestHeader("OData-MaxVersion", "4.0");
+		req.setRequestHeader("OData-Version", "4.0");
+		req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+		req.setRequestHeader("Accept", "application/json");
+		req.setRequestHeader("Prefer", "odata.include-annotations=*");
+		req.onreadystatechange = function () {
+			Xrm.Utility.closeProgressIndicator();
+			if (this.readyState === 4) {
+				req.onreadystatechange = null;
+				if (this.status === 200) {
+					results = JSON.parse(this.response);
+				}
+				else {
+					console.log(this.responseText);
+				}
+			}
+		};
+		req.send();
+		if (results.value.length > 0) {
+			Xrm.Navigation.openAlertDialog({text: "There is Pending Task For the associated Pricing Proposal, Adding/Modifying record is not allowed now ", confirmButtonLabel: "OK"});
+			executionContext.getEventArgs().preventDefault();
+		}
+	}
+}
