@@ -1,0 +1,281 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Lead = CRB.CRM.PJ.Lead || {};
+CRB.CRM.PJ.Lead = {
+    Attributes: {
+        Lead: {
+            leadId: "crb_leadid",
+            leadSourceCode: "header_leadsourcecode",
+            leadSourceDetails: "crb_leadsourcedetails",
+            firstName: "fullname_compositionLinkControl_firstname",
+            lastName: "fullname_compositionLinkControl_lastname",
+            title: "salutation",
+            telephone1: "telephone1",
+            emailaddress1: "emailaddress1",
+            department: "crb_department",
+            lob: "crb_lineofbusiness",
+            describeBusiness: "crb_describeyourbusiness",
+            description: "crb_description",
+            comment: "crb_comment",
+            address1_line1: "address1_line1",
+            address1_line2: "address1_line2",
+            address1_city: "address1_city",
+            country: "crb_country",
+            state: "crb_state",
+            stateOther: "crb_stateother",
+            zip: "address1_postalcode",
+            companyName: "companyname",
+            legalentityname: "crb_legalentityname",
+            website: "websiteurl",
+            NOTE: "crb_note",
+            aboutUs: "crb_aboutus",
+            mplPlatform: "crb_typeofmplplatform",
+            year1Projection: "crb_year1projection",
+            year2Projection: "crb_year2projection",
+            year3Projection: "crb_year3projection",
+            timeline: "crb_timeline",
+            overview: "crb_overview",
+            requestDescription: "crb_requestdescription",
+            isconvertedtopartner: "crb_isconvertedtopartner",
+            redirect: "crb_redirect",
+            statecode: "statecode",
+        },
+    },
+    TabName: {
+        summary: "Summary",
+    },
+    Section: {
+        details: "MapSection",
+        contact: "Contact",
+        company: "company",
+    },
+    onLoadOfLead: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.defaultValueOfCountry(executionContext);
+    },
+    onSaveLead: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+    },
+    ExecuteConvertToPartnerWF: async function (primaryControl) {
+        "use strict";
+        var formContext = primaryControl;
+        var leadID = formContext.data.entity.getId().substring(1, 37);
+
+        var address1_line1 = formContext.getAttribute(this.Attributes.Lead.address1_line1);
+        //var address1_line2 = formContext.getAttribute(this.Attributes.Lead.address1_line2)
+        var city = formContext.getAttribute(this.Attributes.Lead.address1_city);
+        var country = formContext.getAttribute(this.Attributes.Lead.country);
+        var name = formContext.getAttribute(this.Attributes.Lead.legalentityname);
+        var phoneNum = formContext.getAttribute(this.Attributes.Lead.telephone1);
+        var state = formContext.getAttribute(this.Attributes.Lead.state);
+        var stateother = formContext.getAttribute(this.Attributes.Lead.stateOther);
+        var zip = formContext.getAttribute(this.Attributes.Lead.zip);
+        var flag = 1;
+//        if (address1_line1.getValue() === null) {
+//            flag = 0;
+//        }
+//        /*else if(address1_line2.getValue() ===  null){
+//            flag =0;
+//        }*/ //Commented for INFO-1622
+//        else if (city.getValue() === null) {
+//            flag = 0;
+//        }
+//        else if (country.getValue() === null) {
+//            flag = 0;
+//        }
+         if (name.getValue() === null) {
+            flag = 0;
+        }
+        else if (phoneNum.getValue() === null) {
+            flag = 0;
+        }
+//        else if (state.getValue() === null && stateother.getValue() === null) {
+//            flag = 0;
+//        }
+//        else if (zip.getValue() === null) {
+//            flag = 0;
+//        }
+
+        if (flag === 0) {
+
+            var alertStrings = { confirmButtonLabel: "Ok", text: "Please fill the Contact Phone Number and Legal Entity Name in order to Convert to Partner.", title: "Failed" };
+            var alertOptions = { height: 70, width: 160 };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                function (success) {
+                },
+                function (error) {
+                }
+            );
+            return;
+        }
+        await formContext.data.save();
+        var workflowID;
+        Xrm.Utility.showProgressIndicator("Converting to Partner");
+        var query = "?$select=name,workflowid,_parentworkflowid_value&$filter=( name eq 'CRB-Lead-ConvertToPartner' and _parentworkflowid_value eq null and category eq 0)"
+        await Xrm.WebApi.retrieveMultipleRecords("workflow", query).then(
+            function success(result) {
+                if (result !== null && result.entities.length > 0) {
+                    workflowID = result.entities[0]["workflowid"];
+                }
+            },
+            function (error) {
+            }
+        );
+        var executeWorkflowRequest = {
+            entity: { entityType: "workflow", id: workflowID },
+            EntityId: { guid: leadID },
+
+            getMetadata: function () {
+                return {
+                    boundParameter: "entity",
+                    parameterTypes: {
+                        entity: { typeName: "mscrm.workflow", structuralProperty: 5 },
+                        EntityId: { typeName: "Edm.Guid", structuralProperty: 1 }
+                    },
+                    operationType: 0, operationName: "ExecuteWorkflow"
+                };
+            }
+        };
+        await Xrm.WebApi.execute(executeWorkflowRequest).then(
+            function success(response) {
+                if (response.ok) {
+                }
+            }
+        ).then(function (responseBody) {
+            formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.isconvertedtopartner).setValue(true);
+            formContext.data.save();
+            Xrm.Utility.closeProgressIndicator("Converting to Partner");
+            CRB.CRM.PJ.Lead.RedirectToPartner(leadID);
+            var result = responseBody;
+            return response.json();
+        }).catch(function (error) {
+        });
+    },
+    ExecuteCustomQualifyWorkflow: async function (primaryControl) {
+        "use strict";
+        var formContext = primaryControl;
+        var leadId = formContext.data.entity.getId().substring(1, 37);
+        var workflowID = "";
+        var query = "?$select=name,workflowid,_parentworkflowid_value&$filter=( name eq 'CRB-Lead-CustomQualify' and _parentworkflowid_value eq null and category eq 0)"
+        await Xrm.WebApi.retrieveMultipleRecords("workflow", query).then(
+            function success(result) {
+                if (result !== null && result.entities.length > 0) {
+                    workflowID = result.entities[0]["workflowid"];
+                }
+            },
+            function (error) {
+            });
+        var executeWorkflowRequest = {
+            entity: { entityType: "workflow", id: workflowID },
+            EntityId: { guid: leadId },
+
+            getMetadata: function () {
+                return {
+                    boundParameter: "entity",
+                    parameterTypes: {
+                        entity: { typeName: "mscrm.workflow", structuralProperty: 5 },
+                        EntityId: { typeName: "Edm.Guid", structuralProperty: 1 }
+                    },
+                    operationType: 0, operationName: "ExecuteWorkflow"
+                };
+            }
+        };
+        await Xrm.WebApi.execute(executeWorkflowRequest).then(
+            function success(response) {
+                formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.redirect).setValue(true);
+                formContext.data.save();
+                if (response.ok) { return response.json(); }
+            }
+        ).then(function (responseBody) {
+            var result = responseBody;
+        }).catch(function (error) {
+        });
+    },
+    RedirectOportunityChange: function (executionContext) {
+        "use strict";
+        const formContext = executionContext.getFormContext();
+        const leadId = formContext.data.entity.getId().substring(1, 37);
+        const leadStatus = formContext.getAttribute(this.Attributes.Lead.statecode).getValue();
+        if (leadStatus === 1 && leadStatus !== null && leadStatus !== undefined) {
+            var opportinityFetchXml = "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>" +
+                "  <entity name='opportunity'>" +
+                "    <attribute name='name' />" +
+                "    <attribute name='statuscode' />" +
+                "    <attribute name='opportunityid' />" +
+                "    <order attribute='name' descending='false' />" +
+                "    <link-entity name='lead' from='qualifyingopportunityid' to='opportunityid' link-type='inner' alias='ac'>" +
+                "      <filter type='and'>" +
+                "        <condition attribute='leadid' operator='eq'  uitype='lead' value='" + leadId + "' />" +
+                "      </filter>" +
+                "    </link-entity>" +
+                "  </entity>" +
+                "</fetch>"
+            Xrm.WebApi.retrieveMultipleRecords("opportunity", "?fetchXml=" + encodeURIComponent(opportinityFetchXml)).then(
+                function success(result) {
+                    if (result !== null && result.entities.length > 0) {
+                        Xrm.Navigation.openForm({ entityName: "opportunity", entityId: result.entities[0]["opportunityid"] });
+                    }
+                },
+                function (error) {
+                }
+            );
+        }
+    },
+    RedirectToPartner: function (leadId) {
+        "use strict";
+        Xrm.WebApi.retrieveMultipleRecords("lead", "?$select=_parentaccountid_value&$filter=leadid eq " + leadId).then(
+            function success(results) {
+                Xrm.Navigation.openForm({ entityName: "account", entityId: results.entities[0]["_parentaccountid_value"] });
+            },
+            function (error) {
+
+            }
+        );
+    },
+    
+
+    //    validatePhoneNumber : function(executionContext){
+    //    "use strict";
+    //        var formContext = executionContext.getFormContext();
+    //        var fieldText = formContext.getAttribute(this.Attributes.Lead.telephone1).getValue();
+    //        if (fieldText === null) return;
+    //        if (!fieldText.match("^[0-9]*$")) {
+    //            formContext.getControl(this.Attributes.Lead.telephone1).setNotification("Please enter only Numbers", 102);
+    //            return false;
+    //        }
+    //        else {
+    //            formContext.getControl(this.Attributes.Lead.telephone1).clearNotification(102);
+    //            return true;
+    //        }
+    //    }
+    defaultValueOfCountry: function (executionContext) {
+            
+        var formContext = executionContext.getFormContext();
+        Xrm.WebApi.retrieveMultipleRecords("crb_country", "?$select=crb_name,crb_countryid&$filter=crb_name eq 'United States'").then(function (results) {
+            if (results != null && results.entities.length > 0) {
+
+                //var lookup = new ArrayConstructor();
+                var lookup = new Array();
+                lookup[0] = new Object();
+                lookup[0].id = results.entities[0]["crb_countryid"]; // Replace with the actual GUID for United States
+
+                // Set the name of the lookup record
+                lookup[0].name = results.entities[0]["crb_name"];
+
+                // Set the entity type of the lookup record
+                lookup[0].entityType = "crb_country"; // Replace with the actual entity name
+                if(formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.country).getValue() ==null){
+                formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.country).setValue(lookup);
+                }
+//                            formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.state).setRequiredLevel("recommended");
+//                            formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.zip).setRequiredLevel("recommended");
+//                            formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.address1_city).setRequiredLevel("recommended");
+//                            formContext.getAttribute(CRB.CRM.PJ.Lead.Attributes.Lead.country).setRequiredLevel("recommended");
+
+            }
+        })
+    }
+}
