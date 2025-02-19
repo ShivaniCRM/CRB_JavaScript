@@ -1,0 +1,239 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.PaymentTransactionCount = CRB.CRM.PJ.PaymentTransactionCount || {};
+CRB.CRM.PJ.PaymentTransactionCount = {
+    Attributes: {
+        Fields: {
+            productName: "crb_productname",
+            name: "crb_name",
+            minTransactionCount: "crb_mintransactioncount",
+            maxTransactionCount: "crb_maxtransactioncount",
+            feePerTransaction: "crb_feepertransaction",
+            sameDayAchsSurcharge: "crb_samedayachsurcharge",
+            laterSettlementWindowSurcharge: "crb_latersettlementwindowsurcharge",
+            standardAchFeePerTransmsbCustomers: "crb_standardachfeepertransmsbcustomers",
+            internationalp2cFee: "crb_internationalp2cfee",
+            pricingProposal: "crb_pricingproposal",
+            risk: "crb_risk",
+        },
+        Sections: {
+            PaymentTransactionCount: "sec_Payment_Transaction_Count",
+            PaymentsTransferSponsorship: "sec_Payments_Transfer_Sponsorship",
+            paymentsTransferSponsorship: "PaymentTransferSponsorship"
+        },
+        Tabs: {
+            General: "General"
+        },
+        LOV: {
+            lineOfBusiness: {
+                BaaSCards: "BaaS/Cards",
+                Marketplace_Lending: "Marketplace Lending",
+                Payments: "Payments",
+            },
+            ProductNameLOV: {
+                AchDomestic: "ACH Domestic",
+                AchInternational: "ACH International",
+                MerchantAcquiring: "Merchant Acquiring",
+                PushToCard: "Push to Card",
+                RTP: "RTP",
+                FedNow: "FedNow",
+                Xpay: "Xpay",
+            },
+        }
+    },
+    onLoadOfPaymentTransactionCounts: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.showAndHideFields(executionContext);
+        this.settingSoftDefaultValues(executionContext)
+        this.makeFieldReadOnlyIfPricingProposalHasActiveSalesTask(executionContext);
+    },
+    onSaveOfPaymentTransactionCounts: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.restrictSavingIfPricingProposalHasActiveSalesTask(executionContext);
+    },
+    showAndHideFields: async function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var lineofbusinessValue = "";
+        var productnameValue = "";
+        var describesyourbusiness = "";
+        var sponsorshiptype;
+        var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+
+        if (pricingProposal === undefined) {
+            return;
+        }
+
+        var pricingProposalId = pricingProposal[0].id;
+        if (pricingProposalId === null) {
+            return;
+        }
+        await Xrm.WebApi.retrieveRecord("crb_pricingproposal", pricingProposalId, "?$select=crb_pricingproposalid,crb_sponsorshiptype&$expand=crb_ProductToPricingProposalId($select=_crb_lineofbusiness_value,_crb_productname_value,crb_describesyourbusiness)").then(
+            function success(result) {
+                if (result.hasOwnProperty("crb_ProductToPricingProposalId") && result["crb_ProductToPricingProposalId"] !== null) {
+                    lineofbusinessValue = result["crb_ProductToPricingProposalId"]["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+                    productnameValue = result["crb_ProductToPricingProposalId"]["_crb_productname_value@OData.Community.Display.V1.FormattedValue"];
+                    describesyourbusiness = result["crb_ProductToPricingProposalId"]["crb_describesyourbusiness"]; // Choices
+                    sponsorshiptype = result["crb_sponsorshiptype"]; // Choice
+                }
+            },
+            function (error) {
+            }
+        );
+
+        if (lineofbusinessValue === this.Attributes.LOV.lineOfBusiness.Payments) {
+            if (productnameValue === this.Attributes.LOV.ProductNameLOV.AchDomestic) {
+                formContext.getControl(this.Attributes.Fields.productName).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.minTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.maxTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.feePerTransaction).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.laterSettlementWindowSurcharge).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.sameDayAchsSurcharge).setVisible(true);
+            }
+            if (productnameValue === this.Attributes.LOV.ProductNameLOV.PushToCard) {
+                formContext.getControl(this.Attributes.Fields.productName).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.minTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.maxTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.feePerTransaction).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.internationalp2cFee).setVisible(true);
+            }
+
+            if (productnameValue === this.Attributes.LOV.ProductNameLOV.MerchantAcquiring && sponsorshiptype === 2) {
+                formContext.getControl(this.Attributes.Fields.productName).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.minTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.maxTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.feePerTransaction).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.risk).setVisible(true);
+                //formContext.ui.tabs.get(this.Attributes.Tabs.General).sections.get(this.Attributes.Sections.PaymentsTransferSponsorship).setVisible(false);
+            }
+            if (productnameValue === this.Attributes.LOV.ProductNameLOV.MerchantAcquiring && sponsorshiptype === 1) {
+                formContext.getControl(this.Attributes.Fields.productName).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.minTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.maxTransactionCount).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.feePerTransaction).setVisible(true);
+            }
+        }
+        if (lineofbusinessValue === this.Attributes.LOV.lineOfBusiness.Payments && (productnameValue === this.Attributes.LOV.ProductNameLOV.Xpay || productnameValue === this.Attributes.LOV.ProductNameLOV.FedNow || productnameValue === this.Attributes.LOV.ProductNameLOV.RTP || productnameValue === this.Attributes.LOV.ProductNameLOV.AchInternational)) {
+            formContext.getControl(this.Attributes.Fields.productName).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.minTransactionCount).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.maxTransactionCount).setVisible(true);
+            formContext.getControl(this.Attributes.Fields.feePerTransaction).setVisible(true);
+
+        }
+    },
+    settingSoftDefaultValues: async function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+
+        if (formContext.ui.getFormType() === 1 && formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue() !== null) {
+            var value;
+            var valueJson;
+            var product;
+            var sponsorshipType;
+            await Xrm.WebApi.retrieveMultipleRecords("crb_configuration", "?$select=crb_value&$filter=crb_code eq 9").then((result) => {
+                value = result.entities[0]["crb_value"];
+                valueJson = JSON.parse(value);
+            })
+
+
+            if (formContext.getAttribute(this.Attributes.Fields.minTransactionCount).getValue() === null) {
+                formContext.getAttribute(this.Attributes.Fields.minTransactionCount).setValue(valueJson["MinimumTransactionCount"]);
+            }
+            if (formContext.getAttribute(this.Attributes.Fields.maxTransactionCount).getValue() === null) {
+                formContext.getAttribute(this.Attributes.Fields.maxTransactionCount).setValue(valueJson["MaximumTransactionCount"]);
+            }
+            if (formContext.getAttribute(this.Attributes.Fields.feePerTransaction).getValue() === null) {
+                formContext.getAttribute(this.Attributes.Fields.feePerTransaction).setValue(valueJson["FeePerTransaction"]);
+            }
+            if (formContext.getAttribute(this.Attributes.Fields.laterSettlementWindowSurcharge).getValue() === null) {
+                formContext.getAttribute(this.Attributes.Fields.laterSettlementWindowSurcharge).setValue(valueJson["LaterSettlementWindowSurcharge"]);
+            }
+            if (formContext.getAttribute(this.Attributes.Fields.sameDayAchsSurcharge).getValue() === null) {
+                formContext.getAttribute(this.Attributes.Fields.sameDayAchsSurcharge).setValue(valueJson["SameDayACHSurchargeVolume"]);
+            }
+            if (formContext.getAttribute(this.Attributes.Fields.internationalp2cFee).getValue() === null) {
+                formContext.getAttribute(this.Attributes.Fields.internationalp2cFee).setValue(valueJson["InternationalP2CFeePerTransaction"]);
+            }
+            if (formContext.getAttribute(this.Attributes.Fields.productName).getValue() === null) {
+                var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+                if (pricingProposal !== null) {
+                    await Xrm.WebApi.retrieveRecord(pricingProposal[0].entityType, pricingProposal[0].id, "?$select=_crb_productname_value,crb_sponsorshiptype").then((result) => {
+                        var productName = [
+                            {
+                                id: result["_crb_productname_value"],
+                                name: result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"],
+                                entityType: result["_crb_productname_value@Microsoft.Dynamics.CRM.lookuplogicalname"]
+                            }]
+                        product = result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"]
+                        sponsorshipType = result["crb_sponsorshiptype"]
+                        formContext.getAttribute(this.Attributes.Fields.name).setValue(result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"]);
+                        formContext.getAttribute(this.Attributes.Fields.productName).setValue(productName);
+                    })
+                    if (product === this.Attributes.LOV.ProductNameLOV.MerchantAcquiring && sponsorshipType === 1) {
+                        formContext.getAttribute(this.Attributes.Fields.feePerTransaction).setValue(valueJson["AcquiringPurchaseSponsorshipFeePerTransaction"]);
+                    }
+                }
+            }
+        }
+    },
+    makeFieldReadOnlyIfPricingProposalHasActiveSalesTask: async function (executionContext) {
+
+        //crb_ProgramFee_crb_pricingproposal_crb_pr
+        //crb_pricingproposal_Tasks
+        var formContext = executionContext.getFormContext();
+        var programFeeID = formContext.data.entity.getId();
+        var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue();
+        if (pricingProposal !== null) {
+			Xrm.Utility.showProgressIndicator();
+			//await Xrm.WebApi.retrieveRecord("crb_task",programFeeID,"?$select=crb_approvalstatus,crb_approvaltype&$expand=crb_ProgramFee_crb_pricingproposal_crb_pr($expand=crb_pricingproposal_Tasks($select=crb_approvalstatus,crb_approvaltype&$filter=(crb_approvaltype eq 2 and crb_approvalstatus eq null))").then(
+			await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=crb_approvalstatus,crb_approvaltype&$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and crb_approvalstatus eq null and _regardingobjectid_value eq '" + pricingProposal[0].id + "')").then(
+				(results) => {
+					Xrm.Utility.closeProgressIndicator();
+					if (results.entities.length > 0) {
+						Xrm.Navigation.openAlertDialog({ text: "There is Pending Task For the associated Pricing Proposal,  Please refrain from doing any changes", confirmButtonLabel: "OK" });
+						formContext.ui.controls.forEach(function (control, i) {
+							control.setDisabled(true);
+						});
+					}
+				},
+				(error) => {
+					Xrm.Utility.closeProgressIndicator();
+				}
+			)
+		}
+
+    },
+    restrictSavingIfPricingProposalHasActiveSalesTask: function (executionContext) {
+		var results;
+		var formContext = executionContext.getFormContext();
+		var pricingProposal = formContext.getAttribute(this.Attributes.Fields.pricingProposal).getValue()[0].id.replace("{", "").replace("}", "");
+		Xrm.Utility.showProgressIndicator();
+		var req = new XMLHttpRequest();
+		req.open("GET", Xrm.Utility.getGlobalContext().getClientUrl() + "/api/data/v9.2/tasks?$filter=((crb_approvaltype eq 1 or crb_approvaltype eq 2) and crb_approvalstatus eq null and _regardingobjectid_value eq "+pricingProposal+")", false);
+		req.setRequestHeader("OData-MaxVersion", "4.0");
+		req.setRequestHeader("OData-Version", "4.0");
+		req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+		req.setRequestHeader("Accept", "application/json");
+		req.setRequestHeader("Prefer", "odata.include-annotations=*");
+		req.onreadystatechange = function () {
+			Xrm.Utility.closeProgressIndicator();
+			if (this.readyState === 4) {
+				req.onreadystatechange = null;
+				if (this.status === 200) {
+					results = JSON.parse(this.response);
+				}
+				else {
+					console.log(this.responseText);
+				}
+			}
+		};
+		req.send();
+		if (results.value.length > 0) {
+			Xrm.Navigation.openAlertDialog({text: "There is Pending Task For the associated Pricing Proposal, Adding/Modifying record is not allowed now ", confirmButtonLabel: "OK"});
+			executionContext.getEventArgs().preventDefault();
+		}
+	}
+}
