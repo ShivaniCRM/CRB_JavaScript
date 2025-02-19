@@ -1,0 +1,1248 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Screening = CRB.CRM.PJ.Screening || {};
+CRB.CRM.PJ.Screening = {
+	Attributes: {
+
+		SearchType: "crb_typeofsearch",
+        typeofadditionalscreening:"crb_typeofadditionalscreening",
+        typeofadversemediascan: "crb_typeofadversemediascan",
+        name: "crb_name",
+        
+        opportunity:"crb_opportunity",
+        onboarding:"crb_onboarding",
+        notApplicablePEPScreening: "crb_notapplicablepepscreening",
+        notApplicableNegativeMediaScreening: "crb_notapplicablenegativemediascreening",
+        notApplicablePublicComplaintBoard: "crb_notapplicablepubliccomplaintboard",
+        notApplicableOFACScreening: "crb_notapplicableofacscreening",
+        notApplicableInternalListScreening: "crb_notapplicableinternallistscreening",
+        notApplicableOtherGovernmentListScreening: "crb_notapplicableothergovernmentlistscreening",
+        notApplicableThirdPartyPaymentActivity: "crb_notapplicablethirdpartypaymentactivity",
+        notApplicableAllCBs: "crb_notapplicableallcbs",
+        notApplicableAllPaymentsProductClients: "crb_notapplicableallpaymentsproductclients",
+        notApplicablePublicScreening:"crb_notapplicablepublicscreening",
+        expirationDate:"crb_expirationdate",
+
+        //negative media screening
+        TypesOfSearch: "crb_typesofsearch",
+        DetailedDispositionOfNegativeMediaFindings: "crb_detaileddispositionofnegativemediafindings",
+        WasAnyNegativeMediaIdentified: "crb_wasanynegativemediaidentifiednew",
+        WasTheNegativeMaterialIdentified: "crb_wasthenegativematerialidentifinewscring",
+        //DescribeNegativeMedia: "crb_describenegativemedia",
+        SubjectOfNegativeMedia: "crb_subjectofnegativemedia",
+        IdentifyTheSubjectsOfNegativeMedia: "crb_identifythesubjectsofnegativemedia",
+        WasTheNegativeMediaTransactionalOrReputation: "crb_wasthenegativemediatransactionalorreputation",
+        NegativeMediaEscalatedToBSAAMLCompliance: "crb_negativemediaescalatedtobsaamlcomplnew",
+        //WhatWasTheOutcomeOfTheEscalation: "crb_whatwastheoutcomeoftheescalation",
+        //ProvideTheRatioanleForTheOutcome: "crb_providetheratioanlefortheoutcomenew",
+        WhyWasTheNegativeMediaNotEscalated: "crb_whywasthenegativemedianotescalated",
+        crb_whatwastheoutcomeoftheescalationnms: "crb_whatwastheoutcomeoftheescalationnms",
+        crb_providetherationalefortheoutcomenms: "crb_providetherationalefortheoutcomenms",
+        crb_describenegativemedianms:"crb_describenegativemedianms",
+        evidenceAttachment:"crb_evidenceattachment",
+
+        //public complaint board
+        //EvidenceAttachment: "crb_evidenceattachment",
+        crb_describenegativemediapcb:"crb_describenegativemediapcb",
+        crb_whatwastheoutcomeofescalationpcb:"crb_whatwastheoutcomeofescalationpcb",
+        crb_providetherationalefortheoutcomepcb:"crb_providetherationalefortheoutcomepcb",
+        //crb_describenegativemediapcb:"crb_describenegativemediapcb", //second time
+        crb_wasanynegativemediaidentifiedpcb:"crb_wasanynegativemediaidentifiedpcb",
+        crb_wasthenegativematerialidentifiedpcb:"crb_wasthenegativematerialidentifiedpcb",
+        crb_subjectofnegativemediapcb:"crb_subjectofnegativemediapcb",
+        crb_identifythesubjectsofnegativemediapcb:"crb_identifythesubjectsofnegativemediapcb",
+        crb_negativemediatransactionalreputationalpcb:"crb_negativemediatransactionalreputationalpcb",
+        crb_detaildispositionnegativemediafindingpbc:"crb_detaildispositionnegativemediafindingpbc",
+        crb_negativemediaescalatedbsaamlcompliancepcb:"crb_negativemediaescalatedbsaamlcompliancepcb",
+        crb_evidenceattachmentpcb:"crb_evidenceattachmentpcb",
+        crb_whywasthenegativemedianotescalatedpcb:"crb_whywasthenegativemedianotescalatedpcb",
+
+
+
+
+
+
+        //OFAC screening
+        ofacScreeningsummary:"crb_ofacscreeningsummary2",
+        connectiontosanctionedcountryjurisdictionsdn: "crb_connectiontosanctionedcountryjurisdictionsdn",
+        typeofofacprogram: "crb_typeofofacprogram",
+        whattypeofsanctionsexposurewasidentified: "crb_whattypeofsanctionsexposurewasidentified",
+        newlyidentifiedorchangedsincethelastreview: "crb_newlyidentifiedorchangedsincethelastreview",
+        whatscustomersconnection: "crb_whatscustomersconnection",
+        //describe: "crb_describe",
+        listcountriesofconnection: "crb_listcountriesofconnection",
+        ifsdnindicatethenatureoftheconnection: "crb_ifsdnindicatethenatureoftheconnection",
+        providethepercentageofrevenuederivedfromsan: "crb_providethepercentageofrevenuederivedfromsan",
+        //arecrbproductsservicesplatformsutilized: "crb_arecrbproductsservicesplatformsutilized",
+        arecrbproductsservicesplatformsutilized: "crb_areproductsservicesplatformsutilizednew",
+        //describe: "crb_describe1", // might need tochange later
+       // escalatedtobsaamlcompliance: "crb_escalatedtobsaamlcompliance",
+        escalatedtobsaamlcompliance: "crb_escalatedtobsaamlcompliancenew",
+       // whatwastheoutcomeoftheescalation: "crb_whatwastheoutcomeoftheescalation", //might need to change later
+       // providetherationalefortheoutcomenew: "crb_providetherationalefortheoutcomenew", //might need to change later
+        crb_whatwastheoutcomeofescalationofac: "crb_whatwastheoutcomeofescalationofac", 
+        crb_providetheratinalefortheoutcomeofac: "crb_providetheratinalefortheoutcomeofac",
+        crb_describetheothernatureofconnections:"crb_describetheothernatureofconnections",
+        crb_describehowproductsutilizedwithcountries:"crb_describehowproductsutilizedwithcountries",
+        documentationHowthePercentOfRevenueWasDetermined: "crb_documentationhowtheofrevenuewasdetermined",
+        selectAllCRBProductsServices: "crb_selectallcrbproductsservices1",
+        //selectAllCRBProductsServices: "crb_selectallcrbproductsservices",
+        //ListOfAllProductsAndServices : 'crb_listofallcrbproductsservices1',
+        detailsOfBSAAMLComplianceReview: "crb_detailsofbsaamlcompliancereview",
+
+        //pep screening
+        isthiscustomeroranyrelatedpartiesapep: "crb_isthiscustomeroranyrelatedpartiesapep",
+
+        //internal list screening
+        providedetailsoftheconfirmedmatch: "crb_providedetailsoftheconfirmedmatch",
+        //confirmedmatchescalatedtobsaamlcompliance: "crb_confirmedmatchescalatedtobsaamlcompliance",
+       // whatwastheoutcomeoftheescalation: "crb_whatwastheoutcomeoftheescalation", //might need to change
+        //providetherationalefortheoutcomenew: "crb_providetherationalefortheoutcomenew2", //might need to change
+        //whywastheconfirmedmatchnotescalated: "crb_whywastheconfirmedmatchnotescalated",
+        crb_whatwastheoutcomeofescalationils: "crb_whatwastheoutcomeofescalationils", 
+        //crb_providetherationalefortheoutcomeils: "crb_providetherationalefortheoutcomeils",
+        crb_providetherationalefortheoutcomeils : "crb_providetheratioanlefortheoutcomenew",
+        crb_whywastheconfirmedmatchnotescalatedils:"crb_whywastheconfirmedmatchnotescalatedils",
+       // crb_confirmematchescalatedbsaamlcomplianceisl:"crb_confirmematchescalatedbsaamlcomplianceisl",
+        crb_confirmematchescalatedbsaamlcomplianceisl:"crb_confirmedmatchescalatedtobsaamlcomilsnew",
+        evidenceAttachmentInternalScreening:"crb_evidenceattachmentinternalscreening",
+        evidenceAttachmentInternalScreening2: "crb_evidenceattachmentinternalscreening2",
+
+        //other government list screening
+        confirmedmatchtoothergovernmentlists: "crb_confirmedmatchtoothergovernmentlists",
+        //confirmedmatchescalatedtobsaamlcompliance: "crb_confirmedmatchescalatedtobsaamlcompliance",
+        //whywastheconfirmedmatchnotescalated: "crb_whywastheconfirmedmatchnotescalated",
+        crb_whywastheconfirmedmatchnotescalatedogsl:"crb_whywastheconfirmedmatchnotescalatedogsl",
+        crb_confirmematchescalatedbsaamlcomplianceogs:"crb_confirmematchescalatedbsaamlcomplianceogs",
+        evidenceAttachmentOtherGovernmentListScreening:"crb_evidenceattachmentothergovernmentlists",
+        provideDetailsOfTheConfirmedMatchOGLS:"crb_providedetailsoftheconfirmedmatchogls",
+        evidenceAttachmentOtherGovernmentListScreening2: "crb_evidenceattachmentogls2",
+
+        //third party payment activity
+        tpppscustomersscreenedforofacsanctions: "crb_tpppscustomersscreenedforofacsanctions",
+
+        //all cbs
+        correspondantsamatchforcustomerscrbexited: "crb_correspondantsamatchforcustomerscrbexited",
+        //describe: "crb_describe2", //might need to change later
+        crb_describeallcbs:"crb_describeallcbs",
+
+        //all payments product clients
+        anyexistingorpendinglawsuits: "crb_anyexistingorpendinglawsuits",
+        //describe: "crb_describe3", //might need to change later
+        describetheresultsofinternetbackgroundchecks: "crb_describetheresultsofinternetbackgroundchecks",
+        crb_describeallpaymentsproductclients:"crb_describeallpaymentsproductclients",
+
+	},
+	Section: {
+		generalduediligence: "General Due Diligence",
+        bsaaml: "BSA/AML",
+        implementationteam: "Implementation Team",
+        PEPScreening:"PEP Screening",
+        NegativeMediaScreening:"Negative Media Screening",
+        PublicComplaintBoard: "Public Complaint Board",
+        OFACScreening: "OFAC Screening",
+        InternalListScreening: "Internal List Screening",
+        OtherGovernmentListScreening: "Other Government List Screening",
+        ThirdPartyPaymentActivity: "Third Party Payment Activity",
+        AllCBs: "All CBs",
+        AllPaymentsProductClients: "All Payments Product Clients",
+        PublicScreening:"Public Screening",
+        MSBsection: "Due Diligence_section_13",
+	},
+
+	TabName: {
+        DueDiligence: "Due Diligence",
+        BSAAML:"BSA/AML",
+        ImplementationTeam:"Implementation Team",
+	},
+    SubGrid: {
+        PEP:"PEP",
+        PublicScreening:"PublicScreeningSubgrid",
+    },
+    LOV: {
+        CommonYesNo: {
+            Yes: 100000000,
+            No: 100000001,
+        },
+        SearchType: {
+            ClearOFACPEPSearch: 1,
+            AdverseMediaScan: 2,
+            AdditionalScreenings: 3,
+        },
+        TypeOfAdverseMediaScan:{
+            NegativeNewsSearch: 1,
+            PublicCompliantBoard:2,
+        },
+        AdditionalScreenings:{
+            OFACScreening:1,
+            PoliticallyExposedPerson:2,
+            InternalListScreening:3,
+            OtherGovernmentListScreening:4,
+            ThirdPartyPaymentActivity:5,
+            CorrespondentBanks:6,
+            MoneyServicesBusiness:7
+        }
+    },
+    OtherGrounps: {
+        LOB: {
+            BSAAML: "BSA/AML",
+            MPL: "Marketplace Lending",
+            Payments: "Payments",
+        }
+    },
+	onLoadOfScreening: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+        
+        //this.showSectionBasedOnLoggedInUser(executionContext);
+        this.showandhidepartneronscreeningtab(executionContext);
+		this.HideAndShowOptions(executionContext);
+        this.onChangeOfIsthiscustomeroranyrelatedpartiesapep(executionContext);
+        //this.filterTypeOfAdditionalScreening(executionContext);
+        //this.showTypeeOfAdditionalScreeningDynamically(executionContext);
+        this.showSectionsDynamically(executionContext);
+        this.checkIfUseHasPermissionToEdit(executionContext);
+        this.AlertExpireDate(executionContext);
+        //this.showTabsBasedOnLoggedInuser(executionContext);
+        //this.showTraverseMediaSearchBasedOnTypeOfSearch(executionContext);
+        formContext.getAttribute(this.Attributes.correspondantsamatchforcustomerscrbexited).setRequiredLevel('required');
+        formContext.getAttribute(this.Attributes.crb_describeallcbs).setRequiredLevel('required');
+        formContext.getAttribute(this.Attributes.confirmedmatchtoothergovernmentlists).setRequiredLevel('required');
+        this.setTypeOfsearchOptionLableOnName(executionContext);
+        this.setRealtedProductsInOptions(executionContext);
+       // this.showHideBasedOnConfinedMatchEscaltedToBsaAmlOgl(executionContext);
+	},
+	onSaveOfScreening: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+        this.setTypeOfsearchOptionLableOnName(executionContext);
+	},
+
+HideAndShowOptions: async function  (executionContext)
+{
+	var formContext = executionContext.getFormContext();
+	var searchType = formContext.getControl(this.Attributes.SearchType);
+   // var userName = Xrm.Utility.getGlobalContext().userSettings.userName;
+	var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+	var show = false;
+	
+	var isUserBSAAMLMemeber = await this.checkIfUserIdIsPartOfTeams(userId, "BSA/AML");
+		
+		if (isUserBSAAMLMemeber) 
+		{
+			show = await this.checkIfUserIdIsPartOfTeams(userId, "BSA/AML");	
+		}
+
+		if (!show) 
+		{
+			searchType.removeOption(3);	
+		}
+},
+checkIfUseHasPermissionToEdit: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        
+        var userName = Xrm.Utility.getGlobalContext().userSettings.userName;
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        
+        var show = false;
+        var owner = formContext.getAttribute("ownerid").getValue();
+        if (owner) {
+            var ownerId = owner[0].id.replace("{", "").replace("}", "");
+            if (ownerId == userId) {
+                show = true;
+            }
+        }
+        if (!show) {
+            var isOwnerBSAAMLMemeber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(ownerId, "BSA/AML");
+            var isOwnerGDDMemer = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(ownerId, "General Due Diligence");
+
+            if (isOwnerBSAAMLMemeber) {
+                show = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "BSA/AML");                
+            }
+
+            if (isOwnerGDDMemer) {
+                show = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "General Due Diligence");
+            }
+        }
+
+        if (!show) {
+            //make all field in from readonly
+            formContext.ui.controls.forEach(function (control, i) {
+                control.setDisabled(true);
+            });
+        }
+
+
+    },
+        showSectionBasedOnLoggedInUser: async function (executionContext) {
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var formContext = executionContext.getFormContext();
+        
+        //this.hideAllSections(executionContext);
+        
+        var isUserBSAAMLMemeber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "BSA/AML");
+        var isUserGDDMemer = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "General Due Diligence");
+        var isUserImplementationTeam = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "Implementation Team");
+        
+        this.hideAllSections(executionContext);
+
+        if (isUserBSAAMLMemeber) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.bsaaml).setVisible(true);
+            this.showTraverseMediaSearchBasedOnTypeOfSearch(executionContext);
+        }
+
+        if (isUserGDDMemer) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.generalduediligence).setVisible(true);
+            this.showTraverseMediaSearchBasedOnTypeOfSearch(executionContext);
+        }
+
+        if(isUserImplementationTeam){
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.implementationteam).setVisible(true);
+            this.showTraverseMediaSearchBasedOnTypeOfSearch(executionContext);
+        }
+    },
+    onChangeOfTypeOfSearch: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        //this.showTypeeOfAdditionalScreeningDynamically(executionContext);
+        this.showSectionsDynamically(executionContext);
+        
+    },
+    onChangeOfTypeOfAdditionalScreening: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        this.showSectionsDynamically(executionContext);
+    },
+   showTraverseMediaSearchBasedOnTypeOfSearch: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        formContext.getAttribute(this.Attributes.typeofadversemediascan).setRequiredLevel('none');;
+        if (formContext.getAttribute(this.Attributes.SearchType).getValue() === 2) {
+            formContext.getControl(this.Attributes.typeofadversemediascan).setVisible(true);
+            formContext.getAttribute(this.Attributes.typeofadversemediascan).setRequiredLevel('required');
+        }
+        else {
+            formContext.getControl(this.Attributes.typeofadversemediascan).setVisible(false);
+        }
+    },
+    hideAllSections: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.bsaaml).setVisible(false);
+        formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.generalduediligence).setVisible(false);
+        formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.implementationteam).setVisible(false);
+    },
+    showTabsBasedOnLoggedInuser: async function (executionContext) {
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var formContext = executionContext.getFormContext();
+        var isUserBSAAMLMemeber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "BSA/AML");
+        var isUserGDDMemer = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "General Due Diligence");
+        var isUserImplementationTeam = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "Implementation Team");
+
+        if (isUserBSAAMLMemeber) {
+            formContext.ui.tabs.get(this.TabName.BSAAML).setVisible(true);
+        }
+
+        if (isUserGDDMemer) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).setVisible(true);
+        }
+
+        if(isUserImplementationTeam){
+            formContext.ui.tabs.get(this.TabName.ImplementationTeam).setVisible(true);
+        }
+    },
+    onChangeOfIsthiscustomeroranyrelatedpartiesapep: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var isthiscustomeroranyrelatedpartiesapep = formContext.getAttribute(this.Attributes.isthiscustomeroranyrelatedpartiesapep).getValue();
+        if(isthiscustomeroranyrelatedpartiesapep){
+            formContext.getControl(this.SubGrid.PEP).setVisible(true);
+        }
+        else{
+            formContext.getControl(this.SubGrid.PEP).setVisible(false);
+        }
+    },
+    checkIfUserIdIsPartOfTeams: async function (userId, teamNames) {
+		userId = userId.replace("{", "").replace("}", "");
+		let result = false;	
+
+		let options = "?$select=name,teammembership_association&$expand=teammembership_association($select=systemuserid,fullname;$filter=systemuserid eq " + userId + ")";
+
+		let outputTeams = [];
+		await Xrm.WebApi.retrieveMultipleRecords("team", options).then(
+			(results) => {
+				outputTeams = results.entities;
+			})
+			.catch((error) => {
+				//console.error(error.message);
+			});
+
+		outputTeams = outputTeams.filter((team) => {
+			return team.teammembership_association.length > 0;
+		})
+
+		let teamNamesArray = teamNames.split(",");
+		for(var i=0; i<outputTeams.length; i++){
+			if(teamNamesArray.includes(outputTeams[i].name)){
+				result = true;
+				break;
+			}
+		}
+		return result;
+	},
+       showSectionsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+
+
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var typeOfAdverseMediaScan = formContext.getAttribute(this.Attributes.typeofadversemediascan).getValue();
+        var additionalScreening = formContext.getAttribute(this.Attributes.typeofadditionalscreening).getValue();
+      
+        this.showPEPSectionDynamically(executionContext, searchType);
+        this.showNegativeMediaScreeninSectionDynamically(executionContext, searchType);
+        this.showPublicCompliantBoardSectionDynamically(executionContext, searchType);
+        this.showPublicScreeingSectionDynamically(executionContext, searchType);
+        this.showOFACScreeningDynamically(executionContext, searchType);
+        this.showInternalListScreeningDynamically(executionContext, searchType);
+        this.showOtherGovernmentListScreeningDynamically(executionContext, searchType);
+        this.showThridPartyPaymentActivitySectionDynamically(executionContext, searchType);
+        this.showCorespondentBanksSectionDynamically(executionContext, searchType);
+        this.showAllPaymentsProductClientsSectionDynamically(executionContext, searchType);
+        this.showmoneyservicesbusiness(executionContext, searchType);
+    },
+    showPEPSectionDynamically:async function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        //var relatedLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext);
+        if (searchType === this.LOV.SearchType.ClearOFACPEPSearch) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PEPScreening).setVisible(true);
+            this.showPEPFieldsDynamically(executionContext);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PEPScreening).setVisible(false);
+        }
+    },
+    showNegativeMediaScreeninSectionDynamically: function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        if (searchType === this.LOV.SearchType.AdverseMediaScan) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.NegativeMediaScreening).setVisible(true);
+            var isApplicable = formContext.getAttribute(this.Attributes.notApplicableNegativeMediaScreening).getValue(); 
+            if(!isApplicable){
+                formContext.getAttribute(this.Attributes.WasAnyNegativeMediaIdentified).setRequiredLevel("required");
+            }
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.NegativeMediaScreening).setVisible(false);
+        }
+        this.showNegativeMediaScreeningFieldsDynamically(executionContext);
+    },
+    showPublicCompliantBoardSectionDynamically: function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        if (searchType === this.LOV.SearchType.AdverseMediaScan) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PublicComplaintBoard).setVisible(true);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PublicComplaintBoard).setVisible(false);
+        }
+        this.showPublicComplaintBoardFieldsDynamically(executionContext);
+    },
+    showPublicScreeingSectionDynamically:function (executionContext,searchType){
+        var formContext = executionContext.getFormContext();
+        if (searchType === this.LOV.SearchType.AdverseMediaScan) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PublicScreening).setVisible(true);
+            this.showPublicScreeningFieldsDynamically(executionContext);
+            
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PublicScreening).setVisible(false);
+        }
+    },
+    showOFACScreeningDynamically: async function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        //var relatedLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext); 
+        if (searchType === this.LOV.SearchType.ClearOFACPEPSearch ) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.OFACScreening).setVisible(true);
+            this.showOFACScreeningFieldsDynamically(executionContext);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.OFACScreening).setVisible(false);
+        }
+    },
+    showInternalListScreeningDynamically:async function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        var relatedLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext);
+        if (searchType === this.LOV.SearchType.AdditionalScreenings && relatedLOBList.includes("Payments")) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.InternalListScreening).setVisible(true);
+            this.showInternalListScreeningFieldsDynamically(executionContext);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.InternalListScreening).setVisible(false);
+        }
+    },
+    showOtherGovernmentListScreeningDynamically:async function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        var relatedLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext);
+        if (searchType === this.LOV.SearchType.AdditionalScreenings && relatedLOBList.includes("Payments")) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.OtherGovernmentListScreening).setVisible(true);
+            this.showOtherGovernmentListScreeningFieldsDynamically(executionContext);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.OtherGovernmentListScreening).setVisible(false);
+        }
+
+    },
+    showThridPartyPaymentActivitySectionDynamically: async function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        var relatedLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext);
+        if (searchType === this.LOV.SearchType.AdditionalScreenings && relatedLOBList.includes("Payments")) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.ThirdPartyPaymentActivity).setVisible(true);
+            this.showThridPartyPaymentActivityFieldsDynamically(executionContext);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.ThirdPartyPaymentActivity).setVisible(false);
+        }
+    },
+    showCorespondentBanksSectionDynamically:async function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        var relatedLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext);
+        if (searchType === this.LOV.SearchType.AdditionalScreenings && relatedLOBList.includes("Payments")) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.AllCBs).setVisible(true);
+            this.showCorespondentBanksFieldsDynamically(executionContext);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.AllCBs).setVisible(false);
+        }
+    },
+    showAllPaymentsProductClientsSectionDynamically: function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        if (searchType === this.LOV.SearchType.AdditionalScreenings) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.AllPaymentsProductClients).setVisible(true);
+            this.showAllPaymentsProductClientsFieldsDynamically(executionContext);
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.AllPaymentsProductClients).setVisible(false);
+        }
+    },
+    getLinkedProductsLOBByOpptyId: async function (executionContext,opptyId) {
+        var LOBList = [];
+        var options = "?$select=_crb_lineofbusiness_value&$filter=_crb_opportunity_value eq " + opptyId;
+        await Xrm.WebApi.retrieveMultipleRecords('crb_product', options).then(
+            function success(result) {
+                result.entities.forEach(function (record) {
+                    var LOBId = record["_crb_lineofbusiness_value"];
+                    if (LOBId) {
+                        // var LOBObject = {
+                        //     id: LOBId,
+                        //     name: record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"]
+                        // }
+                        LOBName = record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+                        LOBList.push(LOBName);
+                    }
+                });
+            },
+            function (error) {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Related Products of opportunity' };
+                let alertOptions = { height: 120, width: 260 };
+                
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        return LOBList;
+    },
+    getLinkedProductsLOBByOnboardingId: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var onboarding = formContext.getAttribute(this.Attributes.onboarding).getValue();
+        if (onboarding) {
+            var onboardingId = onboarding[0].id.replace("{", "").replace("}", "");
+            var LOBList = [];
+            var onboardingOptions = "?$select=_crb_opportunity_value";
+            var opptyId = await Xrm.WebApi.retrieveRecord('crb_onboarding', onboardingId, onboardingOptions).then(
+                function success(result) {
+                    return result["_crb_opportunity_value"];
+                },
+                function (error) {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Opportunity from Onboarding' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                }
+            );
+            var options = "?$select=_crb_lineofbusiness_value&$filter=_crb_opportunity_value eq " + opptyId;
+            await Xrm.WebApi.retrieveMultipleRecords('crb_product', options).then(
+                function success(result) {
+                    result.entities.forEach(function (record) {
+                        var LOBId = record["_crb_lineofbusiness_value"];
+                        if (LOBId) {
+                            // var LOBObject = {
+                            //     id: LOBId,
+                            //     name: record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"]
+                            // }
+                            LOBName = record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+                            LOBList.push(LOBName);
+                        }
+                    });
+                },
+                function (error) {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Related Products of opportunity' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                }
+            );
+        }
+        return LOBList;
+    },
+    showPEPSectionDynamicallyWithCheckingProducts: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        if (searchType === this.LOV.SearchType.ClearOFACPEPSearch) {
+            var formContext = executionContext.getFormContext();
+            var onboarding = formContext.getAttribute(this.Attributes.onboarding).getValue();
+            if (onboarding) {
+                var onboardingId = onboarding[0].id.replace("{", "").replace("}", "");
+                var linkedProductsLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext, onboardingId);
+                if (linkedProductsLOBList.includes("Payments")) {
+                    formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PEPScreening).setVisible(true);
+                }
+                else {
+                    formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.PEPScreening).setVisible(false);
+                }
+            }
+        }
+    },
+    showTypeeOfAdditionalScreeningDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var typeOfSearch = formContext.getAttribute(this.Attributes.SearchType).getValue();
+
+        if (typeOfSearch === this.LOV.SearchType.AdditionalScreenings) {
+            formContext.getControl(this.Attributes.typeofadditionalscreening).setVisible(true);
+        }
+        else {
+            formContext.getControl(this.Attributes.typeofadditionalscreening).setVisible(false);
+        }
+
+    },
+    filterTypeOfAdditionalScreening:async function (executionContext) {
+
+    },
+    showPEPFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicablePEPScreening).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.ClearOFACPEPSearch) {
+            if (NotApplicable) {
+                formContext.getAttribute(this.Attributes.isthiscustomeroranyrelatedpartiesapep).setValue(false);
+                formContext.getControl(this.Attributes.isthiscustomeroranyrelatedpartiesapep).setVisible(false);
+                this.onChangeOfIsthiscustomeroranyrelatedpartiesapep(executionContext);
+            }
+            else {
+                formContext.getControl(this.Attributes.isthiscustomeroranyrelatedpartiesapep).setVisible(true);
+            }
+        }
+    },
+    showNegativeMediaScreeningFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicableNegativeMediaScreening).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdverseMediaScan) {
+            if (NotApplicable) {
+                //formContext.getAttribute(this.Attributes.TypesOfSearch).setValue();
+                // formContext.getAttribute(this.Attributes.DetailedDispositionOfNegativeMediaFindings).setValue("");
+                // formContext.getAttribute(this.Attributes.WasAnyNegativeMediaIdentified).setValue(false);
+                // formContext.getAttribute(this.Attributes.WasTheNegativeMaterialIdentified).setValue(false);
+                // formContext.getAttribute(this.Attributes.DescribeNegativeMedia).setValue("");
+                // formContext.getAttribute(this.Attributes.SubjectOfNegativeMedia).setValue("");
+                // formContext.getAttribute(this.Attributes.IdentifyTheSubjectsOfNegativeMedia).setValue("");
+                // formContext.getAttribute(this.Attributes.WasTheNegativeMediaTransactionalOrReputation).setValue("");
+                // formContext.getAttribute(this.Attributes.NegativeMediaEscalatedToBSAAMLCompliance).setValue(false);
+                // formContext.getAttribute(this.Attributes.WhatWasTheOutcomeOfTheEscalation).setValue("");
+                // formContext.getAttribute(this.Attributes.ProvideTheRatioanleForTheOutcome).setValue("");
+                // formContext.getAttribute(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setValue("");
+
+                // formContext.getControl(this.Attributes.TypesOfSearch).setVisible(false);
+                formContext.getControl(this.Attributes.WasAnyNegativeMediaIdentified).setVisible(false);
+
+                //formContext.getControl(this.Attributes.DescribeNegativeMedia).setVisible(false);
+
+                //formContext.getControl(this.Attributes.WhatWasTheOutcomeOfTheEscalation).setVisible(false);
+                //formContext.getControl(this.Attributes.ProvideTheRatioanleForTheOutcome).setVisible(false);
+
+            }
+            else {
+                // formContext.getControl(this.Attributes.TypesOfSearch).setVisible(true);
+                formContext.getControl(this.Attributes.WasAnyNegativeMediaIdentified).setVisible(true);
+
+                //formContext.getControl(this.Attributes.DescribeNegativeMedia).setVisible(true);
+
+                //formContext.getControl(this.Attributes.WhatWasTheOutcomeOfTheEscalation).setVisible(true);
+                //formContext.getControl(this.Attributes.ProvideTheRatioanleForTheOutcome).setVisible(true);
+
+            }
+            this.showHideBasedOnWasNegativeMediaIdentifiedNMS(executionContext);
+            this.showHideBasedOnWasNegativeMediaEscalatedToBSAAMLNMS(executionContext);
+        }
+    },
+    showPublicComplaintBoardFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicablePublicComplaintBoard).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdverseMediaScan) {
+            if (NotApplicable) {
+                // formContext.getAttribute(this.Attributes.EvidenceAttachment).setValue();
+                //formContext.getControl(this.Attributes.EvidenceAttachment).setVisible(false);
+
+                //formContext.getControl(this.Attributes.crb_describenegativemediapcb).setVisible(false);
+                formContext.getControl(this.Attributes.crb_wasanynegativemediaidentifiedpcb).setVisible(false);
+            }
+            else {
+                //formContext.getControl(this.Attributes.EvidenceAttachment).setVisible(true);
+
+                //formContext.getControl(this.Attributes.crb_describenegativemediapcb).setVisible(true);
+                formContext.getControl(this.Attributes.crb_wasanynegativemediaidentifiedpcb).setVisible(true);
+                formContext.getAttribute(this.Attributes.crb_wasanynegativemediaidentifiedpcb).setRequiredLevel("required");
+                
+            }
+            this.showHideBasedOnWasNegativeMediaIdentifiedPCB(executionContext);
+            this.showHideBasedOnWasNegativeMediaEscalatedToBSAAMLPCB(executionContext);
+        }
+    },
+    showPublicScreeningFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var notApplicablePubliscScreening = formContext.getAttribute(this.Attributes.notApplicablePublicScreening).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdverseMediaScan) {
+            if (notApplicablePubliscScreening) {
+                this.showHidePublicScreeningSubGrid(executionContext);
+            }
+            else {
+                this.showHidePublicScreeningSubGrid(executionContext);
+            }
+        }
+    },
+    showOFACScreeningFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicableOFACScreening).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.ClearOFACPEPSearch) {
+            if (NotApplicable) {
+                // formContext.getAttribute(this.Attributes.connectiontosanctionedcountryjurisdictionsdn).setValue("");
+                // formContext.getAttribute(this.Attributes.typeofofacprogram).setValue("");
+                // formContext.getAttribute(this.Attributes.whattypeofsanctionsexposurewasidentified).setValue("");
+                // formContext.getAttribute(this.Attributes.newlyidentifiedorchangedsincethelastreview).setValue("");
+                // formContext.getAttribute(this.Attributes.whatscustomersconnection).setValue("");
+                // formContext.getAttribute(this.Attributes.describe).setValue("");
+                // formContext.getAttribute(this.Attributes.listcountriesofconnection).setValue("");
+                // formContext.getAttribute(this.Attributes.ifsdnindicatethenatureoftheconnection).setValue("");
+                // formContext.getAttribute(this.Attributes.providethepercentageofrevenuederivedfromsan).setValue("");
+                // formContext.getAttribute(this.Attributes.arecrbproductsservicesplatformsutilized).setValue("");
+                // formContext.getAttribute(this.Attributes.describe).setValue("");
+                // formContext.getAttribute(this.Attributes.escalatedtobsaamlcompliance).setValue(false);
+                // formContext.getAttribute(this.Attributes.whatwastheoutcomeoftheescalation).setValue("");
+                // formContext.getAttribute(this.Attributes.providetherationalefortheoutcomenew).setValue("");
+
+                formContext.getControl(this.Attributes.ofacScreeningsummary).setVisible(false);
+                formContext.getControl(this.Attributes.connectiontosanctionedcountryjurisdictionsdn).setVisible(false);
+            }
+            else {
+                formContext.getControl(this.Attributes.ofacScreeningsummary).setVisible(true);
+                formContext.getControl(this.Attributes.connectiontosanctionedcountryjurisdictionsdn).setVisible(true);
+            }
+            this.showHideBasedOnConnectionToSactionedCountryOFAC(executionContext);
+        }
+    },
+    showInternalListScreeningFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicableInternalListScreening).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdditionalScreenings) {
+            if (NotApplicable) {
+                // formContext.getAttribute(this.Attributes.providedetailsoftheconfirmedmatch).setValue("");
+                // formContext.getAttribute(this.Attributes.confirmedmatchescalatedtobsaamlcompliance).setValue(false);
+                // formContext.getAttribute(this.Attributes.whatwastheoutcomeoftheescalation).setValue("");
+                // formContext.getAttribute(this.Attributes.providetherationalefortheoutcomenew).setValue("");
+                // formContext.getAttribute(this.Attributes.whywastheconfirmedmatchnotescalated).setValue("");
+
+                formContext.getControl(this.Attributes.providedetailsoftheconfirmedmatch).setVisible(false);
+                
+                formContext.getControl(this.Attributes.evidenceAttachmentInternalScreening).setVisible(false);
+                formContext.getControl(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceisl).setVisible(false);
+                formContext.getControl(this.Attributes.evidenceAttachmentInternalScreening2).setVisible(false);
+
+            }
+            else {
+                formContext.getControl(this.Attributes.providedetailsoftheconfirmedmatch).setVisible(true);
+                formContext.getAttribute(this.Attributes.providedetailsoftheconfirmedmatch).setRequiredLevel('required');
+                formContext.getControl(this.Attributes.evidenceAttachmentInternalScreening).setVisible(true);
+                formContext.getControl(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceisl).setVisible(true);
+                formContext.getAttribute(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceisl).setRequiredLevel('required');
+                formContext.getControl(this.Attributes.evidenceAttachmentInternalScreening2).setVisible(true);
+
+            }
+            this.showHideBasedOnWasTheConfirmedMatchEscalatedToBSAAMLILS(executionContext);
+        }
+    },
+    showOtherGovernmentListScreeningFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicableOtherGovernmentListScreening).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdditionalScreenings) {
+            if (NotApplicable) {
+                // formContext.getAttribute(this.Attributes.confirmedmatchtoothergovernmentlists).setValue("");
+                // formContext.getAttribute(this.Attributes.confirmedmatchescalatedtobsaamlcompliance).setValue(false);
+                // formContext.getAttribute(this.Attributes.whywastheconfirmedmatchnotescalated).setValue("");
+
+                //formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening2).setVisible(false);
+                formContext.getControl(this.Attributes.confirmedmatchtoothergovernmentlists).setVisible(false);
+            }
+            else {
+              //  formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening2).setVisible(true);
+                formContext.getControl(this.Attributes.confirmedmatchtoothergovernmentlists).setVisible(true);
+            }
+            this.showHideBasedOnWasThereConfirmedMatchToOtherGovernmentLists(executionContext);
+            this.showHideBasedOnConfinedMatchEscaltedToBsaAmlOgl(executionContext);
+           
+        }
+    },
+    showThridPartyPaymentActivityFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicableThirdPartyPaymentActivity).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdditionalScreenings) {
+            if (NotApplicable) {
+                // formContext.getAttribute(this.Attributes.tpppscustomersscreenedforofacsanctions).setValue("");
+
+                formContext.getControl(this.Attributes.tpppscustomersscreenedforofacsanctions).setVisible(false);
+            }
+            else {
+                formContext.getControl(this.Attributes.tpppscustomersscreenedforofacsanctions).setVisible(true);
+            }
+        }
+    },
+    showCorespondentBanksFieldsDynamically: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicableAllCBs).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdditionalScreenings) {
+            if (NotApplicable) {
+                // formContext.getAttribute(this.Attributes.correspondantsamatchforcustomerscrbexited).setValue("");
+                // formContext.getAttribute(this.Attributes.describe).setValue("");
+
+                formContext.getControl(this.Attributes.correspondantsamatchforcustomerscrbexited).setVisible(false);
+            }
+            else {
+                formContext.getControl(this.Attributes.correspondantsamatchforcustomerscrbexited).setVisible(true);
+            }
+            this.showHideBasedOnCorrespondentsAMatchForCustomerCRBExitedALLCBs(executionContext);
+        }
+    },
+    showAllPaymentsProductClientsFieldsDynamically: function (executionContext) {
+        //need to call this in the section function yet
+        var formContext = executionContext.getFormContext();
+        var NotApplicable = formContext.getAttribute(this.Attributes.notApplicableAllPaymentsProductClients).getValue();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        if (searchType === this.LOV.SearchType.AdditionalScreenings) {
+            if (NotApplicable) {
+                // formContext.getAttribute(this.Attributes.anyexistingorpendinglawsuits).setValue("");
+                // formContext.getAttribute(this.Attributes.describe).setValue("");
+                // formContext.getAttribute(this.Attributes.describetheresultsofinternetbackgroundchecks).setValue("");
+
+                formContext.getControl(this.Attributes.anyexistingorpendinglawsuits).setVisible(false);
+
+                formContext.getControl(this.Attributes.describetheresultsofinternetbackgroundchecks).setVisible(false);
+            }
+            else {
+                formContext.getControl(this.Attributes.anyexistingorpendinglawsuits).setVisible(true);
+
+                formContext.getControl(this.Attributes.describetheresultsofinternetbackgroundchecks).setVisible(true);
+            }
+            this.showHideBasedOnAnyExistingOrPendingLawSuits(executionContext);
+        }
+    },
+    showHidePublicScreeningSubGrid: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var notApplicablePubliscScreening = formContext.getAttribute(this.Attributes.notApplicablePublicScreening).getValue();
+        if(notApplicablePubliscScreening){
+            formContext.getControl(this.SubGrid.PublicScreening).setVisible(false);
+        }
+        else{
+            formContext.getControl(this.SubGrid.PublicScreening).setVisible(true);
+        }
+    },
+    showHideBasedOnWasNegativeMediaIdentifiedNMS: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var wasNegativeMediaIdentified = formContext.getAttribute(this.Attributes.WasAnyNegativeMediaIdentified).getValue();
+        var notApplicableNegativeMediaScreening = formContext.getAttribute(this.Attributes.notApplicableNegativeMediaScreening).getValue();
+        if(searchType === this.LOV.SearchType.AdverseMediaScan && !notApplicableNegativeMediaScreening && (wasNegativeMediaIdentified === this.LOV.CommonYesNo.Yes)){
+            formContext.getControl(this.Attributes.WasTheNegativeMaterialIdentified).setVisible(true);
+            formContext.getControl(this.Attributes.crb_describenegativemedianms).setVisible(true);
+            formContext.getControl(this.Attributes.SubjectOfNegativeMedia).setVisible(true);
+            formContext.getControl(this.Attributes.IdentifyTheSubjectsOfNegativeMedia).setVisible(true);
+            formContext.getControl(this.Attributes.WasTheNegativeMediaTransactionalOrReputation).setVisible(true);
+            formContext.getControl(this.Attributes.DetailedDispositionOfNegativeMediaFindings).setVisible(true);
+            formContext.getControl(this.Attributes.NegativeMediaEscalatedToBSAAMLCompliance).setVisible(true);
+          //  formContext.getControl(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setVisible(false);
+            formContext.getControl(this.Attributes.evidenceAttachment).setVisible(true);
+            formContext.getAttribute(this.Attributes.WasTheNegativeMaterialIdentified).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_describenegativemedianms).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.SubjectOfNegativeMedia).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.IdentifyTheSubjectsOfNegativeMedia).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.WasTheNegativeMediaTransactionalOrReputation).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.DetailedDispositionOfNegativeMediaFindings).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.NegativeMediaEscalatedToBSAAMLCompliance).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.evidenceAttachment).setRequiredLevel("required");
+        }
+        else{
+            formContext.getControl(this.Attributes.WasTheNegativeMaterialIdentified).setVisible(false);
+            formContext.getControl(this.Attributes.crb_describenegativemedianms).setVisible(false);
+            formContext.getControl(this.Attributes.SubjectOfNegativeMedia).setVisible(false);
+            formContext.getControl(this.Attributes.IdentifyTheSubjectsOfNegativeMedia).setVisible(false);
+            formContext.getControl(this.Attributes.WasTheNegativeMediaTransactionalOrReputation).setVisible(false);
+            formContext.getControl(this.Attributes.DetailedDispositionOfNegativeMediaFindings).setVisible(false);
+            formContext.getControl(this.Attributes.NegativeMediaEscalatedToBSAAMLCompliance).setVisible(false);
+            formContext.getControl(this.Attributes.evidenceAttachment).setVisible(false);
+           // formContext.getControl(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setVisible(false);
+        }
+        this.showHideBasedOnWasNegativeMediaEscalatedToBSAAMLNMS(executionContext);
+    },
+    showHideBasedOnWasNegativeMediaEscalatedToBSAAMLNMS: function(executionContext){
+        var formContext = executionContext.getFormContext(executionContext);
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var wasNegativeMediaIdentified = formContext.getAttribute(this.Attributes.WasAnyNegativeMediaIdentified).getValue();
+        var wasNegativeMediaEscalatedToBSAAML = formContext.getAttribute(this.Attributes.NegativeMediaEscalatedToBSAAMLCompliance).getValue();
+        var notApplicableNegativeMediaScreening = formContext.getAttribute(this.Attributes.notApplicableNegativeMediaScreening).getValue();
+        if(searchType === this.LOV.SearchType.AdverseMediaScan && !notApplicableNegativeMediaScreening && (wasNegativeMediaIdentified === this.LOV.CommonYesNo.Yes) && wasNegativeMediaEscalatedToBSAAML){
+            formContext.getControl(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setVisible(false);
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeoftheescalationnms).setVisible(true);
+            formContext.getControl(this.Attributes.crb_providetherationalefortheoutcomenms).setVisible(true);
+           // formContext.getAttribute(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_whatwastheoutcomeoftheescalationnms).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_providetherationalefortheoutcomenms).setRequiredLevel("required");
+        } 
+        else if(searchType === this.LOV.SearchType.AdverseMediaScan && !notApplicableNegativeMediaScreening && (wasNegativeMediaIdentified === this.LOV.CommonYesNo.Yes) && !wasNegativeMediaEscalatedToBSAAML ){
+        formContext.getControl(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setVisible(true);
+        formContext.getAttribute(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setRequiredLevel("required");
+
+        }
+        else{
+            formContext.getControl(this.Attributes.WhyWasTheNegativeMediaNotEscalated).setVisible(false);
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeoftheescalationnms).setVisible(false);
+            formContext.getControl(this.Attributes.crb_providetherationalefortheoutcomenms).setVisible(false);
+        }
+    },
+    showHideBasedOnWasNegativeMediaIdentifiedPCB: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var wasNegativeMediaIdentifiedPCB = formContext.getAttribute(this.Attributes.crb_wasanynegativemediaidentifiedpcb).getValue();
+        var notApplicablePublicComplaintBoard = formContext.getAttribute(this.Attributes.notApplicablePublicComplaintBoard).getValue();
+        
+        if(searchType === this.LOV.SearchType.AdverseMediaScan && !notApplicablePublicComplaintBoard && wasNegativeMediaIdentifiedPCB){
+            formContext.getControl(this.Attributes.crb_wasthenegativematerialidentifiedpcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_describenegativemediapcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_subjectofnegativemediapcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_identifythesubjectsofnegativemediapcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_negativemediatransactionalreputationalpcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_detaildispositionnegativemediafindingpbc).setVisible(true);
+            formContext.getControl(this.Attributes.crb_negativemediaescalatedbsaamlcompliancepcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_evidenceattachmentpcb).setVisible(true);
+            formContext.getAttribute(this.Attributes.crb_wasthenegativematerialidentifiedpcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_describenegativemediapcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_identifythesubjectsofnegativemediapcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_subjectofnegativemediapcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_negativemediatransactionalreputationalpcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_detaildispositionnegativemediafindingpbc).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_negativemediaescalatedbsaamlcompliancepcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_evidenceattachmentpcb).setRequiredLevel("required");
+        }
+        else{
+            formContext.getControl(this.Attributes.crb_wasthenegativematerialidentifiedpcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_describenegativemediapcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_subjectofnegativemediapcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_identifythesubjectsofnegativemediapcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_negativemediatransactionalreputationalpcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_detaildispositionnegativemediafindingpbc).setVisible(false);
+            formContext.getControl(this.Attributes.crb_negativemediaescalatedbsaamlcompliancepcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_evidenceattachmentpcb).setVisible(false);
+        }
+        this.showHideBasedOnWasNegativeMediaEscalatedToBSAAMLPCB(executionContext);
+    },
+    showHideBasedOnWasNegativeMediaEscalatedToBSAAMLPCB: function(executionContext){
+        var formContext = executionContext.getFormContext(executionContext);
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var wasNegativeMediaIdentifiedPCB = formContext.getAttribute(this.Attributes.crb_wasanynegativemediaidentifiedpcb).getValue();
+        var notApplicablePublicComplaintBoard = formContext.getAttribute(this.Attributes.notApplicablePublicComplaintBoard).getValue();
+        var wasNegativeMediaEscalatedToBSAAMLPCB = formContext.getAttribute(this.Attributes.crb_negativemediaescalatedbsaamlcompliancepcb).getValue();
+        
+        if(searchType === this.LOV.SearchType.AdverseMediaScan && !notApplicablePublicComplaintBoard && wasNegativeMediaIdentifiedPCB && wasNegativeMediaEscalatedToBSAAMLPCB){
+            formContext.getControl(this.Attributes.crb_whywasthenegativemedianotescalatedpcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationpcb).setVisible(true);
+            formContext.getControl(this.Attributes.crb_providetherationalefortheoutcomepcb).setVisible(true);
+            formContext.getAttribute(this.Attributes.crb_whywasthenegativemedianotescalatedpcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_whatwastheoutcomeofescalationpcb).setRequiredLevel("required");
+            formContext.getAttribute(this.Attributes.crb_providetherationalefortheoutcomepcb).setRequiredLevel("required");
+        } 
+        else{
+            formContext.getControl(this.Attributes.crb_whywasthenegativemedianotescalatedpcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationpcb).setVisible(false);
+            formContext.getControl(this.Attributes.crb_providetherationalefortheoutcomepcb).setVisible(false);
+        }
+    },
+    showHideBasedOnConnectionToSactionedCountryOFAC: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var connectionToSanctionedCountry = formContext.getAttribute(this.Attributes.connectiontosanctionedcountryjurisdictionsdn).getValue();
+        var notApplicableOFACScreening = formContext.getAttribute(this.Attributes.notApplicableOFACScreening).getValue();
+
+        if (searchType === this.LOV.SearchType.ClearOFACPEPSearch && !notApplicableOFACScreening && connectionToSanctionedCountry) {
+            formContext.getControl(this.Attributes.typeofofacprogram).setVisible(true);
+            formContext.getControl(this.Attributes.whattypeofsanctionsexposurewasidentified).setVisible(true);
+            formContext.getControl(this.Attributes.newlyidentifiedorchangedsincethelastreview).setVisible(true);
+            formContext.getControl(this.Attributes.whatscustomersconnection).setVisible(true);
+
+            formContext.getControl(this.Attributes.crb_describetheothernatureofconnections).setVisible(true);
+            formContext.getControl(this.Attributes.listcountriesofconnection).setVisible(true);
+            formContext.getControl(this.Attributes.ifsdnindicatethenatureoftheconnection).setVisible(true);
+            formContext.getControl(this.Attributes.providethepercentageofrevenuederivedfromsan).setVisible(true);
+            
+            formContext.getControl(this.Attributes.documentationHowthePercentOfRevenueWasDetermined).setVisible(true);
+            formContext.getControl(this.Attributes.arecrbproductsservicesplatformsutilized).setVisible(true);
+            
+            formContext.getControl(this.Attributes.selectAllCRBProductsServices).setVisible(true);
+            formContext.getControl(this.Attributes.crb_describehowproductsutilizedwithcountries).setVisible(true);
+            formContext.getControl(this.Attributes.escalatedtobsaamlcompliance).setVisible(true);
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationofac).setVisible(true);
+            formContext.getControl(this.Attributes.crb_providetheratinalefortheoutcomeofac).setVisible(true);
+            formContext.getAttribute(this.Attributes.ifsdnindicatethenatureoftheconnection).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.providethepercentageofrevenuederivedfromsan).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.documentationHowthePercentOfRevenueWasDetermined).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.selectAllCRBProductsServices).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.arecrbproductsservicesplatformsutilized).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.crb_describehowproductsutilizedwithcountries).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.escalatedtobsaamlcompliance).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.crb_whatwastheoutcomeoftheescalationnms).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.crb_providetherationalefortheoutcomenms).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.detailsOfBSAAMLComplianceReview).setRequiredLevel('required');
+        }
+        else {
+            formContext.getControl(this.Attributes.typeofofacprogram).setVisible(false);
+            formContext.getControl(this.Attributes.whattypeofsanctionsexposurewasidentified).setVisible(false);
+            formContext.getControl(this.Attributes.newlyidentifiedorchangedsincethelastreview).setVisible(false);
+            formContext.getControl(this.Attributes.whatscustomersconnection).setVisible(false);
+
+            formContext.getControl(this.Attributes.crb_describetheothernatureofconnections).setVisible(false);
+            formContext.getControl(this.Attributes.listcountriesofconnection).setVisible(false);
+            formContext.getControl(this.Attributes.ifsdnindicatethenatureoftheconnection).setVisible(false);
+            formContext.getControl(this.Attributes.providethepercentageofrevenuederivedfromsan).setVisible(false);
+           
+            formContext.getControl(this.Attributes.documentationHowthePercentOfRevenueWasDetermined).setVisible(false);
+            formContext.getControl(this.Attributes.arecrbproductsservicesplatformsutilized).setVisible(false);
+            
+            formContext.getControl(this.Attributes.selectAllCRBProductsServices).setVisible(false);
+            formContext.getControl(this.Attributes.crb_describehowproductsutilizedwithcountries).setVisible(false);
+            formContext.getControl(this.Attributes.escalatedtobsaamlcompliance).setVisible(false);
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationofac).setVisible(false);
+            formContext.getControl(this.Attributes.crb_providetheratinalefortheoutcomeofac).setVisible(false);
+        }
+        this.showHideBasedOnWasNegativeMediaEscalatedToBSAAMLOFAC(executionContext);
+    },
+    showHideBasedOnWasNegativeMediaEscalatedToBSAAMLOFAC: function (executionContext) {
+        var formContext = executionContext.getFormContext(executionContext);
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var connectionToSanctionedCountry = formContext.getAttribute(this.Attributes.connectiontosanctionedcountryjurisdictionsdn).getValue();
+        var wasNegativeMediaEscalatedToBSAAMLOFAC = formContext.getAttribute(this.Attributes.escalatedtobsaamlcompliance).getValue();
+        var notApplicableOFACScreening = formContext.getAttribute(this.Attributes.notApplicableOFACScreening).getValue();
+        if (searchType === this.LOV.SearchType.ClearOFACPEPSearch && !notApplicableOFACScreening && connectionToSanctionedCountry && wasNegativeMediaEscalatedToBSAAMLOFAC) {
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationofac).setVisible(true);
+            formContext.getControl(this.Attributes.crb_providetheratinalefortheoutcomeofac).setVisible(true);
+            
+            formContext.getControl(this.Attributes.detailsOfBSAAMLComplianceReview).setVisible(true);
+            formContext.getAttribute(this.Attributes.crb_whatwastheoutcomeofescalationofac).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.crb_providetheratinalefortheoutcomeofac).setRequiredLevel('required');
+        }
+        else {
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationofac).setVisible(false);
+            formContext.getControl(this.Attributes.crb_providetheratinalefortheoutcomeofac).setVisible(false);
+           
+            formContext.getControl(this.Attributes.detailsOfBSAAMLComplianceReview).setVisible(false);
+        }
+    },
+        showHideBasedOnWasTheConfirmedMatchEscalatedToBSAAMLILS: function(executionContext){
+        var formContext = executionContext.getFormContext(executionContext);
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var confirmedMatchEscalatedTobsaamlInternalListScreening = formContext.getAttribute(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceisl).getValue();
+        var notApplicableInternalListScreening = formContext.getAttribute(this.Attributes.notApplicableInternalListScreening).getValue();
+        if(searchType === this.LOV.SearchType.AdditionalScreenings && !notApplicableInternalListScreening && confirmedMatchEscalatedTobsaamlInternalListScreening){
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationils).setVisible(true);
+            formContext.getAttribute(this.Attributes.crb_whatwastheoutcomeofescalationils).setRequiredLevel('required');
+            formContext.getControl(this.Attributes.crb_providetherationalefortheoutcomeils).setVisible(true);
+            formContext.getAttribute(this.Attributes.crb_providetherationalefortheoutcomeils).setRequiredLevel('required');
+            formContext.getControl(this.Attributes.crb_whywastheconfirmedmatchnotescalatedils).setVisible(true);
+            formContext.getAttribute(this.Attributes.crb_whywastheconfirmedmatchnotescalatedils).setRequiredLevel('required');
+            formContext.getControl(this.Attributes.evidenceAttachmentInternalScreening2).setVisible(true);
+            
+        } 
+        else{
+            formContext.getControl(this.Attributes.crb_whatwastheoutcomeofescalationils).setVisible(false);
+            formContext.getControl(this.Attributes.crb_providetherationalefortheoutcomeils).setVisible(false);
+            formContext.getControl(this.Attributes.crb_whywastheconfirmedmatchnotescalatedils).setVisible(false);
+            formContext.getControl(this.Attributes.evidenceAttachmentInternalScreening2).setVisible(false);
+        }
+    },
+    showHideBasedOnWasThereConfirmedMatchToOtherGovernmentLists: function(executionContext){
+        var formContext = executionContext.getFormContext(executionContext);
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var confirmedMatchToOtherGovernmentLists = formContext.getAttribute(this.Attributes.confirmedmatchtoothergovernmentlists).getValue();
+        var notApplicableOtherGovernmentListScreening = formContext.getAttribute(this.Attributes.notApplicableOtherGovernmentListScreening).getValue();
+        if(searchType === this.LOV.SearchType.AdditionalScreenings && !notApplicableOtherGovernmentListScreening && confirmedMatchToOtherGovernmentLists){
+            formContext.getControl(this.Attributes.provideDetailsOfTheConfirmedMatchOGLS).setVisible(true);
+           // formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening).setVisible(true);
+            formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening2).setVisible(true);
+            formContext.getControl(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceogs).setVisible(true);
+            formContext.getControl(this.Attributes.crb_whywastheconfirmedmatchnotescalatedogsl).setVisible(true);
+            formContext.getAttribute(this.Attributes.provideDetailsOfTheConfirmedMatchOGLS).setRequiredLevel('required');
+            //formContext.getAttribute(this.Attributes.evidenceAttachmentOtherGovernmentListScreening).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceogs).setRequiredLevel('required');
+            formContext.getAttribute(this.Attributes.crb_whywastheconfirmedmatchnotescalatedogsl).setRequiredLevel('required');
+        } 
+        else{
+            formContext.getControl(this.Attributes.provideDetailsOfTheConfirmedMatchOGLS).setVisible(false);
+            formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening).setVisible(false);
+            formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening2).setVisible(false);
+            formContext.getControl(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceogs).setVisible(false);
+            formContext.getControl(this.Attributes.crb_whywastheconfirmedmatchnotescalatedogsl).setVisible(false);
+        }
+    },
+     showHideBasedOnConfinedMatchEscaltedToBsaAmlOgl: function(executionContext){
+       var formContext = executionContext.getFormContext(executionContext);
+       var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+       var confirmematchescalatedbsaamlcomplianceogs = formContext.getAttribute(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceogs).getValue();
+       var notApplicableOtherGovernmentListScreening = formContext.getAttribute(this.Attributes.notApplicableOtherGovernmentListScreening).getValue();
+       if(searchType === this.LOV.SearchType.AdditionalScreenings && !notApplicableOtherGovernmentListScreening  && confirmematchescalatedbsaamlcomplianceogs  ){
+            formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening).setVisible(true);
+            }
+             else{
+                 formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening).setVisible(false);
+         }
+     },
+     // showHideBasedOnConfinedMatchEscaltedToBsaAmlOgl: function(executionContext){
+     //   var formContext = executionContext.getFormContext(executionContext);
+      //  var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+      //  var crb_confirmematchescalatedbsaamlcomplianceogs = formContext.getAttribute(this.Attributes.crb_confirmematchescalatedbsaamlcomplianceogs).getValue();
+      //  var notApplicableOtherGovernmentListScreening = formContext.getAttribute(this.Attributes.notApplicableOtherGovernmentListScreening).getValue();
+      //  if(searchType === this.LOV.SearchType.AdditionalScreenings && !notApplicableOtherGovernmentListScreening && crb_confirmematchescalatedbsaamlcomplianceogs ){
+        //    formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening).setVisible(true);
+          //       }
+          //     else{
+          //      formContext.getControl(this.Attributes.evidenceAttachmentOtherGovernmentListScreening).setVisible(false);
+          //     }
+         //  },
+               
+           
+    showHideBasedOnCorrespondentsAMatchForCustomerCRBExitedALLCBs: function(executionContext){
+        var formContext = executionContext.getFormContext(executionContext);
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var correspondentsAMAtchForCustomerCRBExited = formContext.getAttribute(this.Attributes.correspondantsamatchforcustomerscrbexited).getValue();
+        var notApplicableAllCBs = formContext.getAttribute(this.Attributes.notApplicableAllCBs).getValue();
+        if(searchType === this.LOV.SearchType.AdditionalScreenings && !notApplicableAllCBs && correspondentsAMAtchForCustomerCRBExited){
+            formContext.getControl(this.Attributes.crb_describeallcbs).setVisible(true);
+        } 
+        else{
+            formContext.getControl(this.Attributes.crb_describeallcbs).setVisible(false);
+        }
+    },
+    showHideBasedOnAnyExistingOrPendingLawSuits: function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var searchType = formContext.getAttribute(this.Attributes.SearchType).getValue();
+        var anyExistingOrPendingLawSuits = formContext.getAttribute(this.Attributes.anyexistingorpendinglawsuits).getValue();
+        var notApplicableAllPaymentsProductClients = formContext.getAttribute(this.Attributes.notApplicableAllPaymentsProductClients).getValue();
+        if(searchType === this.LOV.SearchType.AdditionalScreenings && !notApplicableAllPaymentsProductClients && anyExistingOrPendingLawSuits){
+            formContext.getControl(this.Attributes.crb_describeallpaymentsproductclients).setVisible(true);
+        } 
+        else{
+            formContext.getControl(this.Attributes.crb_describeallpaymentsproductclients).setVisible(false);
+        }
+    },
+    AlertExpireDate: function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var crrmExpireDate = formContext.getControl(this.Attributes.expirationDate);
+        var crrmExpireDateValue = formContext.getAttribute(this.Attributes.expirationDate).getValue();
+        if(crrmExpireDate != null && crrmExpireDateValue != null)
+        {
+            CRB.CRM.PJ.Common.showExpirationDateAlert(crrmExpireDate,crrmExpireDateValue);
+            
+        }
+    },
+    setTypeOfsearchOptionLableOnName: function(executionContext){
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var typeOfSearch = formContext.getAttribute(this.Attributes.SearchType).getText();
+        if(typeOfSearch !== null && typeOfSearch !== undefined){
+            formContext.getAttribute(this.Attributes.name).setValue(typeOfSearch);
+        }
+    },
+    setRealtedProductsInOptions: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var onboarding = formContext.getAttribute(this.Attributes.onboarding).getValue();
+        if (onboarding) {
+            let onboardingID = onboarding[0].id.replace("{", "").replace("}", "");
+            let opportunityId;
+            await Xrm.WebApi.retrieveRecord('crb_onboarding', onboardingID, "?$select=_crb_opportunity_value")
+                .then((res) => {
+                    opportunityId = res["_crb_opportunity_value"];
+                })
+                .catch((err) => {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Opportunity from Onboarding' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                })
+
+            let productNamesList = [];
+
+            if (opportunityId) {
+                let productOptions = "?$select=_crb_lineofbusiness_value,_crb_productname_value&$filter=_crb_opportunity_value eq " + opportunityId;
+                await Xrm.WebApi.retrieveMultipleRecords('crb_product', productOptions)
+                    .then((result) => {
+                        result.entities.forEach(function (record) {
+                            var productname = record["_crb_productname_value@OData.Community.Display.V1.FormattedValue"];
+                            productNamesList.push(productname);
+                        })
+                    })
+                    .catch((err) => {
+                        let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Related Products of opportunity' };
+                        let alertOptions = { height: 120, width: 260 };
+
+                        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                    })
+            }
+
+            var listOfProductsControl = formContext.getControl(this.Attributes.selectAllCRBProductsServices);
+            var listOfProductsOptions = listOfProductsControl.getAttribute().getOptions();
+
+            listOfProductsControl.clearOptions();
+            listOfProductsOptions.forEach((option) => {
+                if (productNamesList.includes(option.text)) {
+                    listOfProductsControl.addOption(option);
+                }
+            })
+        }
+    },
+    showmoneyservicesbusiness:async function (executionContext, searchType) {
+        var formContext = executionContext.getFormContext();
+        var relatedLOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext);
+        if (searchType === this.LOV.SearchType.AdditionalScreenings && relatedLOBList.includes("Payments")) {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.MSBsection).setVisible(true);
+            
+        }
+        else {
+            formContext.ui.tabs.get(this.TabName.DueDiligence).sections.get(this.Section.MSBsection).setVisible(false);
+        }
+    },
+     showandhidepartneronscreeningtab: async function (executionContext) {
+     var formContext = executionContext.getFormContext();
+     var partnerassociation = formContext.getAttribute("crb_partnerassociation").getValue();
+
+     if (partnerassociation !== null) {
+         formContext.getControl("crb_partnername").setVisible(true);
+         formContext.getControl("crb_title").setVisible(true);
+     }
+     else {
+         formContext.getControl("crb_partnername").setVisible(false);
+         formContext.getControl("crb_title").setVisible(false);
+     }
+ }
+}
