@@ -1,0 +1,113 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.AssessmentOfUnderwritingModels = CRB.CRM.PJ.AssessmentOfUnderwritingModels || {};
+CRB.CRM.PJ.AssessmentOfUnderwritingModels = {
+    Attributes: {
+        Fields: {
+            Task: "crb_task",
+        },
+        Sections: {},
+        Tabs: {},
+        LOV: {},
+        Others: {
+            TaskFields: {
+                SecondLineShouldReceiveUpdatesOnTHisProcess: "crb_secondlineshouldreceiveupdatesonthisprocess",
+                regarding: "_regardingobjectid_value",
+                regardingType: "_regardingobjectid_value@Microsoft.Dynamics.CRM.lookuplogicalname",
+            }
+        }
+    },
+    onLoadOfAssessmentOfUnderwritingModels: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+
+    },
+    onSaveOfAssessmentOfUnderwritingModels: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.sendEmailToSecondLine(executionContext);
+
+    },
+    sendEmailToSecondLine: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+
+        // if (formContext.ui.getFormType() !== 1) {    //uncomment this line if you want to send email only on create
+        //     return;
+        // }
+
+        var task = formContext.getAttribute(this.Attributes.Fields.Task).getValue();
+
+        if (task) {
+            let taskId = task[0].id.replace("{", "").replace("}", "");
+            let sendEmail;
+            let onboardingId;
+            let taskOptions = `?$select=${this.Attributes.Others.TaskFields.SecondLineShouldReceiveUpdatesOnTHisProcess},${this.Attributes.Others.TaskFields.regarding}`;
+            await Xrm.WebApi.retrieveRecord("task", taskId, taskOptions).then((res) => {
+                sendEmail = res.crb_secondlineshouldreceiveupdatesonthisprocess;
+                if(res[this.Attributes.Others.TaskFields.regardingType] == "crb_onboarding")
+                    onboardingId = res[this.Attributes.Others.TaskFields.regarding];
+            }).catch((err) => {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Unexpected Error' };
+                let alertOptions = { height: 120, width: 260 };
+
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+            })
+
+            if (sendEmail && onboardingId) {
+                var userID = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+                let userName = Xrm.Utility.getGlobalContext().userSettings.userName;
+                
+                var appIDURL = Xrm.Utility.getGlobalContext().getCurrentAppUrl();
+                var assessmentOfUnderwritingModelID = formContext.data.entity.getId().replace("{", "").replace("}", "");
+                var assessmentOfUnderwritingModelURL;
+                if(assessmentOfUnderwritingModelID)
+                    assessmentOfUnderwritingModelURL = appIDURL + "&pagetype=entityrecord&etn=crb_assessmentofunderwritingmodels&id=" +assessmentOfUnderwritingModelID;
+
+                let timelineURl = `id=${onboardingId}`; //need to do this as flow is created in such way to also support workflow
+
+                let teamsList = ["Line 2 Credit Review Team", "Line 2 Financial Risk Review"];
+                teamsList.forEach(async (teamName) => {
+                    let teamId;
+                    await Xrm.WebApi.retrieveMultipleRecords('team', `?$select=teamid, name&$filter=name eq '${teamName}'`).then((res) => {
+                        if (res.entities.length > 0) {
+                            teamId = res.entities[0].teamid;
+                        }
+                    }).catch(() => {
+                        let alertStrings = { confirmButtonLabel: 'OK', text: 'UnExpected Error' };
+                        let alertOptions = { height: 120, width: 260 };
+
+                        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                    })
+                    
+                    if(!assessmentOfUnderwritingModelID){
+                        assessmentOfUnderwritingModelID = formContext.data.entity.getId().replace("{", "").replace("}", "");
+                        assessmentOfUnderwritingModelURL = appIDURL + "&pagetype=entityrecord&etn=crb_assessmentofunderwritingmodels&id=" +assessmentOfUnderwritingModelID;
+                    }
+
+                    var PATriggerData = {
+                        crb_name: "Onboarding",
+                        "crb_From@odata.bind": `/systemusers(${userID})`,
+                        crb_subject: 'Assessment of Underwriting Models  - Update',
+                        crb_messagebody: `${teamName}, ${userName} made an update to the Review of Underwriting Models section. Please review at the link below<br/><br/><a href='${assessmentOfUnderwritingModelURL}'>Click here</a>`,
+                        "crb_ToTeam@odata.bind": `/teams(${teamId})`,
+                        crb_recordurl: timelineURl,
+                    }
+
+                    Xrm.WebApi.createRecord('crb_patrigger', PATriggerData).then(
+                        function success(result) {
+    
+                        },
+                        function (error) {
+                            let alertStrings = { confirmButtonLabel: 'OK', text: 'Failed to send Email to Line 2 Team for Not Applicable' };
+                            let alertOptions = { height: 120, width: 260 };
+    
+                            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                        }
+                    );
+                });
+            }
+        }
+    }
+
+}
