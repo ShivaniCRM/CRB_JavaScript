@@ -1,0 +1,13 @@
+function Showselectedrecord(primaryControl)
+{
+    var formContext = primaryControl;    
+    var webresourceName = "crb_docreview";
+    var windowOptions = { height: 500, width: 600 };
+
+    Xrm.Navigation.openWebResource(webresourceName, windowOptions );
+   
+}
+   
+
+
+    
