@@ -1,0 +1,53 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.PRC = CRB.CRM.PJ.PRC || {};
+CRB.CRM.PJ.PRC = {
+    Attributes: {
+       partner: "crb_partner",
+       duedate: "crb_duedate"
+    },   
+    onLoadOfPRC: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.enableDisableDueDate(executionContext);
+    },
+    onSavePRC: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+    },    
+    enableDisableDueDate: async function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var userSettings = Xrm.Utility.getGlobalContext().userSettings;
+        var currentuserid = userSettings.userId.replace("{", "").replace("}", "").toLowerCase();
+        var PartnerId = formContext.getAttribute(this.Attributes.partner).getValue()[0].id.substring(1, 37);
+
+        await Xrm.WebApi.retrieveMultipleRecords("crb_accountteam", "?$select=_crb_usersname_value,crb_role&$filter=_crb_account_value eq " + PartnerId ).then(
+            function success(results) {
+                console.log(results);
+                if(results.entities.length > 0){
+                    for (var i = 0; i < results.entities.length; i++) {
+                        var result = results.entities[i];
+                        // Columns			       
+                        var usersname = result["_crb_usersname_value"]; // Lookup			        
+                        var role = result["crb_role"]; // Choices
+                        if(usersname == currentuserid && role == 100000004){
+                            formContext.getControl(CRB.CRM.PJ.PRC.Attributes.duedate).setDisabled(false);
+                            break;
+                        }
+                        else{
+                            formContext.getControl(CRB.CRM.PJ.PRC.Attributes.duedate).setDisabled(true);
+                        }
+                    }
+                }
+                else{
+                    formContext.getControl(CRB.CRM.PJ.PRC.Attributes.duedate).setDisabled(true);
+                }
+            },
+            function(error) {
+                console.log(error.message);
+            }
+        );
+    },       
+}
