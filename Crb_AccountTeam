@@ -1,0 +1,190 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.AccountTeam = CRB.CRM.PJ.AccountTeam || {};
+CRB.CRM.PJ.AccountTeam = {
+    Attributes: {
+      AccountTeam: {
+            Name: "crb_usersname",
+            Title: "crb_title",
+            Role: "crb_role",
+            LOB: "crb_lineofbusiness",
+            PrimaryContact: "crb_primarycontact",
+            Email: "crb_email",
+            pName: "crb_account",
+        },
+    },
+    TabName: {
+
+    },
+    Sections:{
+   // KeyContacts:"keycontacts",
+    },
+    Subgrids:{
+     // keyContacts:"KeyContacts",
+    },
+    onSaveOfAccountTeam: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+    },
+
+    onLoadOfAccountTeam: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+    },
+    
+    onChangeOfRole: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        //this.preventDuplicateAccountTeamMember(executionContext);
+    },
+    
+ //openquickcreateform: async function (primaryControl, selectedControl) {
+        /*var formContext = primaryControl;
+       var entityFormOptions = {};
+        entityFormOptions["entityName"] = "contact";
+        entityFormOptions["useQuickCreateForm"] = true;
+        var formParameters = {};
+// Open the form.
+        Xrm.Navigation.openForm(entityFormOptions, formParameters).then(
+    function (success) {
+       if (success && success.savedEntityReference) {
+                var createdRecordId = success.savedEntityReference[0].id;
+                CRB.CRM.PJ.AccountTeam.refreshSubgrid(formContext);
+            }
+    },
+    function (error) {
+        console.log(error);
+    });*/
+   /* var formContext = primaryControl;
+        var subGridName = selectedControl.getName();
+        var sectionNameAndSubgridName = this.getSubgridInfo(formContext, subGridName);
+        var sectionName = sectionNameAndSubgridName.sectionName;
+        var parameters = {};
+       // parameters["creatingConditionParentSectionName"] = sectionName;
+        var creatingEntity = {
+            id: formContext.data.entity.getId(),
+            entityType: formContext.data.entity.getEntityName()
+        }
+
+        Xrm.Utility.openQuickCreate("contact", creatingEntity, parameters)
+            .then((res) => {
+
+            })
+            .catch((error) => {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to Open Contact Quick Create Form' };
+                let alertOptions = { height: 120, width: 260 };
+
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            });
+    },*/
+    
+/*refreshSubgrid:function (formContext) {
+    // Assuming the subgrid is named "Contacts"
+    var subgrid = formContext.getControl(CRB.CRM.PJ.AccountTeam.Subgrids.keyContacts);
+    if (subgrid) {
+        subgrid.refresh();
+    }
+},*/
+/*showandhidenewcontactcustombutton: function (primaryControl,selectedControl){
+    var formContext= primaryControl;
+   var subGridName = selectedControl.getName();
+    var sectionNameAndSubgridName = this.getSubgridInfo(formContext, subGridName);
+    var sectionName = sectionNameAndSubgridName.sectionName;
+      if(sectionName== "keycontacts"){
+            return true;
+      }
+      else{
+      return false;
+    }
+    },*/
+	
+
+getSubgridInfo: function (formContext, subgridName) {
+        var gridControl = formContext.getControl(subgridName);
+        if (gridControl) {
+            var subgridName = gridControl.getName();
+            var parentSection = gridControl.getParent();
+            if (parentSection) {
+                var sectionName = parentSection.getName();
+                return { subgridName: subgridName, sectionName: sectionName };
+            } else {
+
+                return null;
+            }
+        } else {
+
+            return null;
+        }
+    },
+         
+    onChangeEmpolyeeName: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var EmployeeName = formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Name).getValue();
+
+        if (EmployeeName != null) {
+            Xrm.WebApi.retrieveMultipleRecords("systemuser", "?$select=title,internalemailaddress&$filter=fullname eq '" + EmployeeName[0].name + "'")
+                .then(
+                    (results) => {
+                        var result = results.entities[0];
+                        formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Email).setValue(result.internalemailaddress);
+                        formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Title).setValue(result.title);
+                    }
+                )
+        }
+        else {
+            formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Email).setValue(null);
+            formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Title).setValue(null);
+        }
+    },
+
+
+    preventDuplicateAccountTeamMember: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var partner = formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.pName).getValue();
+		var UserName = formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Name).getValue();
+		var UserRole = formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Role).getValue();
+        //var UserRole1 = UserRole.split(",");
+
+		if (UserName !== null && UserRole  !== null) {
+			var UserNameId = UserName[0].id.replace("{", "").replace("}", "").toLowerCase();
+			if (partner !== null) {
+				var partnerid = partner[0].id;
+				
+				Xrm.WebApi.retrieveMultipleRecords("crb_accountteam", "?$select=_crb_usersname_value,crb_role&$filter=_crb_account_value eq" + partnerid).then(
+					function success(results) {
+						console.log(results);
+						for (var i = 0; i < results.entities.length; i++) {
+							var result = results.entities[i];
+							// Columns
+							var crb_accountteamid = result["crb_accountteamid"]; // Guid
+							var crb_usersname = result["_crb_usersname_value"]; // Lookup
+							var crb_usersname_formatted = result["_crb_usersname_value@OData.Community.Display.V1.FormattedValue"];
+							var crb_usersname_lookuplogicalname = result["_crb_usersname_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+							var crb_role = result["crb_role"]; // Choices
+                            var crb_role1 = crb_role.split(","); // Choices
+							var crb_role_formatted = result["crb_role@OData.Community.Display.V1.FormattedValue"];
+
+							for(var i=0; i<crb_role1.length; i++){
+                                if(UserRole.includes(crb_role1[i])){
+                                    var flag = 1;
+                                }
+                            }
+							//if(crb_role == UserRole)
+							//{
+							//	var flag = 1;
+							//}
+						}
+
+						if (flag == 1) {
+							Xrm.Navigation.openAlertDialog({ text: "Roles already exists. Please choose a different one", confirmButtonLabel: "OK" });
+							formContext.getAttribute(CRB.CRM.PJ.AccountTeam.Attributes.AccountTeam.Role).setValue(null);
+						}
+					},
+					function(error) {
+						console.log(error.message);
+					}
+				);
+			}
+		}
+	}, //end
+
+}
