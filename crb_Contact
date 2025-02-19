@@ -1,0 +1,61 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Contact = CRB.CRM.PJ.Contact || {};
+CRB.CRM.PJ.Contact = {
+	Attributes: {
+		Contact: {
+			contactTitle: "salutation",
+			contactFirstName: "firstname",
+			contactLastName: "lastname",
+			contactFullName: "crb_contactfullname",
+			contactEmail: "emailaddress1",
+			contactPhoneNumber: "telephone1",
+			leadSource: "crb_leadsourcecode",
+			iscontactAnAdmin: "crb_partnerportaladmin",
+			contactType: "crb_contacttype",
+			primaryContact: "crb_primary",
+			comment: "crb_comment"
+		},
+	},
+	TabName: {
+		Contact: "General"
+	},
+	Section: {
+		Contact: "General",
+		contactDetails: "CONTACT_INFORMATION"
+	},
+	onLoadOfContact: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		this.selectContactType(executionContext);
+	},
+	onSaveContact: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+	},
+	selectContactType: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var userId = Xrm.Utility.getGlobalContext().userSettings.userId;
+		userId = userId.replace("{", "").replace("}", "");
+
+		Xrm.WebApi.online.retrieveRecord("systemuser", userId, "?$select=fullname&$expand=businessunitid($select=name)")
+			.then(function success(result) {
+
+				if (result.hasOwnProperty("businessunitid")) {
+					var businessunitid_name = result["businessunitid"]["name"];
+					
+					if (businessunitid_name === "Head of Public Affairs") {
+						var contactType = formContext.getAttribute(CRB.CRM.PJ.Contact.Attributes.Contact.contactType);
+						contactType.setValue(2);
+					} else {
+						var contactType = formContext.getAttribute(CRB.CRM.PJ.Contact.Attributes.Contact.contactType);
+						contactType.setValue(1);
+					}
+				}
+			}, function (error) {
+				
+			});
+	},
+}
