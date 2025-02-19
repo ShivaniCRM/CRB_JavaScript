@@ -1,0 +1,710 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Documentreview = CRB.CRM.PJ.Documentreview || {};
+CRB.CRM.PJ.Documentreview = {
+	Attributes: {
+		Fields: {
+			crbdocuments: "crb_document",
+			crbdocumenttype: "crb_documenttype",
+			reviewedby: "crb_reviewedby",
+			reviewedby2: "crb_reviewedby2",
+            recipientUser: "crb_recipientuser",
+            recipientTeam: "crb_recipientteam",
+            recipientsHistory: "crb_recipientshistory",
+            commentsData: "crb_commentsdata",
+            commentsStatus: "crb_status",
+            documentsubtype: "crb_documentsubtype",
+            name: "crb_name",
+            assigneduser:"crb_assigneduser",
+            comments: "crb_comments",
+            commentType: "crb_commenttype",
+            opportunity: "crb_opportunity",
+            documentlink: "crb_documentlink",
+            reviewdstatus: "crb_reviewdstatus",
+            statushistory: "crb_statushistory"
+            
+		},
+        Sections: {
+            Comments: "Comments",
+        },
+        LOV: {
+            CommentsStatus: {
+                InProgress: 100000000,
+                Completed: 100000001,
+            },
+			ReviewStatus: {
+				Open: 100000000,
+				InReview: 100000001,
+				ActionRequired: 100000002,
+				QualityControlReview: 100000003,
+				ReviewComplete: 100000004,
+				Reject: 100000005,
+				NotApplicable: 100000006,
+			}
+        }
+	},
+	onLoadOfCRBDocument: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        formContext.getAttribute(this.Attributes.Fields.commentType).setValue(100000000);
+		this.autopopulatedatafromcrbdocument(executionContext);
+		this.autolockingoffield(executionContext);
+        this.autopopulatereviewedby(executionContext);
+        this.lockTheLine2ReviewRecord(executionContext);
+        this.disableFieldsForFairLendingDataManagementTeam(executionContext);
+        this.DocumentReviewLink(executionContext);
+        this.DocumentReviewLink(executionContext);
+	},
+	onSaveOfCRBDocument: function (executionContext) {
+         //this.checkManagerOnAssign(executionContext);
+         this.updateStatusWithTimestamp(executionContext);
+	},
+    onChangeOfCRBDocument: function (executionContext) {
+         //this.checkManagerOnAssign(executionContext);
+         this.onChangeOfReviewStatus(executionContext);
+	},
+    
+
+	autopopulatedatafromcrbdocument: async function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var documentid = formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+
+		await Xrm.WebApi.retrieveRecord("crb_document", documentid, "?$select=_crb_documentsubtype_value,_crb_documenttype_value").then(
+			function success(result) {
+				console.log(result);
+				// Columns
+				var crb_documentid = result["crb_documentid"]; // Guid
+				var crb_documenttype = result["_crb_documenttype_value"]; // Lookup
+				var crb_documenttype_formatted = result["_crb_documenttype_value@OData.Community.Display.V1.FormattedValue"];
+				var crb_documenttype_lookuplogicalname = result["_crb_documenttype_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+
+				var lookup = new Array();
+				lookup[0] = new Object();
+				lookup[0].id = crb_documenttype;
+
+				// Set the name of the lookup record
+				lookup[0].name = crb_documenttype_formatted;
+
+				// Set the entity type of the lookup record
+				lookup[0].entityType = crb_documenttype_lookuplogicalname; // Replace with the actual entity name
+
+				formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.crbdocumenttype).setValue(lookup);
+			},
+			function (error) {
+				console.log(error.message);
+			}
+		);
+
+
+
+	},
+    autopopulatereviewedby: function (executionContext) {
+
+	var formContext = executionContext.getFormContext();
+	var reviewedbylookupname = formContext.getAttribute(this.Attributes.Fields.reviewedby2).getValue()[0].name;
+	if (reviewedbylookupname == "Line 1 Credit Review Team" || reviewedbylookupname == "Line 2 Credit Review Team" ) {
+		formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.reviewedby).setValue(reviewedbylookupname);
+	}
+
+    },
+    
+
+	autolockingoffield: async function (executionContext) {
+
+		var formContext = executionContext.getFormContext();
+		var documentid = formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+		var reviewedbyline = formContext.getAttribute(this.Attributes.Fields.reviewedby2).getValue()[0].name;
+		var reviewcompletedbyline1 = await this.getreviewstatus(executionContext);
+        var commentstatus = await this.getReviewStatusline2(executionContext);
+        var name  = formContext.getAttribute(this.Attributes.Fields.name).getValue();
+       
+        if(name === "Due Diligence Memo (Cards/BaaS MPL)"){
+            return;
+        }
+        
+		let excludedTeams = ["fair lending due diligence", "fair lending data management"];
+        
+//        if (!excludedTeams.includes(reviewedbyline.toLowerCase())) {
+//			if (reviewedbyline == "Line 1 Credit Review Team" && !commentstatus) {
+//				formContext.getControl(CRB.CRM.PJ.Documentreview.Attributes.Fields.commentsStatus).setDisabled(true);
+//			}
+//			else {
+//				formContext.getControl(CRB.CRM.PJ.Documentreview.Attributes.Fields.commentsStatus).setDisabled(false);
+//			}
+//		}
+
+		if (!excludedTeams.includes(reviewedbyline.toLowerCase())) {
+			if (reviewedbyline == "Line 2 Credit Review Team" && !reviewcompletedbyline1) {
+				formContext.getControl(this.Attributes.Fields.crbdocuments).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.reviewedby2).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.crbdocumenttype).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.documentsubtype).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.name).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.assigneduser).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.comments).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.recipientUser).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.recipientTeam).setDisabled(true);
+				formContext.getControl(this.Attributes.Fields.commentsStatus).setDisabled(true);
+				formContext.getControl("header_crb_reviewdstatus").setDisabled(true);
+                formContext.getControl(this.Attributes.Fields.documentlink).setDisabled(true);
+			}
+			else {
+				formContext.getControl(this.Attributes.Fields.crbdocuments).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.reviewedby2).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.crbdocumenttype).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.documentsubtype).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.name).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.assigneduser).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.comments).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.recipientUser).setDisabled(false);
+				formContext.getControl(this.Attributes.Fields.recipientTeam).setDisabled(false);
+				//formContext.getControl(this.Attributes.Fields.commentsStatus).setDisabled(false);
+				formContext.getControl("header_crb_reviewdstatus").setDisabled(false);
+                formContext.getControl(this.Attributes.Fields.documentlink).setDisabled(false);
+			}
+		}
+
+		
+	},
+    onChangeOfReviewStatus: async function (executionContext) {
+    var formContext = executionContext.getFormContext();
+    var crb_docreviewid = formContext.data.entity.getId().replace("{", "").replace("}", "");
+    var statecode;
+    var crb_tasksubtype;
+    var crb_tasktypecode;
+    var crb_name;
+    var crb_reviewdstatus;
+    var reviewdStatus = formContext.getAttribute(this.Attributes.Fields.reviewdstatus).getValue();
+    await Xrm.WebApi.retrieveMultipleRecords("crb_docreview", "?$expand=crb_docreview_Tasks($select=statecode,crb_tasksubtype,crb_tasktypecode)&$filter=crb_docreviewid eq '" + crb_docreviewid + "' ").then(
+        function success(results) {
+            console.log(results);
+            for (var i = 0; i < results.entities.length; i++) {
+                var result = results.entities[i];
+                // Columns
+                //var crb_docreviewid = result["crb_docreviewid"]; // Guid
+                crb_name = result["crb_name"];
+                crb_reviewdstatus = result["crb_reviewdstatus"]; // Choice
+
+                // One To Many Relationships
+                for (var j = 0; j < result.crb_docreview_Tasks.length; j++) {
+                    statecode = result.crb_docreview_Tasks[j]["statecode"]; // State
+                    // var crb_docreview_Tasks_statecode_formatted = result.crb_docreview_Tasks[j]["statecode@OData.Community.Display.V1.FormattedValue"];
+                    crb_tasksubtype = result.crb_docreview_Tasks[j]["crb_tasksubtype"]; // Choice
+                    // var crb_docreview_Tasks_crb_tasksubtype_formatted = result.crb_docreview_Tasks[j]["crb_tasksubtype@OData.Community.Display.V1.FormattedValue"];
+                    crb_tasktypecode = result.crb_docreview_Tasks[j]["crb_tasktypecode"]; // Choice
+                    //var crb_docreview_Tasks_crb_tasktypecode_formatted = result.crb_docreview_Tasks[j]["crb_tasktypecode@OData.Community.Display.V1.FormattedValue"];
+                }
+                if (reviewdStatus == 100000004) {
+                    if (statecode !== 1 && crb_tasksubtype === 16 && crb_tasktypecode === 3 && crb_name === 'Due Diligence Memo (Cards/BaaS MPL)') {
+                        var alertStrings = { confirmButtonLabel: "Ok", text: "Please Complete the approval task.", title: "Alert" };
+                        var alertOptions = { height: 120, width: 260 };
+                        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                            function (success) {
+                                formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.reviewdstatus).setValue(null);
+                            },
+                            function (error) {
+                                // console.log(error.message);
+                            }
+                        );
+                    }
+                }
+            }
+
+            
+        },
+        function (error) {
+            console.log(error.message);
+        }
+    );
+},
+
+	getreviewstatus: async function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var documentid = formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+		var reviewedby = "Line 1 Credit Review Team";
+		var name = formContext.getAttribute("crb_name").getValue();
+		var reviewcompleted = false;
+
+		await Xrm.WebApi.retrieveMultipleRecords("crb_docreview", "?$select=crb_docreviewid,_crb_document_value,crb_name,_crb_reviewedby2_value,crb_reviewdstatus&$filter=(crb_name eq '" + name + "' and crb_Reviewedby2/name eq '" + reviewedby + "' and _crb_document_value eq '" + documentid + "')").then(
+			function success(results) {
+				var review = true;
+				console.log(results);
+				for (var i = 0; i < results.entities.length; i++) {
+					var result = results.entities[i];
+					// Columns
+					var crb_docreviewid = result["crb_docreviewid"]; // Guid
+					var crb_document = result["_crb_document_value"]; // Lookup
+					var crb_document_formatted = result["_crb_document_value@OData.Community.Display.V1.FormattedValue"];
+					var crb_document_lookuplogicalname = result["_crb_document_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+					var crb_name = result["crb_name"]; // Text
+					var crb_reviewedby = result["crb_reviewedby"]; // Text
+					var crb_reviewdstatus = result["crb_reviewdstatus"]; // Choice
+					var crb_reviewdstatus_formatted = result["crb_reviewdstatus@OData.Community.Display.V1.FormattedValue"];
+
+					if (crb_reviewdstatus !== 100000004 || crb_reviewdstatus == null) {
+						review = false;
+					}
+				}
+				if (review) {
+					reviewcompleted = true;
+				}
+				//reviewedstatusbyline1 = reviewcompleted;
+			},
+			function (error) {
+				console.log(error.message);
+			}
+		);
+		return reviewcompleted;
+	},
+    getReviewStatusline2: async function (executionContext) {
+	var formContext = executionContext.getFormContext();
+	var documentid = formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+	var reviewedby = "Line 2 Credit Review Team";
+	var name = formContext.getAttribute("crb_name").getValue();
+	var reviewcompleted = false;
+
+	await Xrm.WebApi.retrieveMultipleRecords("crb_docreview", "?$select=crb_docreviewid,_crb_document_value,crb_name,_crb_reviewedby2_value,crb_reviewdstatus&$filter=(crb_name eq '" + name + "' and crb_Reviewedby2/name eq '" + reviewedby + "' and _crb_document_value eq '" + documentid + "')").then(
+		function success(results) {
+			var review = true;
+			console.log(results);
+			for (var i = 0; i < results.entities.length; i++) {
+				var result = results.entities[i];
+				// Columns
+				var crb_docreviewid = result["crb_docreviewid"]; // Guid
+				var crb_document = result["_crb_document_value"]; // Lookup
+				var crb_document_formatted = result["_crb_document_value@OData.Community.Display.V1.FormattedValue"];
+				var crb_document_lookuplogicalname = result["_crb_document_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+				var crb_name = result["crb_name"]; // Text
+				var crb_reviewedby = result["crb_reviewedby"]; // Text
+				var crb_reviewdstatus = result["crb_reviewdstatus"]; // Choice
+				var crb_reviewdstatus_formatted = result["crb_reviewdstatus@OData.Community.Display.V1.FormattedValue"];
+
+				if (crb_reviewdstatus !== 100000004) {
+					review = false;
+				}
+			}
+			if (review) {
+				reviewcompleted = true;
+			}
+			//reviewedstatusbyline1 = reviewcompleted;
+		},
+		function (error) {
+			console.log(error.message);
+		}
+	);
+	return reviewcompleted;
+    },
+    getUsersOfATeam: async function (teamId) {
+        var users = [];
+        teamId = teamId.replace("{", "").replace("}", "");
+        await Xrm.WebApi.retrieveRecord("team", teamId, "?$select=teamid").then(
+            async function success(result) {
+                var teamid = result["teamid"];
+                await Xrm.WebApi.retrieveMultipleRecords("teammembership", "?$select=systemuserid&$filter=(teamid eq " + teamid + ")").then(
+                    function success(results) {
+                        for (var i = 0; i < results.entities.length; i++) {
+                            var result = results.entities[i];
+                            var systemuserid = result["systemuserid"];
+                            users.push(systemuserid);
+                        }
+                    },
+                    function (error) {
+                        console.log(error.message);
+                    }
+                );
+            }
+        )
+        return users;
+    },
+    onChangeOfCommentData: async function (executionContext) {
+        
+        var formContext = executionContext.getFormContext();
+        var commentsData = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.commentsData).getValue();
+        var commentsStatus = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.commentsStatus).getValue();
+        var recipientUser = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientUser).getValue();
+        var recipientTeam = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientTeam).getValue();
+        var recipientsHistory = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientsHistory).getValue();
+        var currentRecipeints = recipientsHistory ? recipientsHistory.split(",") : [];
+        
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "").toLowerCase();
+        if(userId && !currentRecipeints.includes(userId)){
+            currentRecipeints.push(userId);
+        }
+        
+        if (recipientTeam) {
+            var usersOfTeam = await CRB.CRM.PJ.Documentreview.getUsersOfATeam(recipientTeam[0].id);
+            for (var i = 0; i < usersOfTeam.length; i++) {
+                var user = usersOfTeam[i].toLowerCase();
+                if (!currentRecipeints.includes(user)) {
+                    currentRecipeints.push(user);
+                }
+            }
+        }
+        if (recipientUser) {
+            var userID = recipientUser[0].id.replace("{", "").replace("}", "").toLowerCase();
+            if (!currentRecipeints.includes(userID)) {
+                currentRecipeints.push(userID);
+            }
+        }
+        recipientsHistory = currentRecipeints.join(",");
+        formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientsHistory).setValue(recipientsHistory);
+		let documentId = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+		let documentData = {
+			"crb_documentreviewscommentsdata": commentsData,
+			"crb_documentreviewsrecipientshistory": recipientsHistory
+		}
+		Xrm.WebApi.updateRecord("crb_document",documentId,documentData)
+		.then((res)=>{
+
+		})
+		.catch((err)=>{
+			let alertStrings = { confirmButtonLabel: 'OK', text: 'Unexpected Error' };
+			let alertOptions = { height: 120, width: 260 };
+
+			Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+		})
+        // var request = {};
+        // request.OtherInpuParameters = recipientsHistory;
+        // request.getMetaData = function () {
+        //     return {
+        //         boundParameter: null,
+        //         parameterTypes: {
+        //             "OtherInpuParameters": {
+        //                 "typeName": "Edm.String",
+        //                 "structuralProperty": 1
+        //             }
+        //         },
+        //         operationType: 0,
+        //         operationName: "crb_SendDocumentReviewRequest"
+        //     };
+        // }
+        // Xrm.WebApi.execute();
+       
+        var activeBpfStage;
+        var partnerName;
+        var opportunity = formContext.getAttribute(this.Attributes.Fields.opportunity).getValue();
+        if (opportunity) {
+            var oppLogicalName = opportunity[0].entityType;
+            var oppID = opportunity[0].id;
+        
+            var options = "?select=crb_partnername,crb_bpfstage";
+            await Xrm.WebApi.retrieveRecord(oppLogicalName, oppID, options)
+                .then((result) => {
+                    activeBpfStage = result.crb_bpfstage;
+                    partnerName = result.crb_partnername;
+                })
+                .catch((err) => {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to Fetch Partner Name as Opportunity is Not Linked' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                })
+        }
+        if(!opportunity){
+            var entityId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+            var entityName = formContext.data.entity.getEntityName();
+            var options = "?$expand=crb_Document($expand=crb_onboarding($expand=crb_Opportunity($select=crb_partnername,crb_bpfstage)))";
+            await Xrm.WebApi.retrieveRecord(entityName, entityId, options)
+                .then((result) => {
+                    activeBpfStage = result.crb_Document.crb_onboarding.crb_Opportunity.crb_bpfstage;
+                    partnerName = result.crb_Document.crb_onboarding.crb_Opportunity.crb_partnername;
+                })
+                .catch((err) => {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to Fetch Partner Name and Stage' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                })
+        }
+        if(!partnerName){
+            var entityId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+            var entityName = formContext.data.entity.getEntityName();
+            var options = "?$expand=crb_Document($expand=crb_onboarding($expand=crb_Opportunity($expand=parentaccountid($select=name))))";
+            //var options = "?$expand=crb_Document($select=crb_onboarding;$expand=crb_onboarding($select=crb_Opportunity;$expand=crb_Opportunity($select=crb_partnername,crb_bpfstage)))";
+            await Xrm.WebApi.retrieveRecord(entityName, entityId, options)
+                .then((result) => {
+                    partnerName = result.crb_Document.crb_onboarding.crb_Opportunity.parentaccountid.name;
+                })
+                .catch((err) => {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to Fetch Partner Name' };
+                    let alertOptions = { height: 120, width: 260 };
+
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions)
+                })
+        }
+       
+        var globalContext = Xrm.Utility.getGlobalContext();
+        var appIDURL = globalContext.getCurrentAppUrl();
+        var recordURL = appIDURL + "&pagetype=entityrecord&etn="+formContext.data.entity.getEntityName()+"&id=" + formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var emailbody = `There was an update in comment of Document Review Record relating to ${partnerName} in stage ${activeBpfStage} .<br/>Please Review at link below-<br/>`;
+        var emailsubject = "Document Review Comment Updated";
+        var otherinputparameters={
+            "recipientsHistory": recipientsHistory,
+            "modifiedBy": Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", ""),
+            "DocumentReviewGUID": formContext.data.entity.getId().replace("{", "").replace("}", ""),
+            "recordlink": recordURL,
+            "emailbody": emailbody,
+            "emailsubject": emailsubject
+        }
+        var data = {
+            "crb_otherinputparameters": JSON.stringify(otherinputparameters),
+            "crb_name":"Document Review Internal"
+        }
+        Xrm.WebApi.createRecord('crb_patrigger', data).then(
+            function success(result) {
+                // perform operations on record creation
+            },
+            function (error) {
+                console.log(error.message);
+                // handle error conditions
+            }
+        );
+         formContext.data.save();
+    },
+    onClickOfSaveInWebResource: async function () {	// Probably not in use
+        //alert("save clicked");
+        var formContext = parent.Xrm.Page;
+        var commentsData = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.commentsData).getValue();
+        var commentsStatus = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.commentsStatus).getValue();
+        var recipientUser = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientUser).getValue();
+        var recipientTeam = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientTeam).getValue();
+        var recipientsHistory = formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientsHistory).getValue();
+        var currentRecipeints = recipientsHistory ? recipientsHistory.split(",") : [];
+        if (recipientTeam) {
+            var usersOfTeam = await CRB.CRM.PJ.Documentreview.getUsersOfATeam(recipientTeam[0].id);
+            for (var i = 0; i < usersOfTeam.length; i++) {
+                var user = usersOfTeam[i];
+                if (!currentRecipeints.includes(user)) {
+                    currentRecipeints.push(user);
+                }
+            }
+        }
+        if (recipientUser) {
+            var userID = recipientUser[0].id.replace("{", "").replace("}", "").toLowerCase();
+            if (!currentRecipeints.includes(userID)) {
+                currentRecipeints.push(userID);
+            }
+        }
+        recipientsHistory = currentRecipeints.join(",");
+        formContext.getAttribute(CRB.CRM.PJ.Documentreview.Attributes.Fields.recipientsHistory).setValue(recipientsHistory);
+        // var request = {};
+        // request.OtherInpuParameters = recipientsHistory;
+        // request.getMetaData = function () {
+        //     return {
+        //         boundParameter: null,
+        //         parameterTypes: {
+        //             "OtherInpuParameters": {
+        //                 "typeName": "Edm.String",
+        //                 "structuralProperty": 1
+        //             }
+        //         },
+        //         operationType: 0,
+        //         operationName: "crb_SendDocumentReviewRequest"
+        //     };
+        // }
+        // Xrm.WebApi.execute();
+       
+        var globalContext = Xrm.Utility.getGlobalContext();
+        var appIDURL = globalContext.getCurrentAppUrl();
+        var recordURL = appIDURL + "&pagetype=entityrecord&etn="+formContext.data.entity.getEntityName()+"&id=" + formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var emailbody = "There was an update in comment of Document Review Record.<br/>Please Review at link below-<br/>";
+        var emailsubject = "Document Review Comment Updated";
+        var otherinputparameters={
+            "recipientsHistory": recipientsHistory,
+            "modifiedBy": Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", ""),
+            "DocumentReviewGUID": formContext.data.entity.getId().replace("{", "").replace("}", ""),
+            "recordlink": recordURL,
+            "emailbody": emailbody,
+            "emailsubject": emailsubject
+        }
+        var data = {
+            "crb_otherinputparameters": JSON.stringify(otherinputparameters),
+            "crb_name":"Document Review"
+        }
+        Xrm.WebApi.createRecord('crb_patrigger', data).then(
+            function success(result) {
+                // perform operations on record creation
+            },
+            function (error) {
+                console.log(error.message);
+                // handle error conditions
+            }
+        );
+         formContext.data.entity.save();
+    },
+	lockTheLine2ReviewRecord: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var name =  formContext.getAttribute(this.Attributes.Fields.name).getValue();
+        if(name !== "Due Diligence Memo (Cards/BaaS MPL)"){
+            return;
+        }
+        var documentid = formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+        var reviewTeam = formContext.getAttribute(this.Attributes.Fields.reviewedby2).getValue()[0].name;
+        var line1Team = "";
+        if(reviewTeam.includes("Line 2")){
+            line1Team = reviewTeam.replace("Line 2","Line 1")
+        }
+        else{
+            return;
+        }
+        //get line1Team ID
+        var teamid;
+        await Xrm.WebApi.retrieveMultipleRecords("team", "?$select=teamid,name&$filter=name eq '"+line1Team+"'").then(
+            function success(results) {
+                console.log(results);
+                for (var i = 0; i < results.entities.length; i++) {
+                    var result = results.entities[i];
+                    // Columns
+                    teamid = result["teamid"]; // Guid
+                    var name = result["name"]; // Text
+                }
+            },
+            function(error) {
+            }
+        );
+        var lockFlag = false;
+        await Xrm.WebApi.retrieveMultipleRecords("crb_docreview", "?$select=crb_docreviewid,_crb_document_value,_crb_reviewedby2_value&$expand=crb_docreview_Tasks($select=crb_approvalstatus,statecode)&$filter=(_crb_document_value eq "+documentid+" and _crb_reviewedby2_value eq "+teamid+")").then(
+            function success(results) {
+                console.log(results);
+                for (var i = 0; i < results.entities.length; i++) {
+                    var result = results.entities[i];
+                    // Columns
+                    var crb_docreviewid = result["crb_docreviewid"]; // Guid
+                    var crb_document = result["_crb_document_value"]; // Lookup
+                    var crb_document_formatted = result["_crb_document_value@OData.Community.Display.V1.FormattedValue"];
+                    var crb_document_lookuplogicalname = result["_crb_document_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+                    var crb_reviewedby2 = result["_crb_reviewedby2_value"]; // Lookup
+                    var crb_reviewedby2_formatted = result["_crb_reviewedby2_value@OData.Community.Display.V1.FormattedValue"];
+                    var crb_reviewedby2_lookuplogicalname = result["_crb_reviewedby2_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+                    
+                    // One To Many Relationships
+                    for (var j = 0; j < result.crb_docreview_Tasks.length; j++) {
+                        var crb_docreview_Tasks_crb_approvalstatus = result.crb_docreview_Tasks[j]["crb_approvalstatus"]; // Choice
+                        var crb_docreview_Tasks_crb_approvalstatus_formatted = result.crb_docreview_Tasks[j]["crb_approvalstatus@OData.Community.Display.V1.FormattedValue"];
+                        var statecode = result.crb_docreview_Tasks[j]["statecode"]; // State
+                        if(statecode !== 1){
+                            lockFlag = true;
+                        }
+                        var crb_docreview_Tasks_statecode_formatted = result.crb_docreview_Tasks[j]["statecode@OData.Community.Display.V1.FormattedValue"];
+                    }
+                    if(result.crb_docreview_Tasks.length ===0){
+                        lockFlag = true;
+                    }
+                }
+            },
+            function(error) {
+                console.log(error.message);
+            }
+        );
+        if(lockFlag){
+            var attributes = formContext.data.entity.attributes.get();
+            for( var i in attributes){
+                var attributeName = attributes[i].getName();
+                var control = formContext.getControl(attributeName);
+                if(control!==null){
+                    control.setDisabled(true);
+                }
+            }
+        }
+        
+    },
+    
+    DocumentReviewLink: async function (executionContext) {
+    var formContext = executionContext.getFormContext();
+    var file = "";
+    var documentID = formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+    await Xrm.WebApi.retrieveRecord("crb_document", documentID, "?$select=crb_file").then(
+          function success(result) {
+            console.log(result);
+            // Columns
+            var crb_documentid = result["crb_documentid"]; // Guid
+            file = result["crb_file"]; // Text
+          },
+          function(error) {
+            console.log(error.message);
+          }
+        );
+     formContext.getAttribute(this.Attributes.Fields.documentlink).setValue(file);
+},
+    
+  
+	disableFieldsForFairLendingDataManagementTeam: async function (executionContext) { //US 2045
+		var formContext = executionContext.getFormContext();
+		let reviewedBy = formContext.getAttribute(this.Attributes.Fields.reviewedby2).getValue();
+		if (reviewedBy && reviewedBy[0].name === "Fair Lending Data Management") {
+			//var options = "?$select=crb_reviewdstatus&$filter=_crb_reviewedby2_value/name eq 'Fair Lending Due Diligence' and crb_name eq '" + formContext.getAttribute(this.Attributes.Fields.name).getValue() + "' and _crb_document_value eq " + formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+			var options = "?$select=crb_reviewdstatus,_crb_reviewedby2_value&$filter=crb_name eq '" + formContext.getAttribute(this.Attributes.Fields.name).getValue() + "' and _crb_document_value eq " + formContext.getAttribute(this.Attributes.Fields.crbdocuments).getValue()[0].id.replace("{", "").replace("}", "");
+			var fairLendingDueDiligenceTeamStatus;
+			Xrm.Utility.showProgressIndicator();
+			await Xrm.WebApi.retrieveMultipleRecords("crb_docreview", options)
+				.then((res) => {
+					Xrm.Utility.closeProgressIndicator();
+					if (res.entities.length > 0) {
+						for (let i = 0; i < res.entities.length; i++) {
+							let teamName = res.entities[i]["_crb_reviewedby2_value@OData.Community.Display.V1.FormattedValue"]
+							if (teamName === 'Fair Lending Due Diligence') {
+								fairLendingDueDiligenceTeamStatus = res.entities[i].crb_reviewdstatus;
+								break;
+							}
+						}
+
+						// if(res.entities[0]["_crb_reviewedby2_value@OData.Community.Display.V1.FormattedValue"] === 'Fair Lending Due Diligence'){
+						// 	fairLendingDueDiligenceTeamStatus = res.entities[0].crb_reviewdstatus;
+						// }
+					}
+				}).catch((err) => {
+					Xrm.Utility.closeProgressIndicator();
+					let alertStrings = { confirmButtonLabel: 'OK', text: 'Unexpected Error' };
+					let alertOptions = { height: 120, width: 260 };
+
+					Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+				})
+
+			if (fairLendingDueDiligenceTeamStatus && fairLendingDueDiligenceTeamStatus !== CRB.CRM.PJ.Documentreview.Attributes.LOV.ReviewStatus.ReviewComplete) {
+				let controls = formContext.ui.controls.get();
+				controls.forEach(control => {
+					control.setDisabled(true);
+				});
+			}
+		}
+	},  
+     updateStatusWithTimestamp: function (executionContext) {
+    var formContext = executionContext.getFormContext();
+   
+    var statusField = formContext.getAttribute("crb_reviewdstatus"); 
+    var statusValue = statusField.getValue();
+
+    var statusOptions = statusField.getOptions();
+    var statusName = "";
+
+    for (var i = 0; i < statusOptions.length; i++) {
+        if (statusOptions[i].value === statusValue) {
+            statusName = statusOptions[i].text; 
+            break;
+        }
+    }
+ 
+    var multilineField = formContext.getAttribute("crb_statushistory"); 
+    var currentText = multilineField.getValue() || ""; 
+
+   
+    var timestamp = new Date().toLocaleString(); 
+   
+    var newEntry = `Status: ${statusName} at ${timestamp}`;
+
+    
+    if (currentText) {
+        newEntry = currentText + ',\n ' + newEntry; 
+    }
+
+    multilineField.setValue(newEntry);
+
+    
+    //multilineField.setSubmitMode("always");
+}
+
+   
+
+}
+
+//Xrm.Page.onClickOfSaveInWebResourceFunctionInstance = CRB.CRM.PJ.Documentreview.onClickOfSaveInWebResource;
