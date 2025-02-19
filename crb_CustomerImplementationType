@@ -1,0 +1,43 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.ImplementationCustomerType = CRB.CRM.PJ.ImplementationCustomerType || {};
+CRB.CRM.PJ.ImplementationCustomerType = {
+    Attributes: {
+        Fields: {
+            crb_describetheachbusinessusecase:'crb_describetheachbusinessusecase', //required
+            crb_describeflowoffundsandpotentialusecaseach:'crb_describeflowoffundsandpotentialusecaseach', //required
+            crb_whatisyourachprocessingstatus: 'crb_whatisyourachprocessingstatus', //required
+            crb_nameofcurrentpreviousprocessorach: 'crb_nameofcurrentpreviousprocessorach', //required
+            crb_totalnumberofachcreditentriespermonth: 'crb_totalnumberofachcreditentriespermonth', //required
+            crb_totalnumberofachdebitentriespermonth: 'crb_totalnumberofachdebitentriespermonth', //required
+            crb_numberofachreturnsinagivenmonth: 'crb_numberofachreturnsinagivenmonth', //required
+            crb_describeach: 'crb_describeach', //required
+            crb_uploadachpolicy:'crb_uploadachpolicy', //required
+            crb_rationaleach:'crb_rationaleach', //required
+            crb_rationaleach2:'crb_rationaleach2', //required
+            crb_rationaleach3:'crb_rationaleach3', //required
+            crb_doesentityhaveanynestedsenderrelationships: 'crb_doesentityhaveanynestedsenderrelationships', //required
+            crb_isentityrequestingsamedayach: 'crb_isentityrequestingsamedayach', //required
+            crb_typeofentriesoriginated:'crb_typeofentriesoriginated', //required
+            crb_fordebitsselectthetypeofdebittakingplace: 'crb_fordebitsselectthetypeofdebittakingplace', //required
+            crb_howdoesauthorizationtakeplace:'crb_howdoesauthorizationtakeplace', //required
+            crb_forcreditsselecttypeofcreditstakingplace:'crb_forcreditsselecttypeofcreditstakingplace', //required
+        },
+        Sections: {
+
+        },
+        Tabs: {
+
+        },
+        LOVs: {
+
+        }
+    },
+    onLoadImplementationCustomerType: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+    },
+    onSaveImplementationCustomerType: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+    },
+}
