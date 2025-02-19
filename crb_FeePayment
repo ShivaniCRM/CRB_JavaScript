@@ -1,0 +1,90 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.FeePayment = CRB.CRM.PJ.FeePayment || {};
+CRB.CRM.PJ.FeePayment = {
+    Attributes: {
+        FeePayment: {
+        },
+      Sections: {},
+        Tabs: {},
+        LOV: {}
+    },
+    onLoadOfFeePayment: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        
+        this.MakeFeePaymentReadOnly(executionContext);
+
+    },
+    onSaveOfFeePayment: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+
+    },
+
+    MakeFeePaymentReadOnly: async function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var feePaymentId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+        var opportunityid = "";
+        await Xrm.WebApi.retrieveRecord("crb_feepayment", feePaymentId, "?$select=crb_feepaymentid&$expand=crb_Opportunity($select=opportunityid)").then(
+            function success(result) {
+                console.log(result);
+                // Columns
+                var crb_feepaymentid = result["crb_feepaymentid"]; // Guid
+                
+                // Many To One Relationships
+                if (result.hasOwnProperty("crb_Opportunity") && result["crb_Opportunity"] !== null) {
+                    opportunityid = result["crb_Opportunity"]["opportunityid"]; // Guid
+                }
+            },
+            function(error) {
+                console.log(error.message);
+            }
+        );
+        var flag = false
+        await Xrm.WebApi.retrieveRecord("opportunity", opportunityid, "?$select=opportunityid&$expand=crb_Opportunity_Opportunity_crb_termsheet($select=crb_termsheetstatus)").then(
+            function success(result) {
+                console.log(result);
+                // Columns
+                var opportunityid = result["opportunityid"]; // Guid
+                
+                // One To Many Relationships
+                for (var j = 0; j < result.crb_Opportunity_Opportunity_crb_termsheet.length; j++) {
+                    var crb_termsheetstatus = result.crb_Opportunity_Opportunity_crb_termsheet[j]["crb_termsheetstatus"]; // Choice
+                    if(crb_termsheetstatus !==3){
+                       flag = true;
+                    }
+                    
+                }
+            },
+            function(error) {
+                console.log(error.message);
+            }
+        );
+        if(flag === true)
+        {   
+            let formControls = formContext.ui.controls;
+            formControls.forEach(element => {
+                if (element.getName() != "" && element.getName() != null) {
+                    element.setDisabled(true);
+                }
+            });   
+           // formContext.ui.controls.get("save").setDisabled(true);
+            var alertStrings = {
+                        confirmButtonLabel: "Ok",
+                        text: "Fee Payment record is locked as Termsheet is not completed. Please complete Termsheet to edit the record.",
+                        title: "Alert"
+                    };
+                    var alertOptions = {
+                        height: 200,
+                        width: 260
+                    };
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                        function (success) {
+                            //console.log("Fee Payment record is locked as ");
+                        },
+                        function (error) {
+                            // console.log(error.message);
+                        });
+        }
+    }
+}
