@@ -1,0 +1,478 @@
+// JavaScript source code
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Communication = CRB.CRM.PJ.Communication || {};
+CRB.CRM.PJ.Communication = {
+	Attributes: {
+		communicationtype: "crb_typeofcommunication",
+        date:"crb_date",
+		typeOfkickOffcall: "crb_typeofkickfffcall",
+		callScheduleDate: "crb_callscheduledate",
+		listOfAttendees: "crb_listofattendees1",
+		callSummary: "crb_callsummary",
+		nextSteps: "crb_nextsteps",
+		uploadMeetingRecordings: "crb_uploadmeetingrecordings1",
+		commentType: "crb_commenttype",
+		senderName: "crb_sendername",
+		recipient: "crb_recipient",
+		team: "crb_team",
+		communicationStatus: "crb_communicationstatus",
+		comment:"crb_comment",
+        owner : "ownerid",
+        typeOfWalkthrough: "crb_typeofwalkthrough",
+        meetingDate: "crb_meetingdate",
+        agenda: "crb_agenda",
+        purposeOfCall: "crb_purposeofcall",
+        itemsCovered: "crb_itemscovered",
+        summary: "crb_summary",
+        completedBy: "crb_completedby",
+        department: "crb_department",
+        dateOfCompletion: "crb_dateofcompletion",
+        regarding: "regardingobjectid",
+        name: "crb_name",
+        Subject:"subject",
+        ScreenShotOfMFAFlow: "crb_screenshotsofmfaflowurl",
+        ScreenShotOfMobileApplication: "crb_screenshotsofmobileapplicationurl",
+        ScreenShotOfOnboardingFlow: "crb_screenshotsofonboardingflowurl",
+        ScreenShotOfImages: "crb_screenshotsofimagesfortheentireonlineurl",
+        DisclosureProvidedWithCardApplication: "crb_disclosureprovidedwithcardapplicationurl",
+        ScreenShotOfCustomerDashboard: "crb_screenshotsofcustomerdashboardurl",
+        MeetingStatus: "crb_meetingstatusnew",
+        
+        
+        
+        
+	},
+	Section: {
+		Communications: "Communication_section_2",
+        BSAAML:"BSA/AML",
+	},
+	lineOfBusiness: {
+		BaaSCards: "BaaS/Cards",
+		Marketplace_Lending: "Marketplace Lending",
+		Payments: "Payments",
+
+	},
+	TabName: {
+        Communication: "Communication",
+        DueDiligence: "Due Diligence",
+
+	},
+     LOV:{
+        TypeOfWalkthrough:{
+            AMLWalkThrough: 100000000,
+            ApplicationWalThrough: 100000001,
+            FraudWalkThrough: 100000002,
+            CIPWaterfallWalkThrough: 100000003,
+            TransactionMonitoringWalkThrough: 100000004,
+        },
+        TypeOfCommuncation:{
+            KickOfCalls: 1,
+            Comments: 2,
+            WalkThroughs: 3,
+            Others:4
+        }
+    },
+    OthersGroups:{
+        LineOfBusiness:{
+            BaaSCards: "BaaS/Cards",
+            Marketplace_Lending: "Marketplace Lending",
+            Payments: "Payments",
+        }
+    },
+	onLoadOfCommunications: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var formType = formContext.ui.getFormType();
+		var communicationStatus = formContext.getControl(this.Attributes.communicationStatus);
+		if (communicationStatus !== null) {
+			communicationStatus.removeOption(1);
+		}
+		if (formType == 1) {
+			formContext.ui.tabs.get("Communication").sections.get("Communication_section_2").setVisible(false);
+		}
+		else if (formType == 2 || formType == 3) {
+			formContext.ui.tabs.get("Communication").sections.get("Communication_section_2").setVisible(true);
+		}
+        this.filterTypeOfWalkthrough(executionContext);
+		this.onChangeOfCommunincationType(executionContext);
+		this.onChangeOfCommentType(executionContext);        
+       // this.showWalkthroughBasedOnLoggedInUser(executionContext);
+       this.setRegardingField(executionContext);
+       this.OnchangeshowHideFieldsIfTypeofWalkThroughIsWalkThrough(executionContext);
+       this.HIdeAndShowFieldCommunicationType(executionContext);
+       this.setInprogessMeetingStatus(executionContext);
+       
+	},
+	onSaveOfCommunications: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+        this.lockTypeofWalkthrough(executionContext);
+	},     
+    lockTypeofWalkthrough(executionContext){
+        var formContext = executionContext.getFormContext();
+        if(formContext.getAttribute(this.Attributes.typeOfWalkthrough).getValue() !== null)
+        {
+        formContext.getControl(this.Attributes.typeOfWalkthrough).setDisabled(true);
+        }
+        else {
+        formContext.getControl(this.Attributes.typeOfWalkthrough).setDisabled(false);
+        }        
+    },
+	onChangeOfCommunincationType: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var communicationType = formContext.getAttribute(this.Attributes.communicationtype).getValue();
+		if (communicationType !== null && communicationType === 1) //Kick of calls
+		{
+			formContext.getControl(this.Attributes.typeOfkickOffcall).setVisible(true);
+			formContext.getControl(this.Attributes.callScheduleDate).setVisible(true);
+			formContext.getControl(this.Attributes.callSummary).setVisible(true);
+			formContext.getControl(this.Attributes.listOfAttendees).setVisible(true);
+			formContext.getControl(this.Attributes.nextSteps).setVisible(true);
+			formContext.getControl(this.Attributes.uploadMeetingRecordings).setVisible(true);
+            formContext.getControl(this.Attributes.commentType).setVisible(false);
+			formContext.getControl(this.Attributes.senderName).setVisible(false);
+			formContext.getControl(this.Attributes.recipient).setVisible(false);
+			formContext.getControl(this.Attributes.comment).setVisible(false);            		
+            formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(false);
+            formContext.getControl(this.Attributes.meetingDate).setVisible(false);
+            formContext.getControl(this.Attributes.agenda).setVisible(false);
+            formContext.getControl(this.Attributes.purposeOfCall).setVisible(false);
+            formContext.getControl(this.Attributes.itemsCovered).setVisible(false);
+            formContext.getControl(this.Attributes.summary).setVisible(false);
+            formContext.getControl(this.Attributes.completedBy).setVisible(false);
+            formContext.getControl(this.Attributes.department).setVisible(false);
+            formContext.getControl(this.Attributes.dateOfCompletion).setVisible(false);
+		}
+           //Commented as comment optionset is removed
+       /* else if (communicationType !== null && communicationType === 2) //Comment
+		{
+            var owner = formContext.getAttribute(this.Attributes.owner).getValue();
+            if(owner !== null && owner[0].id !== null)
+            { 
+                var lookup = [];
+                lookup[0] = {}; 
+                lookup[0].id = owner[0].id;
+                lookup[0].name = owner[0].name;
+                lookup[0].entityType = owner[0].entityType;
+                formContext.getControl(this.Attributes.commentType).setVisible(true);
+                formContext.getControl(this.Attributes.senderName).setVisible(true);
+                formContext.getControl(this.Attributes.recipient).setVisible(true);
+                formContext.getControl(this.Attributes.comment).setVisible(true);
+                formContext.getControl(this.Attributes.uploadMeetingRecordings).setVisible(true);
+			    formContext.getAttribute(this.Attributes.senderName).setValue(lookup);
+                formContext.getControl(this.Attributes.typeOfkickOffcall).setVisible(false);
+                formContext.getControl(this.Attributes.callScheduleDate).setVisible(false);
+                formContext.getControl(this.Attributes.callSummary).setVisible(false);
+                formContext.getControl(this.Attributes.listOfAttendees).setVisible(false);
+                formContext.getControl(this.Attributes.nextSteps).setVisible(false);                
+                formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(false);
+                formContext.getControl(this.Attributes.meetingDate).setVisible(false);
+                formContext.getControl(this.Attributes.agenda).setVisible(false);
+                formContext.getControl(this.Attributes.purposeOfCall).setVisible(false);
+                formContext.getControl(this.Attributes.itemsCovered).setVisible(false);
+                formContext.getControl(this.Attributes.summary).setVisible(false);
+                formContext.getControl(this.Attributes.completedBy).setVisible(false);
+                formContext.getControl(this.Attributes.department).setVisible(false);
+                formContext.getControl(this.Attributes.dateOfCompletion).setVisible(false);
+            }
+		}*/
+        else if (communicationType !== null && communicationType === 3) //Walkthrough
+		{   formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(true);
+            formContext.getControl(this.Attributes.meetingDate).setVisible(true);
+            formContext.getControl(this.Attributes.agenda).setVisible(true);
+            formContext.getControl(this.Attributes.purposeOfCall).setVisible(true);
+            formContext.getControl(this.Attributes.itemsCovered).setVisible(true);
+            formContext.getControl(this.Attributes.summary).setVisible(true);
+            formContext.getControl(this.Attributes.completedBy).setVisible(true);
+            formContext.getControl(this.Attributes.department).setVisible(true);
+            formContext.getControl(this.Attributes.dateOfCompletion).setVisible(true);
+			formContext.getControl(this.Attributes.uploadMeetingRecordings).setVisible(true);
+            formContext.getControl(this.Attributes.typeOfkickOffcall).setVisible(false);
+			formContext.getControl(this.Attributes.callScheduleDate).setVisible(false);
+			formContext.getControl(this.Attributes.callSummary).setVisible(false);
+			formContext.getControl(this.Attributes.listOfAttendees).setVisible(false);
+			formContext.getControl(this.Attributes.nextSteps).setVisible(false);			
+            formContext.getControl(this.Attributes.commentType).setVisible(false);
+			formContext.getControl(this.Attributes.senderName).setVisible(false);
+			formContext.getControl(this.Attributes.recipient).setVisible(false);
+			formContext.getControl(this.Attributes.comment).setVisible(false);            		
+            }
+        else if (communicationType !== null && communicationType === 5){ //Onboarding Check In
+            formContext.getControl(this.Attributes.meetingDate).setVisible(true);
+            formContext.getControl(this.Attributes.listOfAttendees).setVisible(true);
+            formContext.getControl(this.Attributes.purposeOfCall).setVisible(true);
+            formContext.getControl(this.Attributes.itemsCovered).setVisible(true);
+            formContext.getControl(this.Attributes.summary).setVisible(true);
+            formContext.getControl(this.Attributes.uploadMeetingRecordings).setVisible(true);
+            formContext.getControl(this.Attributes.typeOfkickOffcall).setVisible(false);
+			formContext.getControl(this.Attributes.callScheduleDate).setVisible(false);
+			formContext.getControl(this.Attributes.callSummary).setVisible(false);
+			formContext.getControl(this.Attributes.nextSteps).setVisible(false);
+			formContext.getControl(this.Attributes.commentType).setVisible(false);
+			formContext.getControl(this.Attributes.senderName).setVisible(false);
+			formContext.getControl(this.Attributes.recipient).setVisible(false);
+			formContext.getControl(this.Attributes.comment).setVisible(false);            		
+            formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(false);
+            formContext.getControl(this.Attributes.agenda).setVisible(false);
+            formContext.getControl(this.Attributes.completedBy).setVisible(false);
+            formContext.getControl(this.Attributes.department).setVisible(false);
+            formContext.getControl(this.Attributes.dateOfCompletion).setVisible(false);
+        }
+		else {
+			//do nothing
+            
+		}		
+           
+	},
+	onChangeOfCommentType: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var communicationType = formContext.getAttribute(this.Attributes.commentType).getValue();
+		if (communicationType !== null && communicationType === 100000001) {
+			formContext.getControl(this.Attributes.team).setVisible(true);
+		}
+		else {
+			formContext.getControl(this.Attributes.team).setVisible(false);
+		}
+	},
+  
+    OnchangeshowHideFieldsIfTypeofWalkThroughIsWalkThrough: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var typeofwalkthrough = formContext.getAttribute(this.Attributes.typeOfWalkthrough).getValue();
+        if(typeofwalkthrough !== null && typeofwalkthrough == 100000001){
+            formContext.getControl(this.Attributes.ScreenShotOfMFAFlow).setVisible(true);
+            formContext.getControl(this.Attributes.ScreenShotOfMobileApplication).setVisible(true);
+            formContext.getControl(this.Attributes.ScreenShotOfOnboardingFlow).setVisible(true);
+            formContext.getControl(this.Attributes.ScreenShotOfImages).setVisible(true);
+            formContext.getControl(this.Attributes.DisclosureProvidedWithCardApplication).setVisible(true);
+            formContext.getControl(this.Attributes.ScreenShotOfCustomerDashboard).setVisible(true);
+        
+        }
+       else{
+            formContext.getControl(this.Attributes.ScreenShotOfMFAFlow).setVisible(false);
+            formContext.getControl(this.Attributes.ScreenShotOfMobileApplication).setVisible(false);
+            formContext.getControl(this.Attributes.ScreenShotOfOnboardingFlow).setVisible(false);
+            formContext.getControl(this.Attributes.ScreenShotOfImages).setVisible(false);
+            formContext.getControl(this.Attributes.DisclosureProvidedWithCardApplication).setVisible(false);
+            formContext.getControl(this.Attributes.ScreenShotOfCustomerDashboard).setVisible(false);
+           }
+    },
+    filterTypeOfWalkthrough: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var LOBList = await this.getLinkedProductsLOBUsingRegarding(executionContext);
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var isUserBSAAMLMemeber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "BSA/AML,General Due Diligence");
+        var isUserTMMemeber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "Transaction Monitoring");
+        var isFraudMember = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "Fraud");
+        var isGDDMember = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "General Due Diligence");
+        var typeOfWalkthroughControl = formContext.getControl(this.Attributes.typeOfWalkthrough);
+        var typeOfWalkThroughOptions = typeOfWalkthroughControl.getAttribute().getOptions();
+        //debugger
+        if(formContext.getAttribute(this.Attributes.typeOfWalkthrough).getValue() == null)
+        {
+        typeOfWalkthroughControl.clearOptions();
+        typeOfWalkThroughOptions.forEach((option) => {
+            if ((LOBList.includes(this.OthersGroups.LineOfBusiness.BaaSCards) || LOBList.includes(this.OthersGroups.LineOfBusiness.Payments)) && isUserBSAAMLMemeber && option.value === this.LOV.TypeOfWalkthrough.AMLWalkThrough ) {
+                typeOfWalkthroughControl.addOption(option);
+            }
+            if ((isGDDMember || isUserBSAAMLMemeber)&&(LOBList.includes(this.OthersGroups.LineOfBusiness.BaaSCards) || LOBList.includes(this.OthersGroups.LineOfBusiness.Marketplace_Lending)) && option.value === this.LOV.TypeOfWalkthrough.ApplicationWalThrough ) {
+                typeOfWalkthroughControl.addOption(option);
+            }
+            if (isFraudMember && option.value === this.LOV.TypeOfWalkthrough.FraudWalkThrough) {
+                typeOfWalkthroughControl.addOption(option);
+            }
+            if (LOBList.includes(this.OthersGroups.LineOfBusiness.Marketplace_Lending) && option.value === this.LOV.TypeOfWalkthrough.CIPWaterfallWalkThrough  ) {
+                typeOfWalkthroughControl.addOption(option);
+            }
+            if(isUserTMMemeber && option.value === this.LOV.TypeOfWalkthrough.TransactionMonitoringWalkThrough){
+                typeOfWalkthroughControl.addOption(option);
+            }
+        })
+        }
+        //var isUserBSAAMLMemeber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "BSA/AML,General Due Diligence" );
+        
+        /*if (isUserBSAAMLMemeber) {
+            //typeOfWalkthroughControl.clearOptions();
+            formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(true);
+            typeOfWalkthroughControl.addOption({ value: 100000000, text: "AML Walk Through" }); 
+            typeOfWalkthroughControl.addOption({ value: 100000004, text: "Transaction Monitoring Walkthrough" });           
+        }
+       
+        if(isUserTMMemeber){
+            //typeOfWalkthroughControl.clearOptions();
+            formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(true);
+            typeOfWalkthroughControl.addOption({ value: 100000004, text: "Transaction Monitoring Walkthrough" });
+        }
+        /*
+        else
+        {
+            typeOfWalkthroughControl.removeOption({ value: 100000000, text: "AML Walk Through" });
+        }*/
+        
+//        if(isFraudMember){
+//            typeOfWalkthroughControl.clearOptions();
+//            formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(true);
+//            typeOfWalkthroughControl.addOption({ value: 100000002, text: "Fraud Walkthrough" });
+//        }
+
+    },
+    getLinkedProductsLOBUsingRegarding: async function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var regarding = formContext.getAttribute(this.Attributes.regarding).getValue();
+        
+        var LOBList = [];
+        if (regarding) {
+            regardingId = regarding[0].id;
+            regardingType = regarding[0].entityType;
+            if (regardingType === "crb_onboarding") {
+                LOBList = await this.getLinkedProductsLOBByOnboardingId(executionContext, regardingId);
+            }
+        }
+        return LOBList;
+    },
+    getLinkedProductsLOBByOnboardingId: async function (executionContext, onboardingId) {
+        var formContext = executionContext.getFormContext();
+        var LOBList = [];
+        var onboardingOptions = "?$select=_crb_opportunity_value";
+        var opptyId = await Xrm.WebApi.retrieveRecord('crb_onboarding', onboardingId, onboardingOptions).then(
+            function success(result) {
+                return result["_crb_opportunity_value"];
+            },
+            function (error) {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Opportunity from Onboarding' };
+                let alertOptions = { height: 120, width: 260 };
+
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        var options = "?$select=_crb_lineofbusiness_value&$filter=_crb_opportunity_value eq " + opptyId;
+        await Xrm.WebApi.retrieveMultipleRecords('crb_product', options).then(
+            function success(result) {
+                result.entities.forEach(function (record) {
+                    var LOBId = record["_crb_lineofbusiness_value"];
+                    if (LOBId) {
+                        // var LOBObject = {
+                        //     id: LOBId,
+                        //     name: record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"]
+                        // }
+                        LOBName = record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+                        LOBList.push(LOBName);
+                    }
+                });
+            },
+            function (error) {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Related Products of opportunity' };
+                let alertOptions = { height: 120, width: 260 };
+
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        return LOBList;
+    },
+    
+    /*
+    showWalkthroughBasedOnLoggedInUser: async function (executionContext) {
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var formContext = executionContext.getFormContext();
+        var typeOfWalkthroughControl = formContext.getControl(this.Attributes.typeOfWalkthrough);
+        var typeOfWalkThroughOptions = typeOfWalkthroughControl.getAttribute().getOptions();
+        //typeOfWalkThroughOptions.clearOptions();
+        
+        var isUserBSAAMLMemeber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "BSA/AML");
+        var isUserGDDMemerber = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, "General Due Diligence");
+        
+        if (isUserBSAAMLMemeber) {
+            formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(true);
+            typeOfWalkThroughOptions.addOption({ value: 100000000, text: "AML Walk Through" });            
+        }
+
+        else if (isUserGDDMemerber) {
+            formContext.getControl(this.Attributes.typeOfWalkthrough).setVisible(true);
+            typeOfWalkThroughOptions.addOption({ value: 100000000, text: "AML Walk Through" });              
+        } 
+       
+        else
+        {
+            typeOfWalkThroughOptions.removeOption({ value: 100000000, text: "AML Walk Through" });
+        }        
+    }, 
+
+    checkIfUserIdIsPartOfTeams: async function (userId, teamNames) {
+		userId = userId.replace("{", "").replace("}", "");
+		let result = false;	
+
+		let options = "?$select=name,teammembership_association&$expand=teammembership_association($select=systemuserid,fullname;$filter=systemuserid eq " + userId + ")";
+
+		let outputTeams = [];
+		await Xrm.WebApi.retrieveMultipleRecords("team", options).then(
+			(results) => {
+				outputTeams = results.entities;
+			})
+			.catch((error) => {
+				//console.error(error.message);
+			});
+
+		outputTeams = outputTeams.filter((team) => {
+			return team.teammembership_association.length > 0;
+		})
+
+		let teamNamesArray = teamNames.split(",");
+		for(var i=0; i<outputTeams.length; i++){
+			if(teamNamesArray.includes(outputTeams[i].name)){
+				result = true;
+				break;
+			}
+		}
+		return result;
+	},*/
+    
+    setRegardingField: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var regarding = formContext.getAttribute(this.Attributes.regarding).getValue();
+        if (regarding) {
+           var regardingName = regarding[0].name;
+            formContext.getAttribute(this.Attributes.Subject).setValue(regardingName);
+        }
+    },
+    
+    setInprogessMeetingStatus: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        formContext.getAttribute(this.Attributes.MeetingStatus).setValue(100000000);
+        //formContext.data.save();
+
+       
+        
+    },
+    
+    
+    HIdeAndShowFieldCommunicationType : function(executionContext){
+    var formContext = executionContext.getFormContext();
+    var regardingtype = Xrm.Page.getAttribute("regardingobjectid").getValue()[0].entityType;
+    if(regardingtype == "account"){
+        formContext.getControl(this.Attributes.communicationtype).setVisible(false);
+    }
+    else{
+        formContext.getControl(this.Attributes.communicationtype).setVisible(true);
+    }
+},
+HideNewCRBDocumentButton: function (primaryControl,selectedControl) {
+    //var formContext = executionContext.getFormContext();
+    var formContext = primaryControl;
+    var subgridname = selectedControl.getName();
+    //var MeetingHub = formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.MeetingHub).getDisplayState();
+    var formName = Xrm.Page.ui.formSelector.getCurrentItem().getLabel();
+
+    if(subgridname == "Documents" && formName == "CRB Meeting" ){
+        return false;
+    }
+    else{
+    return true;
+    }
+        
+},
+    
+}
+
