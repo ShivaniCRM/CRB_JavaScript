@@ -1,0 +1,98 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Nda = CRB.CRM.PJ.Nda || {};
+CRB.CRM.PJ.Nda = {
+	Attributes: {
+		Nda: {
+			title: "crb_title",
+			name: "crb_name",
+			contactFullName: "crb_fullname",
+			attn: "crb_atln",
+			legalEntityName: "crb_legalentityname",
+			legalEntityAddress: "crb_entitylegaladdress",
+			lawVuLink: "crb_lawvuurl",
+			ndaSentOtPartnerOn: "crb_ndasenton",
+			ndaApprovedBy: "crb_ndaapprovedby",
+			ndaApprovedOn: "crb_ndaapprovedon",
+			ndaReceivedFromPartnerOn: "crb_ndareceivedon",
+			expirationDate: "crb_expirationdate",
+			comment: "crb_ndacomment",
+			createdOn: "crb_createdon",
+            attnEmailAddress: "crb_attnemailaddress",
+            contact: "crb_contact"
+		},
+	},
+	TabName: {
+		Nda: "NDA_TAB"
+	},
+	Section: {
+		Nda: "Nda",
+		ndaDetails: "nda_details"
+	},
+	onLoadOfNda: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		this.MakeMandatoryFiledsNda(executionContext);
+		this.CaptureCurrentdate(executionContext);
+        this.addNewLineInLegalEntityAddress(executionContext);
+        this.updateAttnandAttnemailaddress(executionContext);
+	},
+	onSaveNda: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+	},
+	MakeMandatoryFiledsNda: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var formType = formContext.ui.getFormType();
+
+		if (formType === 1 || formType === 2) {
+			formContext.getAttribute(this.Attributes.Nda.attn).setRequiredLevel("required");
+		}
+	},
+	CaptureCurrentdate: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var formType = formContext.ui.getFormType();
+		var currentDate = new Date();
+		formContext.getAttribute(this.Attributes.Nda.createdOn).setValue(currentDate);
+		if (formType === 2) {
+			formContext.data.save();
+		}
+	},
+    addNewLineInLegalEntityAddress:function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var legalEntityAddress = formContext.getAttribute(this.Attributes.Nda.legalEntityAddress).getValue();
+        if(legalEntityAddress !==null)
+        {
+        if(legalEntityAddress.includes("\n")){
+            return;
+        }
+        
+        var addressData = legalEntityAddress.split(",")
+        var address = addressData[0] + "\n" + addressData[1] + "\n" + addressData[2] + "," + addressData[3] + " " + addressData[5] + "\n" + addressData[4];
+        formContext.getAttribute(this.Attributes.Nda.legalEntityAddress).setValue(address);
+        }
+    },
+    updateAttnandAttnemailaddress:async function(executionContext){
+        var formContext = executionContext.getFormContext();       
+        if(formContext.getAttribute(this.Attributes.Nda.contact).getValue() != null){
+             var ndaId = formContext.getAttribute(this.Attributes.Nda.contact).getValue()[0].id.replace("{", "").replace("}", "");
+            await Xrm.WebApi.retrieveRecord("contact", ndaId, "?$select=emailaddress1,crb_contactfullname").then(
+                function success(result) {
+                    console.log(result);
+                    // Columns
+                    var contactid = result["contactid"]; // Guid
+                    var emailaddress1 = result["emailaddress1"]; // Text
+                    var contactfullname = result["crb_contactfullname"]; // Text
+                    formContext.getAttribute(CRB.CRM.PJ.Nda.Attributes.Nda.attn).setValue(contactfullname);
+                    formContext.getAttribute(CRB.CRM.PJ.Nda.Attributes.Nda.attnEmailAddress).setValue(emailaddress1);
+                },
+                function(error) {
+                    console.log(error.message);
+                }
+            );
+        }
+    }
+}
