@@ -1,0 +1,81 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.PEP = CRB.CRM.PJ.PEP || {};
+CRB.CRM.PJ.PEP = {
+    Attributes: {
+        Fields:{
+            screening:"crb_screening",
+            whoisthepoliticallyexposedpersonpep:"crb_whoisthepoliticallyexposedpersonpep",
+            name:"crb_name",
+            whattypeofpep:"crb_whattypeofpep",
+            immediatefamilymemberorcloseassociatename:"crb_immediatefamilymemberorcloseassociatename",
+            familymemberorcloseassociaterelation:"crb_familymemberorcloseassociaterelation",
+            relationshiptoindividualholdingoffice:"crb_relationshiptoindividualholdingoffice",
+            providedetailsofpepspoliticalpositions:"crb_providedetailsofpepspoliticalpositions",
+        },
+        Sections:{
+
+        },
+        Tabs:{
+
+        },
+        SubGrids:{
+            PEPPoliticalPositions:"PEPPoliticalPositions",
+        }
+    },
+    onLoadPEP: function(executionContext){
+        var formContext = executionContext.getFormContext();
+        this.hideSubGrid(executionContext);
+        this.showFieldsDynamically(executionContext);
+
+    },
+    onSavePEP: function(executionContext){
+
+    },
+    showFieldsDynamically:async function(executionContext){
+        var formContext = executionContext.getFormContext();
+        var screening = formContext.getAttribute(this.Attributes.Fields.screening).getValue();
+        if(screening){
+            var screeningid = screening[0].id;
+            var options = "?$select=crb_isthiscustomeroranyrelatedpartiesapep";
+            var isthiscustomeroranyrelatedpartiesapep = await Xrm.WebApi.retrieveRecord('crb_screening', screeningid, options).then(
+                function success(result) {
+                    return result.crb_isthiscustomeroranyrelatedpartiesapep;                    
+                },
+                function (error) {
+                    let alertStrings = { confirmButtonLabel: 'Ok', text: 'Fetching Screening Record Failed' };
+                    let alertOptions = { height: 120, width: 260 };
+                    
+                    Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+                }
+            );
+
+            if(isthiscustomeroranyrelatedpartiesapep){
+                formContext.getControl(this.Attributes.Fields.whoisthepoliticallyexposedpersonpep).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.name).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.whattypeofpep).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.immediatefamilymemberorcloseassociatename).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.familymemberorcloseassociaterelation).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.relationshiptoindividualholdingoffice).setVisible(true);
+                formContext.getControl(this.Attributes.Fields.providedetailsofpepspoliticalpositions).setVisible(true);
+                formContext.getAttribute(this.Attributes.Fields.whoisthepoliticallyexposedpersonpep).setRequiredLevel("required");
+                formContext.getAttribute(this.Attributes.Fields.name).setRequiredLevel("required");
+                formContext.getAttribute(this.Attributes.Fields.whattypeofpep).setRequiredLevel("required");
+                formContext.getAttribute(this.Attributes.Fields.immediatefamilymemberorcloseassociatename).setRequiredLevel("required");
+                formContext.getAttribute(this.Attributes.Fields.familymemberorcloseassociaterelation).setRequiredLevel("required");
+                formContext.getAttribute(this.Attributes.Fields.relationshiptoindividualholdingoffice).setRequiredLevel("required");
+                formContext.getAttribute(this.Attributes.Fields.providedetailsofpepspoliticalpositions).setRequiredLevel("required");
+                formContext.getControl(this.Attributes.SubGrids.PEPPoliticalPositions).setVisible(true);
+            }
+        }
+    },
+    hideSubGrid(executionContext){
+        var formContext = executionContext.getFormContext();
+        var subgrid = formContext.getControl(this.Attributes.SubGrids.PEPPoliticalPositions);
+        if(subgrid){
+            subgrid.setVisible(false);
+        }
+    }
+
+}
