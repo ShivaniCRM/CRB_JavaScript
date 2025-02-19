@@ -1,0 +1,614 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Product = CRB.CRM.PJ.Product || {};
+CRB.CRM.PJ.Product = {
+    Attributes: {
+        Fields: {
+            name: "crb_name",
+            productName: "crb_productname",
+            opportunity: "crb_opportunity",
+            lineOfBusiness: "crb_lineofbusiness",
+            purpose: "crb_purpose",
+            securedBy: "crb_securedby",
+            featureName: "crb_featuresid",
+            features: "crb_features",
+            productType: "crb_producttype",
+            standardizedProductFIDC: "crb_standarardizedproductfidc",
+            requireBinSponsorship: "crb_requirebinsponsorship",
+            sweepsFeatureProduct: "crb_sweepsfeatureproduct",
+            customerLocatedInUS: "crb_customerlocatedinus",
+            accountInterestBearing: "crb_accountinterestbearing",
+            accountPaymentCapabilities1: "crb_accountpaymentcapabilities1",
+            interestedInOfferingLinkedDebitCard: "crb_interestedinofferinglinkeddebitcard",
+            requireBinSponsorship1: "crb_requirebinsponsorship1",
+            linkedMobileDepositCapture: "crb_linkedmobiledepositcapture",
+            debitCardsOfferPerAccount: "crb_debitcardsofferperaccount",
+            //projectedOriginationValue: "crb_projectedoriginationvalue",
+            annualNoOfLoans: "crb_annualnoofloans1",
+            averageLoanSize: "crb_averageloansize",
+            interestRateRange: "crb_interestraterange",
+            subPrimeBorrowerPercentage: "crb_subprimeborrowerpercentage",
+            describesYourBusiness: "crb_describesyourbusiness",
+            other: "crb_other",
+            performMoneyServicesBusiness: "crb_performmoneyservicesbusiness",
+            other1: "crb_other1",
+            forBenifitOfStructure: "crb_forbenifitofstructure",
+            fboArrangement: "crb_fboarrangement",
+            prilimaryPaymentTransaction: "crb_prilimarypaymenttransaction",
+            domesticACHPaymentOriginating: "crb_domesticachpaymentoriginating",
+            cACHPaymentOriginatingInternational: "crb_cachpaymentoriginatinginternational",
+            achTypesOfDebits: "crb_achtypesofdebits1",
+            achTypesOfCredits: "crb_achtypesofcredits1",
+            primaryTransactionWires: "crb_primarytransactionwires",
+            pushToCard: "crb_pushtocard",
+            countries: "crb_countries",
+            merchantCategory: "crb_merchantcategory",
+            debitCreditCardProcessors: "crb_debitcreditcardprocessors",
+            projectedOriginationValueYears1: "crb_projectedoriginationvalueyear1",
+            projectedOriginationValueYears2: "crb_projectedoriginationvalueyear2",
+            projectedOriginationValueYears3: "crb_projectedoriginationvalueyear3",
+            // achTypesOfDebits1: "crb_achtypesofdebits",
+            //achTypesOfCredits1: "crb_achtypesofcredits",
+            listCountrieswheretransactionsoccur: "crb_listofcountrieswheretransactionswilloccur"
+        },
+        Sections: {
+            X_PAY: "X PAY"
+        },
+        Tabs: {
+            Product: "Product"
+        },
+        LOV: {
+            lineOfBusiness: {
+				BaaSCards: "BaaS/Cards",
+				Marketplace_Lending: "Marketplace Lending",
+				Payments: "Payments",
+			},
+            
+        }
+    },
+    onLoadOfProduct: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        //formContext.getControl(this.Attributes.Fields.productName).addPreSearch(CRB.CRM.PJ.Product.myPreSearchCallBack);
+        //this.setLineOfBusinessOnLoad(executionContext);
+        //formContext.getControl(this.Attributes.Fields.productName).addPreSearch(CRB.CRM.PJ.Product.myPreSearchCallBack);
+        if (formContext.ui.getFormType() !== 1) {
+            //formContext.getControl(this.Attributes.Fields.lineOfBusiness).setDisabled(true);
+            this.onSaveDisableProductForm(executionContext);
+        }
+        this.loadDataFromCommonJS(executionContext);
+        this.dynamicSectionRendering(executionContext);
+        this.removeOptionsfromAccountSupport(executionContext);
+        this.onChangeOfSelectOptionthatdescribesyourbusiness(executionContext);
+        this.onChangeofWillYouPerformMSBActivities(executionContext);
+        this.HideAndShowPurposeOnlyForMPL(executionContext);
+    },
+    onSaveOfProduct: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var productName = formContext.getAttribute(this.Attributes.Fields.productName).getValue();
+        formContext.getAttribute(this.Attributes.Fields.name).setValue(productName[0].name);
+        this.onSaveDisableProductForm(executionContext);
+        // formContext.getControl(this.Attributes.Fields.lineOfBusiness).setDisabled(true);
+    },
+    loadDataFromCommonJS: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var CommonJsObj = CRB.CRM.PJ.Common;
+		this.Attributes.LOV.lineOfBusiness = CommonJsObj.Common.LOV.LineOfBusinessGuids;
+		this.Attributes.LOV.productNames = CommonJsObj.Common.LOV.ProductNamesGuids;
+		this.Attributes.LOV.featureNames = CommonJsObj.Common.LOV.FeatureNamesGuids;
+	},
+    onChangeOfLOB: function (executionContext) {     //still need to add the event on LOB field onchange
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        formContext.getAttribute(this.Attributes.Fields.productName).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.purpose).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.securedBy).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.features).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.productType).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.standardizedProductFIDC).setValue(null);
+        this.dynamicSectionRendering(executionContext);
+        this.HideAndShowPurposeOnlyForMPL(executionContext);
+    },
+    onChangeOfProductName: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        this.resetAllFields(executionContext);
+        this.dynamicSectionRendering(executionContext);
+        this.setValueOnFDICField(executionContext);
+        this.removeOptionsfromAccountSupport(executionContext);
+        this.allowoneProduct(executionContext);
+    },
+    onChangeOfSelectOptionthatdescribesyourbusiness: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var describesYourBusiness = formContext.getAttribute(this.Attributes.Fields.describesYourBusiness).getValue();
+        if (describesYourBusiness) {
+            if (describesYourBusiness.includes(12)) {
+                formContext.getControl(this.Attributes.Fields.other).setVisible(true);
+            }
+            else {
+                formContext.getControl(this.Attributes.Fields.other).setVisible(false);
+            }
+            if (describesYourBusiness.includes(5) || describesYourBusiness.includes(6)) {
+                formContext.getControl(this.Attributes.Fields.performMoneyServicesBusiness).setVisible(true);
+            }
+            else {
+                formContext.getControl(this.Attributes.Fields.performMoneyServicesBusiness).setVisible(false);
+            }
+        }
+        else {
+            formContext.getControl(this.Attributes.Fields.other).setVisible(false);
+            formContext.getControl(this.Attributes.Fields.performMoneyServicesBusiness).setVisible(false);
+        }
+    },
+    allowoneProduct: function (executionContext) {
+		var formContext = executionContext.getFormContext();
+		var opty = formContext.getAttribute(this.Attributes.Fields.opportunity).getValue();
+		var prod = formContext.getAttribute(this.Attributes.Fields.productName).getValue();
+		if (prod != null) {
+			var prodId = prod[0].id.replace("{", "").replace("}", "").toLowerCase();
+			if (opty !== null) {
+				var optyid = opty[0].id;
+				Xrm.WebApi.retrieveMultipleRecords("crb_product", "?$select=_crb_productname_value&$filter=_crb_opportunity_value eq " + optyid).then(
+					function success(results) {
+						console.log(results);
+						for (var i = 0; i < results.entities.length; i++) {
+							var result = results.entities[i];
+							var product = result["_crb_productname_value"];
+							//var product = result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"];
+							if (product == prodId) {
+								var flag = 1;
+							}
+						}
+						if (flag == 1) {
+							Xrm.Navigation.openAlertDialog({ text: "Product already exists. Please choose a different one", confirmButtonLabel: "OK" });
+							formContext.getAttribute(CRB.CRM.PJ.Product.Attributes.Fields.productName).setValue(null);
+						}
+					},
+					function (error) {
+						console.log(error.message);
+					}
+				);
+			}
+		}
+	},
+    setLineOfBusinessOnLoad: async function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var lookUpObjectValue = formContext.getAttribute(this.Attributes.Fields.opportunity).getValue();
+        if (lookUpObjectValue !== null) {
+            var lookupid = lookUpObjectValue[0].id;
+            var optyType = await Xrm.WebApi.retrieveRecord("opportunity", lookupid, "?$select=_crb_opportunitytype_value");
+            //formContext.getAttribute("crb_lineofbusiness").setValue(optyType);
+            if (optyType["_crb_opportunitytype_value"] !== null) {
+                var lob = [{
+                    id: optyType["_crb_opportunitytype_value"],
+                    name: optyType["_crb_opportunitytype_value@OData.Community.Display.V1.FormattedValue"],
+                    entityType: optyType["_crb_opportunitytype_value@Microsoft.Dynamics.CRM.lookuplogicalname"]
+                }]
+                formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).setValue(lob);
+            }
+        }
+    },
+    /*myPreSearchCallBack: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        // do not use this.Attributes.... beacuse it is not getting value correctly - maybe since it is predefined event the context is changing and 'this' is refering to some other instance
+        var LineOfBusiness = formContext.getAttribute(CRB.CRM.PJ.Product.Attributes.Fields.lineOfBusiness).getValue();
+        var filter = "<filter type='or'><condition attribute='crb_name' operator='eq' value='ABCDEFGHIJKLMNOPQRSTUVWXYZ'/></filter>";
+        if (LineOfBusiness !== null) {
+            var LOBName = LineOfBusiness[0].name;
+            if (LOBName === CRB.CRM.PJ.Product.Attributes.LOV.lineOfBusiness.BaaSCards) {
+                filter = "<filter type='or'><condition attribute='crb_name' operator='eq' value='Consumer Charge Card'/><condition attribute='crb_name' operator='eq' value='Consumer Credit Card'/><condition attribute='crb_name' operator='eq' value='Consumer Checking Account'/><condition attribute='crb_name' operator='eq' value='Consumer Savings Account'/><condition attribute='crb_name' operator='eq' value='Commercial Charge Card'/><condition attribute='crb_name' operator='eq' value='Commercial Credit Card'/><condition attribute='crb_name' operator='eq' value='Commercial Checking Account'/><condition attribute='crb_name' operator='eq' value='Commercial Savings Account'/></filter>";
+
+                // filter = "<link-entity name='crb_productname' from='crb_productnameid' to='crb_productname' link-type='inner' alias='ab'><filter type='and'> <condition attribute='crb_productnameid' operator='eq' value='{FF09B841-FBE0-EE11-904D-0022482A4BA4}'/></filter></link-entity>";        //this also works
+            } else if (LOBName === CRB.CRM.PJ.Product.Attributes.LOV.lineOfBusiness.Marketplace_Lending) {
+                filter = "<filter type='or'><condition attribute='crb_name' operator='eq' value='Consumer Line of Credit'/><condition attribute='crb_name' operator='eq' value='Commercial Loan'/><condition attribute='crb_name' operator='eq' value='Consumer Installment Loan'/></filter>";
+            } else if (LOBName === CRB.CRM.PJ.Product.Attributes.LOV.lineOfBusiness.Payments) {
+                filter = "<filter type='or'><condition attribute='crb_name' operator='eq' value='ACH Domestic'/><condition attribute='crb_name' operator='eq' value='ACH International'/><condition attribute='crb_name' operator='eq' value='FedNow'/><condition attribute='crb_name' operator='eq' value='Merchant Acquiring'/><condition attribute='crb_name' operator='eq' value='Push to Card'/><condition attribute='crb_name' operator='eq' value='RTP'/><condition attribute='crb_name' operator='eq' value='Wires Domestic'/><condition attribute='crb_name' operator='eq' value='Wires International'/><condition attribute='crb_name' operator='eq' value='Xpay'/></filter>";
+            }
+
+        }
+        formContext.getControl(CRB.CRM.PJ.Product.Attributes.Fields.productName).addCustomFilter(filter);
+    },*/
+    setValueOnFDICField: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var productType = formContext.getAttribute(this.Attributes.Fields.productType).getValue();
+        var productName = formContext.getAttribute(this.Attributes.Fields.productName).getValue();
+        var purpose = formContext.getAttribute(this.Attributes.Fields.purpose).getValue();
+        var securedBy = formContext.getAttribute(this.Attributes.Fields.securedBy).getValue();
+        var concat = "";
+        if (productType !== null) {
+            concat = concat + productType[0].name + "  ";
+        }
+        if (productName !== null) {
+            concat = "  " + concat + productName[0].name;
+        }
+        if (purpose !== null) {
+            concat = concat + "-" + purpose[0].name + "  ";
+        }
+        if (securedBy !== null) {
+            concat = "  " + concat + securedBy[0].name + "  ";
+        }
+        formContext.getAttribute(this.Attributes.Fields.standardizedProductFIDC).setValue(concat);
+    },
+    dynamicSectionRendering: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var lob = formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).getValue();
+		var product = formContext.getAttribute(this.Attributes.Fields.productName).getValue();
+		//BAAS/CARDS
+		formContext.getControl(this.Attributes.Fields.requireBinSponsorship).setVisible(false); //32
+		formContext.getControl(this.Attributes.Fields.sweepsFeatureProduct).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.customerLocatedInUS).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.accountInterestBearing).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.interestedInOfferingLinkedDebitCard).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.requireBinSponsorship1).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.linkedMobileDepositCapture).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.debitCardsOfferPerAccount).setVisible(false);
+		//MPL LOB: Applicable for all MPL products
+		//formContext.getControl(this.Attributes.Fields.projectedOriginationValue).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears1).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears2).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears3).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.annualNoOfLoans).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.averageLoanSize).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.interestRateRange).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.subPrimeBorrowerPercentage).setVisible(false);
+		//Payments
+		formContext.getControl(this.Attributes.Fields.describesYourBusiness).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.other).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.performMoneyServicesBusiness).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.other1).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.forBenifitOfStructure).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.fboArrangement).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.listCountrieswheretransactionsoccur).setVisible(false);
+
+		//ACH
+		formContext.getControl(this.Attributes.Fields.prilimaryPaymentTransaction).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.domesticACHPaymentOriginating).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.cACHPaymentOriginatingInternational).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.achTypesOfDebits).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.achTypesOfCredits).setVisible(false);
+
+		//Wires
+		formContext.getControl(this.Attributes.Fields.primaryTransactionWires).setVisible(false);
+
+		//Push To Card
+		formContext.getControl(this.Attributes.Fields.pushToCard).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.countries).setVisible(false);
+
+		//Merchant Acquiring
+		formContext.getControl(this.Attributes.Fields.merchantCategory).setVisible(false);
+		formContext.getControl(this.Attributes.Fields.debitCreditCardProcessors).setVisible(false);
+
+		//X Pay
+		formContext.getControl(this.Attributes.Fields.achTypesOfDebits).setVisible(false);//crb_achtypesofdebits crb_achtypesofdebits
+		formContext.getControl(this.Attributes.Fields.achTypesOfCredits).setVisible(false);//crb_achtypesofcredits crb_achtypesofcredits
+
+		if (lob !== null) {
+			var lobId = lob[0].id.replace("{", "").replace("}", "").toLowerCase();
+			if (lobId === this.Attributes.LOV.lineOfBusiness.Payments) {
+				formContext.getControl(this.Attributes.Fields.describesYourBusiness).setVisible(true);
+			}
+		}
+
+		if (lob !== null && product !== null) {
+			var lobId = lob[0].id.replace("{", "").replace("}", "").toLowerCase();
+			var productId = product[0].id.replace("{", "").replace("}", "").toLowerCase();
+			if (lobId === this.Attributes.LOV.lineOfBusiness.BaaSCards) {
+				//                formContext.getControl(this.Attributes.Fields.features).setVisible(true);
+				if (productId === this.Attributes.LOV.productNames.ConsumerCreditCard) {
+					formContext.getControl(this.Attributes.Fields.requireBinSponsorship).setVisible(true);
+				}
+
+				if (productId === this.Attributes.LOV.productNames.ConsumerSavingsAccount) {
+					formContext.getControl(this.Attributes.Fields.sweepsFeatureProduct).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.customerLocatedInUS).setVisible(true); // need to implement hover a note below "Cross River Bank currently only supports customers within the United States" (check DD for details)
+					formContext.getControl(this.Attributes.Fields.accountInterestBearing).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.linkedMobileDepositCapture).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.requireBinSponsorship1).setVisible(true);
+					//formContext.getControl(this.Attributes.Fields.interestedInOfferingLinkedDebitCard).setVisible(true);
+				}
+
+				if (productId === this.Attributes.LOV.productNames.ConsumerCheckingAccount) {
+					formContext.getControl(this.Attributes.Fields.sweepsFeatureProduct).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.customerLocatedInUS).setVisible(true); // need to implement hover a note below "Cross River Bank currently only supports customers within the United States" (check DD for details)
+					formContext.getControl(this.Attributes.Fields.accountInterestBearing).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.linkedMobileDepositCapture).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.interestedInOfferingLinkedDebitCard).setVisible(true);
+					//formContext.getControl(this.Attributes.Fields.requireBinSponsorship1).setVisible(true); //if this is yes we need to display some other field (refer DD for the info)
+					formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.requireBinSponsorship1).setVisible(true);
+				}
+
+
+				if (productId === this.Attributes.LOV.productNames.CommercialCreditCard) {
+					formContext.getControl(this.Attributes.Fields.requireBinSponsorship).setVisible(true);
+				}
+
+				if (productId === this.Attributes.LOV.productNames.CommercialSavingsAccount) {
+					formContext.getControl(this.Attributes.Fields.sweepsFeatureProduct).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.customerLocatedInUS).setVisible(true); // need to implement hover a note below "Cross River Bank currently only supports customers within the United States" (check DD for details)
+					formContext.getControl(this.Attributes.Fields.accountInterestBearing).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.linkedMobileDepositCapture).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).setVisible(true); // need to implement something else check DD to know that
+				}
+				if (productId === this.Attributes.LOV.productNames.CommercialCheckingAccount) {
+					formContext.getControl(this.Attributes.Fields.sweepsFeatureProduct).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.customerLocatedInUS).setVisible(true); // need to implement hover a note below "Cross River Bank currently only supports customers within the United States" (check DD for details)
+					formContext.getControl(this.Attributes.Fields.accountInterestBearing).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.linkedMobileDepositCapture).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).setVisible(true); // need to implement something else check DD to know that
+					formContext.getControl(this.Attributes.Fields.interestedInOfferingLinkedDebitCard).setVisible(true);
+					//formContext.getControl(this.Attributes.Fields.requireBinSponsorship1).setVisible(true); //if this is yes we need to display some other field (refer DD for the info)
+					formContext.getControl(this.Attributes.Fields.debitCardsOfferPerAccount).setVisible(true);
+				}
+			} else if (lobId === this.Attributes.LOV.lineOfBusiness.Marketplace_Lending) {
+				//formContext.getControl(this.Attributes.Fields.projectedOriginationValue).setVisible(true);
+				formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears1).setVisible(true);
+				formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears2).setVisible(true);
+				formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears3).setVisible(true);
+				formContext.getControl(this.Attributes.Fields.annualNoOfLoans).setVisible(true);
+				formContext.getControl(this.Attributes.Fields.averageLoanSize).setVisible(true);
+				formContext.getControl(this.Attributes.Fields.interestRateRange).setVisible(true);
+				formContext.getControl(this.Attributes.Fields.subPrimeBorrowerPercentage).setVisible(true);
+			} else if (lobId === this.Attributes.LOV.lineOfBusiness.Payments) {
+				//formContext.getControl(this.Attributes.Fields.describesYourBusiness).setVisible(true);
+				//for crb_other we need show on change of crb_describesyourbusiness
+				//for crb_performmoneyservicesbusiness we need show on change of crb_describesyourbusiness
+				//for crb_other1 we need show on change of crb_performmoneyservicesbusiness
+				if ([this.Attributes.LOV.productNames.ACHDomestic, this.Attributes.LOV.productNames.ACHInternational, this.Attributes.LOV.productNames.FedNow, this.Attributes.LOV.productNames.MerchantAcquiring, this.Attributes.LOV.productNames.PushToCard, this.Attributes.LOV.productNames.RTP, this.Attributes.LOV.productNames.WireInternational, this.Attributes.LOV.productNames.WireDomestic, this.Attributes.LOV.productNames.Xpay].includes(productId)) {
+					var feature = formContext.getAttribute(this.Attributes.Fields.features).getValue();
+					if (feature !== null) {
+						var featureId = feature[0].id.replace("{", "").replace("}", "").toLowerCase();
+						if (featureId === this.Attributes.LOV.featureNames.FBO) {
+							formContext.getControl(this.Attributes.Fields.forBenifitOfStructure).setVisible(true);
+							//for crb_fboarrangement we need show on change of crb_forbenifitofstructure
+						}
+					}
+				}
+				if ([this.Attributes.LOV.productNames.ACHDomestic, this.Attributes.LOV.productNames.ACHInternational].includes(productId)) {
+					formContext.getControl(this.Attributes.Fields.prilimaryPaymentTransaction).setVisible(true);
+					//formContext.getAttribute(this.Attributes.Fields.prilimaryPaymentTransaction).setValue(null);
+					formContext.getControl(this.Attributes.Fields.achTypesOfDebits).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.achTypesOfCredits).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.listCountrieswheretransactionsoccur).setVisible(true);
+					//formContext.getControl(this.Attributes.Fields.forBenifitOfStructure).setVisible(true);
+					//                    formContext.getControl(this.Attributes.Fields.features).setVisible(true);
+					//
+				}
+				if ([this.Attributes.LOV.productNames.WireInternational, this.Attributes.LOV.productNames.WireDomestic].includes(productId)) {
+					formContext.getControl(this.Attributes.Fields.primaryTransactionWires).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.listCountrieswheretransactionsoccur).setVisible(true);
+					//                    formContext.getControl(this.Attributes.Fields.features).setVisible(true);
+				}
+				if (productId === this.Attributes.LOV.productNames.PushToCard) {
+					formContext.getControl(this.Attributes.Fields.pushToCard).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.countries).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.listCountrieswheretransactionsoccur).setVisible(true);
+				}
+				if (productId === this.Attributes.LOV.productNames.MerchantAcquiring) {
+					formContext.getControl(this.Attributes.Fields.merchantCategory).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.debitCreditCardProcessors).setVisible(true);
+				}
+				if (productId === this.Attributes.LOV.productNames.Xpay) {
+					formContext.getControl(this.Attributes.Fields.achTypesOfDebits).setVisible(true);
+					formContext.getControl(this.Attributes.Fields.achTypesOfCredits).setVisible(true);
+				}
+
+			}
+		}
+	},
+    removeOptionsfromAccountSupport: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		var lob = formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).getValue();
+		var product = formContext.getAttribute(this.Attributes.Fields.productName).getValue();
+		var multiSelectOptions = {
+			Domestic: [{ text: 'Domestic ACH', value: 1 },
+			{ text: 'Domestic Wire', value: 2 }
+			],
+			all: [
+				{ text: 'Domestic ACH', value: 1 },
+				{ text: 'Domestic Wire', value: 2 },
+				{ text: 'Domestic Push to Card', value: 3 },
+				{ text: 'International Wire', value: 4 },
+				{ text: 'International ACH', value: 5 },
+				{ text: 'International Push to Card', value: 6 }
+
+			]
+		}
+		if (lob !== null && product !== null) {
+			var lobId = lob[0].id.replace("{", "").replace("}", "").toLowerCase();
+			var productId = product[0].id.replace("{", "").replace("}", "").toLowerCase();
+			if (lobId === this.Attributes.LOV.lineOfBusiness.BaaSCards) {
+				if (productId === this.Attributes.LOV.productNames.ConsumerSavingsAccount || productId === this.Attributes.LOV.productNames.ConsumerCheckingAccount) {
+					formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).clearOptions();
+					multiSelectOptions.Domestic.forEach(element => formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).addOption(element));
+				}
+				else {
+					formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).clearOptions();
+					multiSelectOptions.all.forEach(element => formContext.getControl(this.Attributes.Fields.accountPaymentCapabilities1).addOption(element));
+				}
+			}
+		}
+	},
+    resetAllFields: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        //BAAS/CARDS
+        formContext.getAttribute(this.Attributes.Fields.requireBinSponsorship).setValue(null); //32
+        formContext.getAttribute(this.Attributes.Fields.sweepsFeatureProduct).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.customerLocatedInUS).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.accountInterestBearing).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.accountPaymentCapabilities1).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.interestedInOfferingLinkedDebitCard).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.requireBinSponsorship1).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.linkedMobileDepositCapture).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.debitCardsOfferPerAccount).setValue(null);
+        //MPL LOB: Applicable for all MPL products
+        //formContext.getAttribute(this.Attributes.Fields.projectedOriginationValue).setValue(null);
+        formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears1).setVisible(null);
+        formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears2).setVisible(null);
+        formContext.getControl(this.Attributes.Fields.projectedOriginationValueYears3).setVisible(null);
+        formContext.getAttribute(this.Attributes.Fields.annualNoOfLoans).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.averageLoanSize).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.interestRateRange).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.subPrimeBorrowerPercentage).setValue(null);
+        //Payments
+        formContext.getAttribute(this.Attributes.Fields.describesYourBusiness).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.other).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.performMoneyServicesBusiness).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.other1).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.forBenifitOfStructure).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.fboArrangement).setValue(null);
+
+        //ACH
+        formContext.getAttribute(this.Attributes.Fields.prilimaryPaymentTransaction).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.domesticACHPaymentOriginating).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.cACHPaymentOriginatingInternational).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.achTypesOfDebits).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.achTypesOfCredits).setValue(null);
+
+        //Wires
+        formContext.getAttribute(this.Attributes.Fields.primaryTransactionWires).setValue(null);
+
+        //Push To Card
+        formContext.getAttribute(this.Attributes.Fields.pushToCard).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.countries).setValue(null);
+
+        //Merchant Acquiring
+        formContext.getAttribute(this.Attributes.Fields.merchantCategory).setValue(null);
+        formContext.getAttribute(this.Attributes.Fields.debitCreditCardProcessors).setValue(null);
+
+
+        //X Pay
+        formContext.getAttribute(this.Attributes.Fields.achTypesOfDebits).setValue(null);//crb_achtypesofdebits crb_achtypesofdebits
+        formContext.getAttribute(this.Attributes.Fields.achTypesOfCredits).setValue(null);//crb_achtypesofcredits crb_achtypesofcredits
+
+    },
+    //Feature field LOVs
+
+    onLoadOfFeature: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        //formContext.getControl(this.Attributes.Fields.features).addPreSearch(CRB.CRM.PJ.Product.callBackOnFeature);
+        //this.setLineOfBusinessOnLoad(executionContext);
+        //formContext.getControl(this.Attributes.Fields.features).addPreSearch(CRB.CRM.PJ.Product.callBackOnFeature);
+        if (formContext.ui.getFormType() !== 1) {
+            formContext.getControl(this.Attributes.Fields.lineOfBusiness).setDisabled(true);
+        }
+        this.dynamicSectionRendering(executionContext);
+        this.removeOptionsfromAccountSupport(executionContext);
+    },
+
+    callBackOnFeature: function (executionContext) {    //not in use
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var LineOfBusiness = formContext.getAttribute(CRB.CRM.PJ.Product.Attributes.Fields.lineOfBusiness).getValue();
+        var filter = "<filter type='or'><condition attribute='crb_name' operator='eq' value='ABCDEFGHIJKLMNOPQRSTUVWXYZ'/></filter>";
+        if (LineOfBusiness !== null) {
+            var LOBName = LineOfBusiness[0].name;
+            if (LOBName === CRB.CRM.PJ.Product.Attributes.LOV.lineOfBusiness.BaaSCards) {
+                filter = "<filter type='or'><condition attribute='crb_name' operator='eq' value='BIN Sponsorship'/><condition attribute='crb_name' operator='eq' value='Debit Card'/><condition attribute='crb_name' operator='eq' value='Mobile Deposit Capture'/><condition attribute='crb_name' operator='eq' value='Sweeps'/></filter>";
+            }
+            else if (LOBName === CRB.CRM.PJ.Product.Attributes.LOV.lineOfBusiness.Payments) {
+                filter = "<filter type='or'><condition attribute='crb_name' operator='eq' value='Domestic, International (for Wires)'/><condition attribute='crb_name' operator='eq' value='FBO'/></filter>";
+                //"<link-entity name='crb_features' from='crb_featuresid' to='crb_features' link-type='inner' alias='ad'><filter type='and'><condition attribute='crb_featuresid' operator='eq' value='{8415B514-FEE0-EE11-904D-0022482A4BA4}'/></filter></link-entity>";
+            }
+
+        }
+        //formContext.getControl("crb_features").addCustomFilter(filter);
+
+        formContext.getControl(CRB.CRM.PJ.Product.Attributes.Fields.features).addCustomFilter(filter);
+    },
+
+    onSaveDisableProductForm: async function (executionContext) {
+        "use strict";
+        let formContext = executionContext.getFormContext();
+        if(formContext.getAttribute(CRB.CRM.PJ.Product.Attributes.Fields.opportunity).getValue() !== null){
+            var opportunityId = formContext.getAttribute(CRB.CRM.PJ.Product.Attributes.Fields.opportunity).getValue()[0].id.replace("{", "").replace("}", "");
+            await Xrm.WebApi.retrieveMultipleRecords("crb_termsheet", "?$select=crb_termsheetstatus&$filter=(crb_termsheetstatus ne 3 and _crb_opportunity_value eq '" + opportunityId + "')").then(
+                function success(results) {
+                    console.log(results);
+                    if(results.entities.length > 0) {
+                        let formControls = formContext.ui.controls;
+                        formControls.forEach(control => {
+                            if (control.getName() !== "" && control.getName() !== null) {
+                                control.setDisabled(false);
+                            }
+                        });
+                    }
+                    else{
+                        let formControls = formContext.ui.controls;
+                        formControls.forEach(control => {
+                            if (control.getName() !== "" && control.getName() !== null) {
+                                control.setDisabled(true);
+                            }
+                        });
+                    }
+                },
+                function(error) {
+                    console.log(error.message);
+                }
+            );	
+        }
+    },
+    onChangeofWillYouPerformMSBActivities: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var performMoneyServicesBusiness = formContext.getAttribute(this.Attributes.Fields.performMoneyServicesBusiness).getValue();
+        if (performMoneyServicesBusiness !== null && performMoneyServicesBusiness !== undefined) {
+            if (performMoneyServicesBusiness === 3) {
+                formContext.getControl(this.Attributes.Fields.other1).setVisible(true);
+            }
+            else {
+                formContext.getControl(this.Attributes.Fields.other1).setVisible(false);
+            }
+        }
+        else {
+            formContext.getControl(this.Attributes.Fields.other1).setVisible(false);
+        }
+    },
+
+    toggleNewButtonBasedOnTeamMembership: function (executionContext) {
+        debugger;
+        var formContext = executionContext.getFormContext();
+        var teamId = "3a7a5545-363d-ef11-8409-000d3a14df74";
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var query = `/teammemberships?$filter=teamid eq ${teamId} and systemuserid eq ${userId}`;
+        Xrm.WebApi.retrieveMultipleRecords("teammembership", query).then(
+            function success(result) {
+                if (result.entities.length > 0) {
+                    toggleSubgridAddButtonVisibility("your_subgrid_name", true);
+                } else {
+                    toggleSubgridAddButtonVisibility("your_subgrid_name", false);
+                }
+            },
+            function (error) {
+                console.log("Error retrieving team membership: " + error.message);
+            }
+        );
+    },
+    HideAndShowPurposeOnlyForMPL: function (executionContext) {
+        var formContext = executionContext.getFormContext();
+        var LOB = formContext.getAttribute(this.Attributes.Fields.lineOfBusiness).getValue();
+        if (LOB !== null) {
+            var LOBName = LOB[0].name;
+            if (LOBName !== null && LOBName !== undefined && LOBName === "Marketplace Lending") {
+                formContext.getControl(this.Attributes.Fields.purpose).setVisible(true);
+            }
+            else {
+                formContext.getControl(this.Attributes.Fields.purpose).setVisible(false);
+            }
+        }
+    },
+
+    
+}
