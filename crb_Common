@@ -1,0 +1,532 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.Common = CRB.CRM.PJ.Common || {};
+CRB.CRM.PJ.Common = {
+    Common: {
+        LOV: {
+            LineOfBusinessGuids: {
+                BaaSCards: "c9c34eb5-69dc-ee11-904c-000d3a1c40a7",
+                Marketplace_Lending: "ef663fc1-69dc-ee11-904c-000d3a1c40a7",
+                Payments: "6b41bec1-69dc-ee11-904d-0022482a4ba4",
+                SBALending: "d6689759-6479-ef11-a671-6045bdd9aaf1",
+                CapitalMarkets: "b08f6a66-6479-ef11-a671-6045bdd9aaf1",
+                DigitalBanking: "a98f6a66-6479-ef11-a671-6045bdd9aaf1",
+                SDL: "f4b37b73-6479-ef11-a671-6045bdd9aaf1",
+                CRE: "04b47b73-6479-ef11-a671-6045bdd9aaf1",
+            },
+            ProductNamesGuids: {
+                ConsumerCreditCard: "b8894959-fbe0-ee11-904d-000d3a582171",
+                ConsumerSavingsAccount: "bc08fe6b-fbe0-ee11-904d-0022482a4ba4",
+                ConsumerCheckingAccount: "8a0e4565-fbe0-ee11-904c-000d3a1c40a7",
+                CommercialCreditCard: "a4a80a84-fbe0-ee11-904c-000d3a1c40a7",
+                CommercialSavingsAccount: "fdfd4ca0-fbe0-ee11-904d-0022482a4ba4",
+                CommercialCheckingAccount: "f28f5893-fbe0-ee11-904d-0022482a4ba4",
+                ConsumerLineOfCredit: "5da0ec27-bde2-ee11-904d-0022482a4ba4",
+                CommercialLoan: "fe1ee5ac-fbe0-ee11-904d-0022482a4ba4",
+                ConsumerInstallmentLoan: "07f776cc-fbe0-ee11-904d-0022482a4d60",
+                ACHDomestic: "2ce265f2-bce2-ee11-904d-0022482a4ba4",
+                ACHInternational: "e73b7a03-bde2-ee11-904c-000d3a1c40a7",
+                FedNow: "9cab60ef-fbe0-ee11-904d-0022482a4186",
+                MerchantAcquiring: "9e5997f8-fbe0-ee11-904d-0022482a4186",
+                PushToCard: "a457f404-fce0-ee11-904d-0022482a4d60",
+                RTP: "5f892c11-fce0-ee11-904d-0022482a4d60",
+                WireDomestic: "6095b20d-bde2-ee11-904d-0022482a4ba4",
+                WireInternational: "7a37961c-bde2-ee11-904c-000d3a1c40a7",
+                Xpay: "907d8315-fce0-ee11-904d-0022482a4ba4",
+            },
+            FeatureNamesGuids: {
+                FBO: "8415b514-fee0-ee11-904d-0022482a4ba4",
+                BINSponsorship:"cecaf3dd-fde0-ee11-904c-000d3a1c40a7",
+                DebitCard:"9a60fbea-fde0-ee11-904c-000d3a1c40a7",
+            },
+            Teams:{
+                CRB: "CRB",
+                ACHOperations:"ACH Operations",
+                BSAAML:"BSA/AML",
+                BusinessDevelopment:"Business Development",
+                CardPaymentsOperations:"Card Payments Operations",
+                CreditReviewTeam:"Credit Review Team",
+                CreditScore:"Credit Score",
+                CreditFinancials:"Credit/Financials",
+                FairLending:"Fair Lending",
+                FairLendingDataManagement:"Fair Lending Data Management",
+                FairLendingDueDiligence:"Fair Lending Due Diligence",
+                Fraud:"Fraud",
+                GeneralDueDiligence:"General Due Diligence",
+                ImplementationTeam:"Implementation Team",
+                ITCompliance:"IT Compliance",
+                LegalTeam:"Legal Team",
+                Line1CreditReviewTeam:"Line 1 Credit Review Team",
+                Line1FinancialRiskReview:"Line 1 Financial Risk Review",
+                Line1TransactionMonitoring:"Line 1 Transaction Monitoring",
+                Line2CreditReviewTeam:"Line 2 Credit Review Team",
+                Line2FinancialRiskReview:"Line 2 Financial Risk Review",
+                Line2TransactionMonitoring:"Line 2 Transaction Monitoring",
+                NetworkTeam:"Network Team",
+                OperationTeam:"Operation Team",
+                RegulatoryCompliance:"Regulatory Compliance",
+                RelationshipManagement:"Relationship Management Team",
+                RTPOperations:"RTP Operations",
+                TransactionMonitoring:"Transaction Monitoring",
+                WireOperations:"Wire Operations",
+            },
+            BPFStages: {
+                Discovery: "Discovery",
+                Qualification: "Qualification",
+                PreOnboarding: "Pre-Onboarding",
+                Onboarding: "Onboarding",
+                Completion: "Completion",
+                ClosedLost: "Closed Lost",
+                ClosedDecline: "Closed Declined",
+                ClosedWon: "Closed Won"
+                
+            },
+        },
+    },
+    Entites: {
+        Configuration: {
+            MetaData: {
+                LogicalName: "crb_configuration"
+            },
+            Fields: {
+                Code: "crb_code",
+                Value: "crb_value"
+            }
+        },
+        PricingProposal: {
+            MetaData: {
+                LogicalName: "crb_pricingproposal"
+            },
+            Fields: {
+                ChildEntityRecordFieldsModified: "crb_childentityrecordfieldsmodified"
+            },
+            LOV: {
+                ChildEntityRecordFieldsModified: {
+                    Yes: 1,
+                    No: 2,
+                },
+                
+            }
+        },
+        Task: {
+            MetaData: {
+                LogicalName: "task",
+            },
+            Fields: {
+                Regarding: "regardingobjectid",
+                TaskType: "crb_tasktype",
+                TaskSubType: "crb_tasksubtype",
+                PartnerName: "crb_partnername",
+                DateofReview: "crb_dateofreview",
+            },
+        },
+        Onboarding: {
+            MetaData: {
+                LogicalName: "crb_onboarding",
+            },
+            Fields: {
+
+            },
+            Sections:{
+                CreditReview: "Credit Review",
+            }
+        },
+    },
+    checkIfSoftDefaultsAreChangedInChildTablesOfPP: async function (executionContext, code, pricingproposalLogicalName) {     //Call this function on save of a child entties of Pricing Proposal and check if the fields in child tables of Pricing Proposal are changed and update the flag in Pricing Proposal entity if field are changed
+        var formContext = executionContext.getFormContext();
+
+        try {
+            var options = "$select=" + this.Entites.Configuration.Fields.Value + "&$filter=" + this.Entites.Configuration.Fields.Code + " eq " + code;
+            var entityName = this.Entites.Configuration.MetaData.LogicalName;
+            var result = await this.retrieveMultipleRecordsOfCommonJS({ entityName, options });
+            var values = result.entities[0][this.Entites.Configuration.Fields.Value];
+            var valuesJson = JSON.parse(values);
+            var fieldsArray = Object.entries(valuesJson);
+            var isChanged = false;
+            fieldsArray.forEach((item) => {
+                if (formContext.getAttribute(item[0]).getValue() !== item[1]) {
+                    isChanged = true;
+                }
+            })
+            if (isChanged) {
+                var pp = formContext.getAttribute(pricingproposalLogicalName).getValue();
+                var data;
+                data[this.Entites.PricingProposal.Fields.ChildEntityRecordFieldsModified] = this.Entites.PricingProposal.LOV.ChildEntityRecordFieldsModified.Yes;
+                if (pp !== null) {
+                    try {
+                        let result = this.updateRecordOfCommonJS({ entityName: pp[0].entityType, entityId: pp[0].id, data });  // FYR if arugument name and parameter name are same we can directly pass as {entityName} but if its different then we need to pass as {entityName:parameterName} like here example {entityName:pp[0].entityType}
+                    }
+                    catch (error) {
+                        //do nothing
+                    }
+                }
+            }
+        } catch (error) {
+            //do nothing
+        }
+    },
+    refreshRibbonOnChange: function (executionContext) {     
+        var formContext = executionContext.getFormContext();
+        formContext.ui.refreshRibbon();
+    },
+    updateRecordOfCommonJS: function ({ entityName, entityId, data, showAlertOnError = true }) {
+        return new Promise((resolve, reject) => {
+            Xrm.WebApi.updateRecord(entityName, entityId, data)
+                .then((result) => {
+                    resolve(result);
+                })
+                .catch((error) => {
+                    console.log(error);
+                    if (showAlertOnError) {
+                        Xrm.Navigation.openAlertDialog({ text: "Update Record Failed" });
+                    }
+                    reject(error);
+                });
+        });
+    },
+    retrieveMultipleRecordsOfCommonJS: function ({ entityName, options, showAlertOnError = true }) {      //Call this function to retrieve multiple records from common.js
+        return new Promise((resolve, reject) => {
+            Xrm.WebApi.retrieveMultipleRecords(entityName, options)
+                .then((result) => {
+                    resolve(result);
+                })
+                .catch((error) => {
+                    console.log(error);
+                    if (showAlertOnError) {
+                        Xrm.Navigation.openAlertDialog({ text: "Retrieve Record Failed" });
+                    }
+                    reject(error);
+                });
+        });
+    },
+    Make_Visible: function (formContext, Keys) { //call this function to show filed from common.js
+		for (i = 0; i < Keys.length; i++) {
+			var control = formContext.getControl(Keys[i]);
+			if (control !== null) {
+				control.setVisible(true);
+			}
+		}
+	},
+	HideFiled: function (formContext, Keys) { // call this function to hide filed from common.js
+		for (i = 0; i < Keys.length; i++) {
+			var control = formContext.getControl(Keys[i]);
+			if (control !== null) {
+				control.setVisible(false);
+			}
+		}
+	},
+	Make_Required: function (formContext, Keys) { // call this function to Make Required filed from common.js
+		for (i = 0; i < Keys.length; i++) {
+			var attribute = formContext.getAttribute(Keys[i]);
+			if (attribute !== null) {
+				attribute.setRequiredLevel("required");
+			}
+		}
+	},
+    	ShowSection: function (formContext,keys) { // call this function to Show Section filed from common.js
+        
+		for (i = 0; i < keys.length; i++) {
+			var sec = keys[i];
+			if (sec !== null) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(sec).setVisible(true);
+			}
+		}
+	},
+    HideSection: function (formContext,keys) {// call this function to Hide Section filed from common.js
+        
+		for (i = 0; i < keys.length; i++) {
+			var sec = keys[i];
+			if (sec !== null) {
+				formContext.ui.tabs.get(this.TabName.General).sections.get(sec).setVisible(false);
+			}
+		}
+	},
+    checkIfUserIdIsPartOfTeams: async function (userId, teamNames) {
+		var userId = userId.replace("{", "").replace("}", "");
+		let result = false;	
+
+		let options = "?$select=name,teammembership_association&$expand=teammembership_association($select=systemuserid,fullname;$filter=systemuserid eq " + userId + ")";
+
+		let outputTeams = [];
+		await Xrm.WebApi.retrieveMultipleRecords("team", options).then(
+			(results) => {
+				outputTeams = results.entities;
+			})
+			.catch((error) => {
+				//console.error(error.message);
+			});
+
+		outputTeams = outputTeams.filter((team) => {
+			return team.teammembership_association.length > 0;
+		})
+
+		let teamNamesArray = teamNames.split(",");
+		for(var i=0; i<outputTeams.length; i++){
+			if(teamNamesArray.includes(outputTeams[i].name)){
+				result = true;
+				break;
+			}
+		}
+		return result;
+	},
+     getTeamsbasedonUserId: async function(userId){
+     var userId = userId.replace("{", "").replace("}", "");
+		let result = false;	
+
+		let options = "?$select=name,teammembership_association&$expand=teammembership_association($select=systemuserid,fullname;$filter=systemuserid eq " + userId + ")";
+
+		let outputTeams = [];
+		await Xrm.WebApi.retrieveMultipleRecords("team", options).then(
+            (results) => {
+                outputTeams = results.entities;
+            })
+            .catch((error) => {
+                //console.error(error.message);
+            });
+                     outputTeams = outputTeams.filter((team) => {
+            return team.teammembership_association.length > 0;
+                    })
+                 return outputTeams;
+                     
+     },
+     showExpirationDateAlert: function(crrmExpireDate,crrmExpireDateValue){   
+        var currentDate = new Date()
+        if (crrmExpireDateValue < currentDate) {
+        
+            var actionsCol = {
+                message: 'Alert: Expiration date has passed',
+                actions: null
+            };
+            actionsCol.actions = [function () {
+                //quantity.setValue(100);
+                crrmExpireDate.clearNotification('2002');
+            }];           
+            crrmExpireDate.addNotification({
+                messages: ["Expiration date has passed"],
+                notificationLevel: 'ERROR',
+                uniqueId: '2002',
+                actions: [actionsCol]
+            });
+        }
+        
+        //Xrm.Navigation.openAlertDialog("Alert:Expiration date has passed");
+        else{
+            console.log("Notification not set");
+        }
+        
+    },
+     getLinkedProductsLOBByOnboardingId: async function (executionContext, onboardingId) {
+        var formContext = executionContext.getFormContext();
+        var LOBList = [];
+        var onboardingOptions = "?$select=_crb_opportunity_value";
+        var opptyId = await Xrm.WebApi.retrieveRecord('crb_onboarding', onboardingId, onboardingOptions).then(
+            function success(result) {
+                return result["_crb_opportunity_value"];
+            },
+            function (error) {
+                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Opportunity from Onboarding' };
+                let alertOptions = { height: 120, width: 260 };
+
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        var options = "?$select=_crb_lineofbusiness_value&$filter=_crb_opportunity_value eq " + opptyId;
+        await Xrm.WebApi.retrieveMultipleRecords('crb_product', options).then(
+            function success(result) {
+                result.entities.forEach(function (record) {
+                    var LOBId = record["_crb_lineofbusiness_value"];
+                    if (LOBId) {
+                        // var LOBObject = {
+                        //     id: LOBId,
+                        //     name: record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"]
+                        // }
+                        LOBName = record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+                        LOBList.push(LOBName);
+                    }
+                });
+            },
+            function (error) {
+//                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Related Products of opportunity' };
+//                let alertOptions = { height: 120, width: 260 };
+//
+//                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        return LOBList;
+    },
+    getLinkedProductsLOBIdsByOnboardingId: async function (executionContext, onboardingId) {
+        var formContext = executionContext.getFormContext();
+        var LOBList = [];
+        var onboardingOptions = "?$select=_crb_opportunity_value";
+        var opptyId = await Xrm.WebApi.retrieveRecord('crb_onboarding', onboardingId, onboardingOptions).then(
+            function success(result) {
+                return result["_crb_opportunity_value"];
+            },
+            function (error) {
+               // let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Opportunity from Onboarding' };
+               // let alertOptions = { height: 120, width: 260 };
+
+               // Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        var options = "?$select=_crb_lineofbusiness_value&$filter=_crb_opportunity_value eq " + opptyId;
+        await Xrm.WebApi.retrieveMultipleRecords('crb_product', options).then(
+            function success(result) {
+                result.entities.forEach(function (record) {
+                    var LOBId = record["_crb_lineofbusiness_value"];
+                    if (LOBId) {
+                        // var LOBObject = {
+                        //     id: LOBId,
+                        //     name: record["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"]
+                        // }
+                        LOBName = record["_crb_lineofbusiness_value"];
+                        LOBList.push(LOBName);
+                    }
+                });
+            },
+            function (error) {
+//                let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed to get Related Products of opportunity' };
+//                let alertOptions = { height: 120, width: 260 };
+//
+//                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+            }
+        );
+        return LOBList;
+    },
+    showExternal:async function(formContext){
+        //var formContext = executionContext.getFormContext();
+        var showExternalCode = 1109;
+        var showExternal;
+        var options = "?$select=crb_value&$filter=crb_code eq " + showExternalCode;
+        await Xrm.WebApi.retrieveMultipleRecords(this.Entites.Configuration.MetaData.LogicalName, options)
+        .then((results)=>{
+            if(results.entities.length > 0){
+                var showExternalData = results.entities[0].crb_value;
+                var showExternalJson = JSON.parse(showExternalData);
+                showExternal = showExternalJson.showExternal;
+            }
+        })
+        .catch((err)=>{
+            let alertStrings = { confirmButtonLabel: 'Ok', text: 'Failed To get Configuration Record' };
+            let alertOptions = { height: 120, width: 260 };
+            
+            Xrm.Navigation.openAlertDialog(alertStrings, alertOptions);
+        });
+        return showExternal;
+    },
+    getSubgridInfo: function (formContext, subgridName) {
+        var gridControl = formContext.getControl(subgridName);
+        if (gridControl) {
+            var subgridName = gridControl.getName();
+            var parentSection = gridControl.getParent();
+            if (parentSection) {
+                var sectionName = parentSection.getName();
+                return { subgridName: subgridName, sectionName: sectionName };
+            } else {
+
+                return null;
+            }
+        } else {
+
+            return null;
+        }
+    },
+    showHideCustomNewTaskButton: function (primaryControl, selectedControl) {
+            var parentEntityName = primaryControl.data.entity.getEntityName();
+            if (parentEntityName === this.Entites.Onboarding.MetaData.LogicalName) {
+                var subGridName = selectedControl.getName();
+                var sectionNameAndSubgridName = this.getSubgridInfo(primaryControl, subGridName);
+                var sectionName = sectionNameAndSubgridName.sectionName;
+                if (sectionName == this.Entites.Onboarding.Sections.CreditReview) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+    },
+    showHideOOBNewTaskButton: function (primaryControl, selectedControl) {
+       
+            var parentEntityName = primaryControl.data.entity.getEntityName();
+            if (parentEntityName === this.Entites.Onboarding.MetaData.LogicalName) {
+                var subGridName = selectedControl.getName();
+                var sectionNameAndSubgridName = this.getSubgridInfo(primaryControl, subGridName);
+                var sectionName = sectionNameAndSubgridName.sectionName;
+                if (sectionName == this.Entites.Onboarding.Sections.CreditReview) {
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+            else {
+                return true;
+            }
+       
+    },
+    showandhideNewProductbutton: async function (PrimaryControl) {
+        var formContext = PrimaryControl;
+        var teamsView = "General Due Diligence";
+        var userId = Xrm.Utility.getGlobalContext().userSettings.userId.replace("{", "").replace("}", "");
+        var isMemberOfTeamsView = await CRB.CRM.PJ.Common.checkIfUserIdIsPartOfTeams(userId, teamsView);
+        var currentStage = formContext.data.process.getActiveStage();
+        var activeStageName = currentStage.getName();
+        //var contractInFocus = formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Contract).getDisplayState();
+        //var selectedcontrolcount = SelectedControlSelectedItemIds.length;
+        if (isMemberOfTeamsView && activeStageName == "Onboarding") {
+            return true;
+        }
+        else if (activeStageName == "Discovery" || activeStageName == "Pre-Onboarding" || activeStageName == "Qualification"){
+            return true;
+        }
+        else {
+            return false;
+            }
+    },
+    ShowSendToPartnerButtonOnOnboarding: async function (selectedControl) {
+        //var formContext = PrimaryControl;
+//        var currentStage = formContext.data.process.getActiveStage();
+//        var activeStageName = currentStage.getName();
+//        var contractInFocus = formContext.ui.tabs.get(CRB.CRM.PJ.Onboarding.TabName.Contract).getDisplayState();
+//        var selectedcontrolcount = SelectedControlSelectedItemIds.length;
+//        if (activeStageName == "Onboarding") {
+//            return true;
+//        }
+//       
+//        else {
+//            return false;
+//            }
+         "use strict";
+       
+        var currentGridName = selectedControl._controlName;
+       
+      
+        var excludedPayRun = "CRBDocument";
+        var excludedPayRun1 = "Documents";
+       
+        if (currentGridName == excludedPayRun || currentGridName == excludedPayRun1) {
+         return false;
+        } 
+        else { return true; }
+    
+    },
+    HideReviewButtonOnOpportunityandNDA: async function (selectedControl) {
+    "use strict";
+       
+        var currentGridName = selectedControl._controlName;
+       
+      
+        var excludedPayRun = "CRBDocument";
+        var excludedPayRun1 = "Documents";
+        if (currentGridName == excludedPayRun || currentGridName == excludedPayRun1) {
+         return false;
+        } 
+        else { return true; }
+    
+    },
+
+}
