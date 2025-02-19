@@ -1,0 +1,448 @@
+//IDD 
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.IDD = CRB.CRM.PJ.IDD || {};
+CRB.CRM.PJ.IDD = {
+	Attributes: {
+		IDD: {
+			//Business Information
+			legalEntityType: "crb_legalentitytype",
+			others: "crb_others",
+			NAICSCode: "crb_naicscode1",
+			operatingLocation: "crb_operatinglocation",
+			businessRegulated: "crb_businessregulated",
+			countryStateRegulators: "crb_countriesstatesregulators",
+			other: "crb_others1",
+			growthStrategy: "crb_growthstrategy",
+			serversCentersLocatedInUS: "crb_serverscenterslocatedinus",
+			remarks: "crb_remarks",
+			sourceofFundOrWealth: "crb_sourceoffundorwealth",
+			status: "crb_status",
+			subStatus: "crb_substatus",
+			//Compliance Inquiry - Company Information(BAAS/Cards Due Diligence specific question) 
+			networkUseByCompany: "crb_NetworksusebyCompanynew",
+			processors: "crb_processors",
+			ownershipStructure: "crb_ownershipstructure",
+			creditAndRiskManagement: "crb_creditandriskmanagement",
+			//Payment Due Diligence Compliance Inquiry - Company Information
+			moneyTrasmitter: "crb_moneytrasmitter",
+			companyRequireSubsidiaryLedgers: "crb_companyrequiresubsidiaryledgers",
+			crypoCurrencyRelatedActivities: "crb_crypocurrencyrelatedactivities",
+			cryptoCurrencyRelatedTransactionsBinace: "crb_cryptocurrencyrelatedtransactionsbinace",
+			productLaunchedOperational: "crb_productlaunchedoperational",
+			//Compliance Inquiry - Regulatory Details(ACH)
+			regionalPaymentAssociation: "crb_regionalpaymentassociation",
+			PleaseExplain: "crb_pleaseexplain",
+			versionOfTheNACHARulesGuidelines: "crb_versionofthenacharulesguidelines",
+			companyType: "crb_companyacttype",
+			paymentProcessingbassRelationship: "crb_paymentprocessingbassrelationship",
+			ifYESPleaseExplain: "crb_pleaseexplain2",
+			originateTransactions: "crb_originatetransactionsnew",
+			secCodes: "crb_seccodes",
+			paymentAuthorized: "crb_paymentauthorized",
+			//Compliance Inquiry - Regulatory Details(Merchant Acquiring)
+			merchantCategory: "crb_merchantcategory",
+			processorType: "crb_processortype",
+			newISO: "crb_newiso",
+			newPayFAC: "crb_newpayfac",
+			//New Section (Push to card(Domestic and International))
+			debitCreditCardProcessors: "crb_debitcreditcardprocessors",
+			bankAdministrationInstitutionCodes: "crb_bankadministrationinstitutioncodes",
+			iddStatus: "crb_iddstatus",
+            approvalRun: "crb_approvalrun",
+			opportunity: "crb_opportunity"
+		},
+	},
+	TabName: {
+		IDD: "Initial_Due_Diligence"
+	},
+	LOV: {
+		lineOfBusiness: {
+			BaaSCards: "BaaS/Cards",
+			Marketplace_Lending: "Marketplace Lending",
+			Payments: "Payments",
+		},
+		ProductNameLOV: {
+			AchDomestic: "ACH Domestic",
+			AchInternational: "ACH International",
+			MerchantAcquiring: "Merchant Acquiring",
+			PushToCard: "Push to Card",
+		},
+	},
+	onLoadOfIDD: function (executionContext)
+	{
+		var formContext = executionContext.getFormContext();
+		this.onChangeOpportunity(executionContext);
+		this.HideAndShowFieldsBasedOnBusinessRegulated(executionContext);
+        this.OnLoadDisableForm(executionContext);
+	},
+	onSaveIDD: function (executionContext)
+	{
+		var formContext = executionContext.getFormContext();
+	},
+	onChangeOpportunity: async function (executionContext)
+	{
+		var formContext = executionContext.getFormContext();
+		//Business Information
+		formContext.getControl(this.Attributes.IDD.legalEntityType).setVisible(false); //38
+		formContext.getControl(this.Attributes.IDD.NAICSCode).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.operatingLocation).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.businessRegulated).setVisible(false);
+		//formContext.getControl(this.Attributes.IDD.countryStateRegulators).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.growthStrategy).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.serversCentersLocatedInUS).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.sourceofFundOrWealth).setVisible(false);
+		//Compliance Inquiry - Company Information(BAAS/Cards Due Diligence specific question)
+		formContext.getControl(this.Attributes.IDD.networkUseByCompany).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.processors).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.ownershipStructure).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.creditAndRiskManagement).setVisible(false);
+		//Payment Due Diligence Compliance Inquiry - Company Information
+		formContext.getControl(this.Attributes.IDD.moneyTrasmitter).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.companyRequireSubsidiaryLedgers).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.crypoCurrencyRelatedActivities).setVisible(false);
+		//formContext.getControl(this.Attributes.IDD.cryptoCurrencyRelatedTransactionsBinace).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.productLaunchedOperational).setVisible(false);
+		//Compliance Inquiry - Regulatory Details(ACH)
+		formContext.getControl(this.Attributes.IDD.regionalPaymentAssociation).setVisible(false);
+		//formContext.getControl(this.Attributes.IDD.PleaseExplain).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.versionOfTheNACHARulesGuidelines).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.companyType).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.paymentProcessingbassRelationship).setVisible(false);
+		//formContext.getControl(this.Attributes.IDD.ifYESPleaseExplain).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.originateTransactions).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.secCodes).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.paymentAuthorized).setVisible(false);
+		//Compliance Inquiry - Regulatory Details(Merchant Acquiring)
+		formContext.getControl(this.Attributes.IDD.merchantCategory).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.processorType).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.newISO).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.newISO).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.newPayFAC).setVisible(false);
+		//New Section (Push to card(Domestic and International))
+		formContext.getControl(this.Attributes.IDD.debitCreditCardProcessors).setVisible(false);
+		formContext.getControl(this.Attributes.IDD.bankAdministrationInstitutionCodes).setVisible(false);
+		//formContext.getControl(this.Attributes.IDD.iddStatus).setVisible(false);
+		var opportunity = formContext.getAttribute(this.Attributes.IDD.opportunity).getValue();
+		if (opportunity !== null)
+		{
+			Xrm.Utility.showProgressIndicator();
+			var opportunityId = opportunity[0].id;
+			var lineOfBusiness;
+			var productname;
+			//			var opportunityTypeInOpportunity;
+			//
+			//			await Xrm.WebApi.retrieveRecord("opportunity", opportunityId, "?$select=_crb_opportunitytype_value").then(
+			//				(result) => {
+			//					opportunityTypeInOpportunity = result["_crb_opportunitytype_value@OData.Community.Display.V1.FormattedValue"];
+			//				}
+			//			);
+			await Xrm.WebApi.retrieveMultipleRecords("crb_product", "?$select=crb_lineofbusiness,crb_productname&$filter=_crb_opportunity_value eq " + opportunityId).then(
+
+			function success(result)
+			{
+				Xrm.Utility.closeProgressIndicator()
+				if (result != null && result.entities.length > 0)
+				{
+					for (var i = 0; i < result.entities.length; i++)
+					{
+						lineOfBusiness = result.entities[i]["_crb_lineofbusiness_value@OData.Community.Display.V1.FormattedValue"];
+						productname = result.entities[i]["_crb_productname_value@OData.Community.Display.V1.FormattedValue"];
+						//alert("LOB :" + lineOfBusiness + "Prod Name :" + productname);
+    
+                      		if (lineOfBusiness === CRB.CRM.PJ.IDD.LOV.lineOfBusiness.BaaSCards) {
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.legalEntityType).setVisible(true); //38
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.NAICSCode).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.operatingLocation).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.businessRegulated).setVisible(true);
+								//formContext.getControl(this.Attributes.IDD.countryStateRegulators).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.growthStrategy).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.serversCentersLocatedInUS).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.sourceofFundOrWealth).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.networkUseByCompany).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.processors).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.ownershipStructure).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.creditAndRiskManagement).setVisible(true);
+                                //CRB.showHideSection(formContext, SECTIONA, true);
+                                //formContext.ui.tabs.get(CRB.CRM.PJ.IDD.TabName.IDD).sections.get(CRB.CRM.PJ.IDD.SectionName.SECTIONA).setVisible(true);
+                                
+
+							}
+							if (lineOfBusiness === CRB.CRM.PJ.IDD.LOV.lineOfBusiness.Payments) {
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.legalEntityType).setVisible(true); //38
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.NAICSCode).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.operatingLocation).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.businessRegulated).setVisible(true);
+								//formContext.getControl(this.Attributes.IDD.countryStateRegulators).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.growthStrategy).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.serversCentersLocatedInUS).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.sourceofFundOrWealth).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.moneyTrasmitter).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.companyRequireSubsidiaryLedgers).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.crypoCurrencyRelatedActivities).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.productLaunchedOperational).setVisible(true);
+							}
+							if ((lineOfBusiness === CRB.CRM.PJ.IDD.LOV.lineOfBusiness.Payments && productname === CRB.CRM.PJ.IDD.LOV.ProductNameLOV.AchDomestic) || (lineOfBusiness === CRB.CRM.PJ.IDD.LOV.lineOfBusiness.Payments && productname === CRB.CRM.PJ.IDD.LOV.ProductNameLOV.AchInternational)) {
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.regionalPaymentAssociation).setVisible(true);
+								//formContext.getControl(this.Attributes.IDD.PleaseExplain).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.versionOfTheNACHARulesGuidelines).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.companyType).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.paymentProcessingbassRelationship).setVisible(true);
+								//formContext.getControl(this.Attributes.IDD.ifYESPleaseExplain).setVisible(false);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.originateTransactions).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.secCodes).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.paymentAuthorized).setVisible(true);
+                               }
+                                if (lineOfBusiness === CRB.CRM.PJ.IDD.LOV.lineOfBusiness.Payments && productname === CRB.CRM.PJ.IDD.LOV.ProductNameLOV.MerchantAcquiring) {
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.merchantCategory).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.processorType).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.newISO).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.newPayFAC).setVisible(true);
+							}
+							if (lineOfBusiness === CRB.CRM.PJ.IDD.LOV.lineOfBusiness.Payments && productname === CRB.CRM.PJ.IDD.LOV.ProductNameLOV.PushToCard) {
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.debitCreditCardProcessors).setVisible(true);
+								formContext.getControl(CRB.CRM.PJ.IDD.Attributes.IDD.bankAdministrationInstitutionCodes).setVisible(true);
+							}
+					}
+                    
+				}
+			});
+			
+		}
+	},
+    onchangeofPaymentProcessingbassRelationship:function (executionContext)
+    {
+          var formContext = executionContext.getFormContext();
+          var PaymentProcessingbassRelationship = formContext.getAttribute(CRB.CRM.PJ.IDD.Attributes.IDD.paymentProcessingbassRelationship).getValue();
+          if(PaymentProcessingbassRelationship == null || PaymentProcessingbassRelationship===100000001 )
+          {
+               formContext.getControl(this.Attributes.IDD.ifYESPleaseExplain).setVisible(false);
+          }
+          else{
+                 formContext.getControl(this.Attributes.IDD.ifYESPleaseExplain).setVisible(true);
+          }
+    },
+	HideAndShowFieldsBasedOnBusinessRegulated: function (executionContext)
+	{
+		var formContext = executionContext.getFormContext();
+		var businessRegulated = formContext.getAttribute(this.Attributes.IDD.businessRegulated).getValue();
+		if (businessRegulated != null && businessRegulated != undefined && businessRegulated === 1)
+		{
+			formContext.getControl(this.Attributes.IDD.countryStateRegulators).setVisible(true);
+            formContext.getAttribute(this.Attributes.IDD.countryStateRegulators).setRequiredLevel("required");
+			formContext.getControl(this.Attributes.IDD.others).setVisible(false);
+		}
+		if (businessRegulated != null && businessRegulated != undefined && businessRegulated === 2)
+		{
+			formContext.getControl(this.Attributes.IDD.countryStateRegulators).setVisible(false);
+			formContext.getControl(this.Attributes.IDD.others).setVisible(false);
+		}
+		if (businessRegulated != null && businessRegulated != undefined && businessRegulated === 3)
+		{
+			formContext.getControl(this.Attributes.IDD.countryStateRegulators).setVisible(false);
+			formContext.getControl(this.Attributes.IDD.others).setVisible(true);
+		}
+	},
+OnChangeIDDStatusshowConfirmationOnPDDA: async function (executionContext) {
+    var formContext = executionContext.getFormContext();
+    var implementationLead = false;
+    var duuDeliganceLead = false;
+    var previousStatusValue = null;
+    var iddID = formContext.data.entity.getId().replace("{", "").replace("}", "");
+    var oppId = formContext.getAttribute(this.Attributes.IDD.opportunity).getValue()[0].id.replace(/{|}/g, "");
+    if (oppId != null && oppId != undefined) {
+        await Xrm.WebApi.retrieveRecord("crb_initialduediligence",iddID, "?$select=crb_iddstatus").then(
+            function success(result) {
+                previousStatusValue = result["crb_iddstatus"];
+            },
+            function(error) {
+            }
+        );
+        var iddStatus = formContext.getAttribute(this.Attributes.IDD.iddStatus).getValue();
+        if (iddStatus != null && iddStatus != undefined && iddStatus === 4) {
+            var appronalRun = formContext.getAttribute(this.Attributes.IDD.approvalRun).getValue();
+            await Xrm.WebApi.retrieveMultipleRecords("crb_opportunityteam", "?$filter=((crb_role eq 2 and crb_Opportunity/opportunityid eq '" + oppId + "'))").then(
+                function success(result) {
+                      if(result.entities.length > 0)
+                      {
+                        duuDeliganceLead = true;
+                      }
+                },
+            );
+            await Xrm.WebApi.retrieveMultipleRecords("crb_opportunityteam", "?$filter=((crb_role eq 3 and crb_Opportunity/opportunityid eq '" + oppId + "'))").then(
+                function success(result) {
+                    if(result.entities.length > 0)
+                    {
+                       implementationLead = true;
+                    }
+                },
+            );
+            if (!implementationLead || !duuDeliganceLead) {
+                var alertStrings = {
+                    confirmButtonLabel: "Ok",
+                    text: "Implementation Lead and Due Diligence Lead is required for Initial Due Diligence Approvals.",
+                    title: "Alert❗"
+                };
+                var alertOptions = {
+                    height: 260,
+                    width: 260
+                };
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                    function (success) {
+                        formContext.getAttribute(CRB.CRM.PJ.IDD.Attributes.IDD.iddStatus).setValue(previousStatusValue)
+                        saveEvent.preventDefault();
+                    },
+                );
+            } else {
+                var confirmStrings = {
+                    text: "Do you want to continue ?",
+                    title: "Pending Due Diligience Approval",
+                    confirmButtonLabel: "Yes",
+                    cancelButtonLabel: "No"
+                };
+                var dialogOptions = {
+                    height: 200,
+                    width: 450
+                };
+                Xrm.Navigation.openConfirmDialog(confirmStrings, dialogOptions, null).then(
+                    function (success) {
+                        if(success.confirmed){
+                            formContext.getAttribute(CRB.CRM.PJ.IDD.Attributes.IDD.approvalRun).setValue(true);
+                            formContext.data.save();
+                        }
+                        else{
+                            formContext.getAttribute(CRB.CRM.PJ.IDD.Attributes.IDD.iddStatus).setValue(previousStatusValue)
+                            saveEvent.preventDefault();
+                        }
+                    });
+            }
+
+        }
+    }
+},
+    OnLoadDisableForm: function(executionContext) {
+	let formContext = executionContext.getFormContext();
+	var iddStatus = formContext.getAttribute(this.Attributes.IDD.iddStatus).getValue();
+	if (iddStatus != null && iddStatus != undefined && iddStatus === 4) {
+		let formControls = formContext.ui.controls;
+		formControls.forEach(element => {
+			if (element.getName() != "" && element.getName() != null) {
+				element.setDisabled(true);
+			}
+		});
+	}
+  },
+	ValidateNNAICSCode: function (executionContext) {
+		let formContext = executionContext.getFormContext();
+		var fieldText = formContext.getAttribute(this.Attributes.IDD.NAICSCode).getValue();
+		if (fieldText == null) return;
+		if (!fieldText.match("^[0-9]*$")) {
+			formContext.getControl(this.Attributes.IDD.NAICSCode).setNotification("Please enter only Numbers", 102);
+			return false;
+		}
+		else if (fieldText.length < 4) {
+			formContext.getControl(this.Attributes.IDD.NAICSCode).setNotification("should be between 4 to 6 digits", 102);
+			return false;
+		}
+		else {
+			formContext.getControl(this.Attributes.IDD.NAICSCode).clearNotification(102);
+			return true;
+		}
+	},
+  // IDD status change display alert
+onIDDStatusChange : async function (executionContext) {
+     const formContext = executionContext.getFormContext();
+    var subStatus = formContext.getAttribute("crb_iddstatus").getValue();
+    var iddID = formContext.data.entity.getId().replace("{", "").replace("}", "");
+    var statusList = [1,2,3,5,6];
+    formContext.ui.clearFormNotification();
+        if (subStatus == 7) {
+        var fetchXml = "<attribute name='prioritycode' />" +
+		"<attribute name='scheduledend' />" +
+		"<attribute name='createdby' />" +
+		"<attribute name='regardingobjectid' />" +
+		"<attribute name='activityid' />" +
+		"<order attribute='subject' descending='false'/>" +
+		"<link-entity name='crb_initialduediligence' from='crb_initialduediligenceid' to='regardingobjectid' link-type='inner' alias='ad'>" +
+		"<filter type='and'>" +
+		"<condition attribute='crb_initialduediligenceid' operator='eq' uiname='' uitype='crb_initialduediligence' value='" + iddID + "' />" +
+		"</filter>" +
+		"</link-entity>" +
+		"</entity>" +
+		"</fetch>";
+
+          // fetchXml = "?fetchXml=" + encodeURIComponent(fetchXml);
+           await Xrm.WebApi.retrieveMultipleRecords("task", "?$select=subject,statecode&$filter=_regardingobjectid_value eq '" + iddID + "'").then(function success(result) {
+ 
+            if (result != null && result.entities.length > 0) {
+                for (var i = 0; i < result.entities.length; i++) {
+                    var taskstatus = result.entities[i]["statecode"];
+                    if (taskstatus != "1") {
+                        //alert("Pending tasks and hence cannot set the idd status");
+                        //formContext.ui.setFormNotification("There are still pending tasks open. You need to close them before you can set the sub status as complete.","ERROR");
+                        //var substatus = formContext.getControl("crb_iddstatus");
+                        //substatus.clearOptions();
+                        formContext.getAttribute('crb_iddstatus').setValue(null);
+
+						var alertStrings = { confirmButtonLabel: "Ok", text: "There are still pending tasks open. You need to close them before you can set the sub status as complete.", title: "Alert" };
+		                var alertOptions = { height: 120, width: 260 };
+
+						Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+							function (success) {
+								console.log("Alert dialog closed");
+							},
+
+							function (error) {
+								console.log(error.message);
+							}
+						);
+                    }
+                }
+            }
+        },
+        function (error) {
+            console.log(error.message);
+        }
+    ); 
+    
+   }
+   else if(statusList.includes(subStatus)){
+    Xrm.Navigation.openAlertDialog(
+        "This feature is not enabled until the Partner Portal is functional.In the meantime, please change the sub-status to Initial Due Diligence Flow Completed."
+    ).then(
+        function (success) {  
+        },
+        function (error) {
+        });
+    var previousStatusValue = null;
+    await Xrm.WebApi.retrieveRecord("crb_initialduediligence",iddID, "?$select=crb_iddstatus").then(
+        function success(result) {
+            previousStatusValue = result["crb_iddstatus"];
+        },
+        function(error) {
+        }
+    );
+    formContext.getAttribute(CRB.CRM.PJ.IDD.Attributes.IDD.iddStatus).setValue(previousStatusValue)
+   }
+   },
+   updatePartner: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+        var updatepartner = formContext.getAttribute("crb_updatepartner").getValue();
+        if(updatepartner === true)
+        {
+        var alertStrings = { confirmButtonLabel: "Okay", text: "By switching this toggle to “Yes” you will be automatically updating any matching fields on the Partner Record.", title: "Partner Update Alert" };
+        var alertOptions = { height: 350, width: 260 };
+        Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+        function (success) {
+            //console.log("Alert dialog closed");
+            },
+        function (error) {
+            //console.log(error.message);
+            }
+        );
+        }
+     }
+}
+
