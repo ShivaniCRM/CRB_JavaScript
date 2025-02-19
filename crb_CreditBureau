@@ -1,0 +1,82 @@
+var CRB = CRB || {};
+CRB.CRM = CRB.CRM || {};
+CRB.CRM.PJ = CRB.CRM.PJ || {};
+CRB.CRM.PJ.creditbureau = CRB.CRM.PJ.creditbureau || {};
+CRB.CRM.PJ.creditbureau = {
+	Attributes: {
+		creditbureau: {
+			lawVuLink: "crb_lawvulink",
+			requestSentToLawVu: "crb_requestsenttolawvu",
+			documentReceivedFromLawVu: "crb_documentreceivedfromlawvu",
+			documentSentToPartner: "crb_documentsenttopartner",
+			markwhichCreditBureauPartnerisworkingwith: "crb_markwhichcreditbureaupartnerisworkingwith",
+			determineStructures: "crb_determinestructures",
+            onboarding: "crb_creditbureau"
+		},
+	},	
+	onLoadOfcreditbureau: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+		this.setLawVuLink(executionContext);
+		
+	},
+	onSavecreditbureau: function (executionContext) {
+		"use strict";
+		var formContext = executionContext.getFormContext();
+        this.checkCreditBureauPartners(executionContext);
+	},
+	setLawVuLink: function (executionContext) {
+        "use strict";
+        var formContext = executionContext.getFormContext();
+		var formType = formContext.ui.getFormType();
+		var url = "https://us.lawvu.com";
+        if(formType === 1){
+			formContext.getAttribute(this.Attributes.creditbureau.lawVuLink).setValue(url);
+			formContext.getAttribute(this.Attributes.creditbureau.markwhichCreditBureauPartnerisworkingwith).setRequiredLevel("required");
+			formContext.getAttribute(this.Attributes.creditbureau.determineStructures).setRequiredLevel("required");
+		}
+		else if(formType == 2){
+			formContext.getAttribute(this.Attributes.creditbureau.markwhichCreditBureauPartnerisworkingwith).setRequiredLevel("required");
+			formContext.getAttribute(this.Attributes.creditbureau.determineStructures).setRequiredLevel("required");
+		}
+    },
+    checkCreditBureauPartners: async function (executionContext){
+        var formContext = executionContext.getFormContext();
+        var saveEvent = executionContext.getEventArgs();
+        var creditBureauPartners = formContext.getAttribute(this.Attributes.creditbureau.markwhichCreditBureauPartnerisworkingwith).getValue();
+        var flag = false;
+        if(formContext.getAttribute(this.Attributes.creditbureau.onboarding).getValue() !== null){
+            var onboarding = formContext.getAttribute(this.Attributes.creditbureau.onboarding).getValue()[0].id.replace("{", "").replace("}", "");
+            await Xrm.WebApi.retrieveMultipleRecords("crb_creditbureau", "?$select=crb_markwhichcreditbureaupartnerisworkingwith&$filter=_crb_creditbureau_value eq ' " + onboarding + " ' ").then(
+                function success(results) {
+                    console.log(results);
+                    for (var i = 0; i < results.entities.length; i++) {
+                        var result = results.entities[i];						
+                        var markwhichcreditbureaupartnerisworkingwith = result["crb_markwhichcreditbureaupartnerisworkingwith"]; // Choice
+                        if(creditBureauPartners === markwhichcreditbureaupartnerisworkingwith){
+                            flag = true;
+                            formContext.getAttribute(CRB.CRM.PJ.creditbureau.Attributes.creditbureau.markwhichCreditBureauPartnerisworkingwith).setValue(null);      
+                        }						
+                    }
+                                     
+                },
+                function(error) {
+                    console.log(error.message);
+                }
+            );
+            if(flag === true){
+                
+                var alertStrings = { confirmButtonLabel: "Ok", text: "One type of credit bureau partner can only be added once", title: "Alert" };
+                var alertOptions = { height: 120, width: 260 };
+                Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                    function (success) {
+                         
+                         //formContext.data.entity.save();
+                    },
+                    function (error) {
+                    }
+                );
+            }            
+        }
+    }
+}
