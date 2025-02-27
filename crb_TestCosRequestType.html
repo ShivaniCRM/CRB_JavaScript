@@ -1,0 +1,91 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSRequestType</title>    
+    <script type="text/javascript">
+       async function onClickOfSandox() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var recordID = urlParams.get('data');
+            if(!recordID) return;
+            var record = {};
+            record.crb_cosrequesttype = 100000000; // Choice
+
+            await parent.Xrm.WebApi.updateRecord("crb_onboarding",recordID , record).then(
+                function success(result) {
+                    var updatedId = result.id;
+                    console.log(updatedId);
+                },
+                function(error) {
+                    console.log(error.message);
+                }
+            );
+            window.close();
+                        
+        }
+
+       async function onClickOfProduction() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var recordID = urlParams.get('data');
+            if(!recordID) return;
+            var record = {};
+            record.crb_cosrequesttype = 100000001; // Choice
+
+            await parent.Xrm.WebApi.updateRecord("crb_onboarding",recordID , record).then(
+                function success(result) {
+                    var updatedId = result.id;
+                    console.log(updatedId);
+                },
+                function(error) {
+                    console.log(error.message);
+                }
+            );
+            window.close();
+        }
+    </script>
+    <style>
+        .mainDiv {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            gap: 10%;
+        }
+
+        .buttonDiv {
+            width: 50%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+        }
+
+        .questionLabel {
+            font-size: large;
+            font-weight: bold;
+        }
+
+        .answerButtons {
+            font-weight: bold;
+            border-width: 2px;
+            padding: 10px;
+            border-radius: 5cm;
+        }
+
+            .answerButtons:hover {
+                cursor: pointer;
+            }
+    </style>
+</head>
+<body>
+    <div class="mainDiv">
+        <label class="questionLabel">Which type of Test Plan do you want to request?</label>
+        <div class="buttonDiv">
+            <button class="answerButtons" id="sandbox" onclick="onClickOfSandox()">Sandbox</button>
+            <button class="answerButtons" id="production" onclick="onClickOfProduction()">Production</button>
+        </div>
+    </div>
+</body>
+
+</html>
