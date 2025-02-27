@@ -1,0 +1,762 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSRequestType</title>
+    <script type="text/javascript">
+        onload = () => {
+            loadMainBody();
+            loadEmailPreviewData();
+        }
+
+        var emailbody = "Hi\n";
+        var emailTo = '';
+        var linksForJS = '';
+        var linksForFlow = '';
+        async function loadEmailPreviewData() {
+
+            var legalEntityName = null;
+            var doingBusinessAsDBA = null;
+            var websiteurl = null;
+            var industry = null;
+            var companyDescription = null;
+            var productDescription = null;
+            var productsOnboardingWithCRB = null;
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var recordID = urlParams.get('data');
+
+
+            //#region  getting required data via api calls
+            var optyId = null;
+            var onboardingSelect = "?$select=_crb_opportunity_value,crb_listofproductswithintheopportunity";
+            await parent.Xrm.WebApi.retrieveRecord("crb_onboarding", recordID, onboardingSelect).then(
+                function success(result) {
+                    optyId = result._crb_opportunity_value;
+                    productsOnboardingWithCRB = result.crb_listofproductswithintheopportunity;
+                }
+            );
+
+            if (optyId) {
+
+                var partnerid = null;
+                var optySelect = "?$select=_parentaccountid_value,crb_companydescription,crb_productdescription";
+                await parent.Xrm.WebApi.retrieveRecord("opportunity", optyId, optySelect).then(
+                    function success(result) {
+                        partnerid = result._parentaccountid_value;
+                        companyDescription = result.crb_companydescription;
+                        productDescription = result.crb_productdescription;
+                    }
+                );
+                if (partnerid) {
+                    var partnerSelect = "?$select=name,crb_dba,websiteurl,crb_industry,";
+                    await parent.Xrm.WebApi.retrieveRecord("account", partnerid, partnerSelect).then(
+                        function success(result) {
+                            legalEntityName = result.name;
+                            doingBusinessAsDBA = result.crb_dba;
+                            websiteurl = result.websiteurl;
+                            industry = result.crb_industry;
+                        }
+                    );
+                }
+            }
+            //#endregion
+
+            emailbody += `Legal Entity Name: ${legalEntityName}\nDoing Business As (DBA): ${doingBusinessAsDBA}\nWebsite URL: ${websiteurl}\nIndustry: ${industry}\nCompany Description: ${companyDescription}\nProduct Description: ${productDescription}\nProducts Onboarding with CRB: ${productsOnboardingWithCRB}\n\n`;
+            //#region  getting filepaths
+            //emailbody += 'Onboarding Approval\n'
+
+            //#region  GETTING FIRST 5 files
+            var fileNames1 = [
+                "COS New Account Request Form",
+                "Authorized Signers and their unexpired government issued photo ID",
+                "Certificate of Incorporation/Formation",
+                "Completed Beneficial Ownership Form",
+                "Customer Risk Rating Results",
+                //"CLEAR Screening Results",
+                //"Organizational Chart (Board, Executive Leadership, Compliance & Legal)",
+                //"Articles of Incorporation /LLC Operating Agreement",
+                //"W-9 or Letter from IRS w/Tax ID number",
+                //"W-8BEN-E",
+                //"W-8 BEN",
+                //"Due Diligence Memo (Cards/BaaS + MPL)",
+                //"Pre-Onboarding Approval-Additional Document"
+            ]
+            var filescondition1 = '';
+            fileNames1.forEach((filename, index) => {
+                if (index === fileNames1.length - 1) {
+                    filescondition1 += `crb_name eq '${filename}'`;
+                }
+                else {
+                    filescondition1 += `crb_name eq '${filename}' or `;
+                }
+            })
+
+            var select1 = "?$select=crb_file,crb_name"
+            // var filter = "$filter=_crb_onboarding_value eq " + recordID + " and (crb_name eq 'COS New Account Request Form' or crb_name eq 'Authorized Signers and their unexpired government issued photo ID' or crb_name eq 'Certificate of Incorporation/Formation' or crb_name eq 'Completed Beneficial Ownership Form' or crb_name eq 'Customer Risk Rating Results' or crb_name eq 'CLEAR Screening Results' or crb_name eq 'Organizational Chart (Board, Executive Leadership, Compliance & Legal)' or crb_name eq 'Articles of Incorporation /LLC Operating Agreement' or crb_name eq 'W-9 or Letter from IRS w/Tax ID number' or crb_name eq 'W-8BEN-E' or crb_name eq 'W-8 BEN' or crb_name eq 'Due Diligence Memo (Cards/BaaS + MPL)' or crb_name eq 'Pre-Onboarding Approval-Additional Document')";
+            var filter1 = "$filter=_crb_onboarding_value eq " + recordID + " and (" + filescondition1 + ")";
+            var query1 = select1 + "&" + filter1;
+            await parent.Xrm.WebApi.retrieveMultipleRecords("crb_document", query1).then(
+                function success(result) {
+                    //var requiredFormat = '';
+                    var requiredFormatForJS = '';
+                    var requiredFormatForFlow = '';
+                    result.entities.forEach(function (entity) {
+                        //requiredFormat += `[${entity.crb_name}](${entity.crb_file})\n`;
+                        //requiredFormat += `<a href="${entity.crb_file}" target="_blank">${entity.crb_name}</a>\n`;
+                        requiredFormatForFlow += `[${entity.crb_name}](${entity.crb_file})\n`;
+                        requiredFormatForJS += `<div class="atagrow"><a id="${entity.crb_name}" href="${entity.crb_file}" target="_blank">${entity.crb_name}</a><button disabled=true class="minusButton" onclick="handleMinusClick('${entity.crb_name}')" id="${entity.crb_name} Button">-</button></div><br/>`;
+                    });
+                    //emailbody += requiredFormat;
+                    linksForJS += requiredFormatForJS;
+                    linksForFlow += requiredFormatForFlow;
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+
+            //#endregion
+
+            //https://@{uriHost(body('Get_a_row_by_ID')?['@odata.id'])}:443/main.aspx?etc=11221&id=@{outputs('Get_a_row_by_ID')?['body/opportunityid']}&histKey=459094733&newWindow=true&pagetype=entityrecord
+
+            //#endregion
+
+            //#region getting SECOND 5 files
+            var fileNames2 = [
+                //"COS New Account Request Form",
+                //"Authorized Signers and their unexpired government issued photo ID",
+                //"Certificate of Incorporation/Formation",
+                //"Completed Beneficial Ownership Form",
+                //"Customer Risk Rating Results",
+                "CLEAR Screening Results",
+                "Organizational Chart (Board, Executive Leadership, Compliance & Legal)",
+                "Articles of Incorporation /LLC Operating Agreement",
+                "W-9 or Letter from IRS w/Tax ID number",
+                "W-8BEN-E",
+                //"W-8 BEN",
+                //"Due Diligence Memo (Cards/BaaS + MPL)",
+                //"Pre-Onboarding Approval-Additional Document"
+            ]
+            var filescondition2 = '';
+            fileNames2.forEach((filename, index) => {
+                if (index === fileNames2.length - 1) {
+                    filescondition2 += `crb_name eq '${filename}'`;
+                }
+                else {
+                    filescondition2 += `crb_name eq '${filename}' or `;
+                }
+            })
+
+            var select2 = "?$select=crb_file,crb_name"
+            // var filter = "$filter=_crb_onboarding_value eq " + recordID + " and (crb_name eq 'COS New Account Request Form' or crb_name eq 'Authorized Signers and their unexpired government issued photo ID' or crb_name eq 'Certificate of Incorporation/Formation' or crb_name eq 'Completed Beneficial Ownership Form' or crb_name eq 'Customer Risk Rating Results' or crb_name eq 'CLEAR Screening Results' or crb_name eq 'Organizational Chart (Board, Executive Leadership, Compliance & Legal)' or crb_name eq 'Articles of Incorporation /LLC Operating Agreement' or crb_name eq 'W-9 or Letter from IRS w/Tax ID number' or crb_name eq 'W-8BEN-E' or crb_name eq 'W-8 BEN' or crb_name eq 'Due Diligence Memo (Cards/BaaS + MPL)' or crb_name eq 'Pre-Onboarding Approval-Additional Document')";
+            var filter2 = "$filter=_crb_onboarding_value eq " + recordID + " and (" + filescondition2 + ")";
+            var query2 = select2 + "&" + filter2;
+            await parent.Xrm.WebApi.retrieveMultipleRecords("crb_document", query2).then(
+                function success(result) {
+                    //var requiredFormat = '';
+                    var requiredFormatForJS = '';
+                    var requiredFormatForFlow = '';
+                    result.entities.forEach(function (entity) {
+                        //requiredFormat += `[${entity.crb_name}](${entity.crb_file})\n`;
+                        //requiredFormat += `<a href="${entity.crb_file}" target="_blank">${entity.crb_name}</a>\n`;
+                        requiredFormatForFlow += `[${entity.crb_name}](${entity.crb_file})\n`;
+                        requiredFormatForJS += `<div class="atagrow"><a id="${entity.crb_name}" href="${entity.crb_file}" target="_blank">${entity.crb_name}</a><button disabled=true class="minusButton" onclick="handleMinusClick('${entity.crb_name}')" id="${entity.crb_name} Button">-</button></div><br/>`;
+                    });
+                    //emailbody += requiredFormat;
+                    linksForJS += requiredFormatForJS;
+                    linksForFlow += requiredFormatForFlow;
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+
+
+            //#endregion
+
+            //#region  getting last 3 files
+            var fileNames3 = [
+                //"COS New Account Request Form",
+                //"Authorized Signers and their unexpired government issued photo ID",
+                //"Certificate of Incorporation/Formation",
+                //"Completed Beneficial Ownership Form",
+                //"Customer Risk Rating Results",
+                //"CLEAR Screening Results",
+                //"Organizational Chart (Board, Executive Leadership, Compliance & Legal)",
+                //"Articles of Incorporation /LLC Operating Agreement",
+                //"W-9 or Letter from IRS w/Tax ID number",
+                //"W-8BEN-E",
+                "W-8 BEN",
+                "Due Diligence Memo (Cards/BaaS + MPL)",
+                "Pre-Onboarding Approval-Additional Document"
+            ]
+            var filescondition3 = '';
+            fileNames3.forEach((filename, index) => {
+                if (index === fileNames3.length - 1) {
+                    filescondition3 += `crb_name eq '${filename}'`;
+                }
+                else {
+                    filescondition3 += `crb_name eq '${filename}' or `;
+                }
+            })
+
+            var select3 = "?$select=crb_file,crb_name"
+            // var filter = "$filter=_crb_onboarding_value eq " + recordID + " and (crb_name eq 'COS New Account Request Form' or crb_name eq 'Authorized Signers and their unexpired government issued photo ID' or crb_name eq 'Certificate of Incorporation/Formation' or crb_name eq 'Completed Beneficial Ownership Form' or crb_name eq 'Customer Risk Rating Results' or crb_name eq 'CLEAR Screening Results' or crb_name eq 'Organizational Chart (Board, Executive Leadership, Compliance & Legal)' or crb_name eq 'Articles of Incorporation /LLC Operating Agreement' or crb_name eq 'W-9 or Letter from IRS w/Tax ID number' or crb_name eq 'W-8BEN-E' or crb_name eq 'W-8 BEN' or crb_name eq 'Due Diligence Memo (Cards/BaaS + MPL)' or crb_name eq 'Pre-Onboarding Approval-Additional Document')";
+            var filter3 = "$filter=_crb_onboarding_value eq " + recordID + " and (" + filescondition3 + ")";
+            var query3 = select3 + "&" + filter3;
+            await parent.Xrm.WebApi.retrieveMultipleRecords("crb_document", query3).then(
+                function success(result) {
+                    //var requiredFormat = '';
+                    var requiredFormatForJS = '';
+                    var requiredFormatForFlow = '';
+                    result.entities.forEach(function (entity) {
+                        //requiredFormat += `[${entity.crb_name}](${entity.crb_file})\n`;
+                        //requiredFormat += `<a href="${entity.crb_file}" target="_blank">${entity.crb_name}</a>\n`;
+                        requiredFormatForFlow += `[${entity.crb_name}](${entity.crb_file})\n`;
+                        requiredFormatForJS += `<div class="atagrow"><a id="${entity.crb_name}" href="${entity.crb_file}" target="_blank">${entity.crb_name}</a><button disabled=true class="minusButton" onclick="handleMinusClick('${entity.crb_name}')" id="${entity.crb_name} Button">-</button></div><br/>`;
+                    });
+                    //emailbody += requiredFormat;
+                    linksForJS += requiredFormatForJS;
+                    linksForFlow += requiredFormatForFlow;
+                },
+                function (error) {
+                    console.log(error.message);
+                }
+            );
+
+
+            //#endregion
+            //#region  temp 
+            // // Define the record ID and the conditions
+            // var recordID = "your_record_id";
+            // var conditions = [
+            //     "COS New Account Request Form",
+            //     "Authorized Signers and their unexpired government issued photo ID",
+            //     "Certificate of Incorporation/Formation",
+            //     "Completed Beneficial Ownership Form",
+            //     "Customer Risk Rating Results",
+            //     "CLEAR Screening Results",
+            //     "Organizational Chart (Board, Executive Leadership, Compliance & Legal)",
+            //     "Articles of Incorporation /LLC Operating Agreement",
+            //     "W-9 or Letter from IRS w/Tax ID number",
+            //     "W-8BEN-E",
+            //     "W-8 BEN",
+            //     "Due Diligence Memo (Cards/BaaS + MPL)",
+            //     "Pre-Onboarding Approval-Additional Document"
+            // ];
+
+            // // Function to create filter string for a group of conditions
+            // function createFilterString(recordID, conditions) {
+            //     return conditions.map(condition => `crb_name eq '${condition}'`).join(' or ');
+            // }
+
+            // // Split conditions into groups of 5 or fewer
+            // var conditionGroups = [];
+            // for (var i = 0; i < conditions.length; i += 5) {
+            //     conditionGroups.push(conditions.slice(i, i + 5));
+            // }
+
+            // // Function to make retrieveMultiple call
+            // function retrieveMultiple(recordID, filterString) {
+            //     var filter = `$filter=_crb_onboarding_value eq ${recordID} and (${filterString})`;
+            //     // Make the API call here (using fetch as an example)
+            //     return fetch(`/api/data/v9.1/your_entity_set_name?${filter}`)
+            //         .then(response => response.json());
+            // }
+
+            // // Combine results from multiple calls
+            // Promise.all(conditionGroups.map(group => {
+            //     var filterString = createFilterString(recordID, group);
+            //     return retrieveMultiple(recordID, filterString);
+            // })).then(results => {
+            //     // Combine all results
+            //     var combinedResults = results.flat();
+            //     console.log(combinedResults);
+            // }).catch(error => {
+            //     console.error(error);
+            // });
+            //#endregion
+            var optyurl = null;
+            if (optyId) {
+                var windowurl = window.location.href;
+                var parentWindowUrl = window.parent.location.href;
+                var baseurl = parentWindowUrl.split("entityrecord&etn")[0];
+                optyurl = baseurl + `entityrecord&etn=opportunity&id=${optyId}`;
+            }
+
+            linksForFlow += `[Opportunity](${optyurl})`;
+            linksForJS += `<div class="atagrow"><a id="${'Opportunity'}" href="${optyurl}" target="_blank">${'Opportunity'}</a><button disabled=true class="minusButton" onclick="handleMinusClick('${'Opportunity'}')" id="${'Opportunity'} Button">-</button></div><br/>`;
+
+            // if(document.getElementById("email").value){
+            //     document.getElementById("emailto").value = document.getElementById("email").value;
+            // }
+            // document.getElementById("emailbody").value = emailbody;
+
+        }
+
+        function handleMinusClick(id) {
+            var element = document.getElementById(id);
+            element.remove();
+        }
+
+        function onChangeOFEmailBody() {
+            emailbody = document.getElementById("emailbody").value;
+        }
+
+        function onChangeOFEmailTo() {
+            emailTo = document.getElementById("emailto").value;
+        }
+
+        function onChangeOFEmail() {
+            emailTo = document.getElementById("email").value;
+        }
+        function loadMainBody() {
+            let mainHTML = '<label class="questionLabel">Enter Email id to Send Approval</label><label class="label">Please enter the email id to send the approval request with ; for multiple users </label><label for="email">Email:</label><input type="email" class="mainEmailTo" id="email" name="email" onchange="onChangeOFEmail()" required=""><div class="buttonDiv"><button class="answerButtons" id="Submit" onclick="onClickOfSubmit()">Submit</button><button class="answerButtons" onclick="onCLickOfPreviewEmail()">Preview Email</button></div>';
+
+            document.getElementById("mainDiv").innerHTML = mainHTML;
+
+            document.getElementById("email").value = emailTo;
+        }
+
+        async function onClickOfSubmit() {
+            //var mailId = document.getElementById("email").value;
+            var mailId = emailTo;
+            var mailbody = emailbody;
+            parent.Xrm.Utility.showProgressIndicator('Sending');
+            var urlParams = new URLSearchParams(window.location.search);
+            var recordID = urlParams.get('data');
+            if (!recordID) return;
+            var linksTitle = linksForFlow ? '\nOnboarding Approval\n\n' : '';
+            var record = {};
+            record.crb_emailid = mailId; // Text
+            record.crb_costestaccountrequest = 1;
+            record.crb_cosrequesttypeemailbody = mailbody + linksTitle + linksForFlow;
+            record.crb_sendemailstatusinflow = 100000001; // Choice - InProgress
+
+            //crb_cosrequesttypeemailbody
+            //crb_sendemailstatusinflow
+
+            await parent.Xrm.WebApi.updateRecord("crb_onboarding", recordID, record).then(
+                function success(result) {
+                    var updatedId = result.id;
+                    //parent.Xrm.Utility.showProgressIndicator('Sending');
+                    //console.log(updatedId);
+                    //parent.Xrm.Navigation.openAlertDialog({ text: "COS Test Account Approval Request Sent Successfully" });
+                },
+                function (error) {
+                    alert('Failed To Send Approval Request');
+                    parent.Xrm.Utility.closeProgressIndicator();
+                }
+            );
+
+            //below 2 line need to be modified
+            // parent.Xrm.WebApi.retrieveRecord("crb_onboarding", recordID, "?$select=crb_sendemailstatusinflow").then(
+            //     function success(result) {
+            //         var sendemailstatus = result.crb_sendemailstatusinflow;
+            //         if(sendemailstatus === 100000002){
+            //             parent.Xrm.Utility.closeProgressIndicator();
+            //             window.close();
+            //             parent.Xrm.Navigation.openAlertDialog({ text: "COS Test Account Approval Request Sent Successfully" });
+            //         }
+            //         else if(sendemailstatus === 100000003){
+            //             parent.Xrm.Utility.closeProgressIndicator();
+            //             window.close();
+            //             parent.Xrm.Navigation.openAlertDialog({ text: "Failed To Send Approval Request" });
+            //         }
+            //         else{
+
+            //         }
+            //     },
+            //     function (error) {
+            //         alert('Failed To Send Approval Request');
+            //         parent.Xrm.Utility.closeProgressIndicator();
+            //     }
+            // );
+            //parent.Xrm.Utility.closeProgressIndicator();
+            //window.close();
+            chekcSentEmailStatus();
+
+        }
+
+        function chekcSentEmailStatus() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var recordID = urlParams.get('data');
+            parent.Xrm.WebApi.retrieveRecord("crb_onboarding", recordID, "?$select=crb_sendemailstatusinflow").then(
+                function success(result) {
+                    var sendemailstatus = result.crb_sendemailstatusinflow;
+                    if (sendemailstatus === 100000002) {
+                        parent.Xrm.Utility.closeProgressIndicator();
+                        window.close();
+                        parent.Xrm.Navigation.openAlertDialog({ text: "COS Test Account Approval Request Sent Successfully" });
+                    }
+                    else if (sendemailstatus === 100000003) {
+                        parent.Xrm.Utility.closeProgressIndicator();
+                        window.close();
+                        parent.Xrm.Navigation.openAlertDialog({ text: "Failed To Send Approval Request" });
+                    }
+                    else {
+                        setTimeout(() => {
+                            chekcSentEmailStatus();
+                        }, 3000);
+                    }
+                },
+                function (error) {
+                    alert('Failed To Send Approval Request');
+                    parent.Xrm.Utility.closeProgressIndicator();
+                }
+            );
+        }
+
+        function onCLickOfPreviewEmail() {
+
+
+            let previewEmailBody = '<div id="EmailPreviewDiv" class="EmailPreviewDiv"><h3 class="heading moveToCenter">Email Preview</h3><div class="rowDiv emailToRow"><label>Email To:</label><input id="emailto" type="text" class="previewEmailTo" disabled=true /><button class="doneAndEditButttons" onclick="handleEdit(`emailto`)">Edit</button></div><div class="rowDiv emailBodyRow"><label>Email Body:</label><div class="emailBodyOuterDiv"><div id="fullMailBody" class="fullMailBody"></div></div></div><div class="buttonsEmailBody"> <button class="doneAndEditButttons" onclick="handleEdit(`emailbody`)">Edit</button></div><div class="EmailPreviewButtonsDiv"><button class="backButton" onclick="handleSaveChanges()">Save Changes</button><button class="backButton" onclick="handlePreviewBack()">Back</button></div></div>';
+            //let previewEmailBody = '<div id="EmailPreviewDiv" class="EmailPreviewDiv"><h3 class="heading moveToCenter">Email Preview</h3><div class="rowDiv emailToRow"><label>Email To:</label><input id="emailto" type="text" class="previewEmailTo" disabled=true /><button class="doneAndEditButttons" onclick="handleEdit(`emailto`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailto`)">Done</button></div><div class="rowDiv emailBodyRow"><label>Email Body:</label><div class="emailBodyOuterDiv"><div id="fullMailBody" class="fullMailBody"></div></div></div><div class="buttonsEmailBody"> <button class="doneAndEditButttons" onclick="handleEdit(`emailbody`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailbody`)">Done</button></div><div class="EmailPreviewButtonsDiv"><button class="backButton" onclick="handleSaveChanges()">Save Changes</button><button class="backButton" onclick="handlePreviewBack()">Back</button></div></div>';
+            //let previewEmailBody = '<div id="EmailPreviewDiv" class="EmailPreviewDiv"><h3 class="heading moveToCenter">Email Preview</h3><div class="rowDiv"><label>Email To:</label><input id="emailto" type="text" class="previewEmailTo" disabled=true /><button class="doneAndEditButttons" onclick="handleEdit(`emailto`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailto`)">Done</button></div><div class="rowDiv"><label>Email Body:</label><textarea id="emailbody" class="previewEmailBody" rows="10" disabled=true></textarea><button class="doneAndEditButttons" onclick="handleEdit(`emailbody`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailbody`)">Done</button></div><div class="EmailPreviewButtonsDiv"><button class="backButton" onclick="handleSaveChanges()">Save Changes</button><button class="backButton" onclick="loadMainBody()">Back</button></div></div>';
+            //let previewEmailBody = '<div id="EmailPreviewDiv" class="EmailPreviewDiv"><h3 class="heading moveToCenter">Email Preview</h3><div class="rowDiv"><label>Email To:</label><input id="emailto" type="text" onchange="onChangeOFEmailTo()" disabled=true /><button class="doneAndEditButttons" onclick="handleEdit(`emailto`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailto`)">Done</button></div><div class="rowDiv"><label>Email Body:</label><textarea id="emailbody" rows="10" onchange="onChangeOFEmailBody()" disabled=true></textarea><button class="doneAndEditButttons" onclick="handleEdit(`emailbody`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailbody`)">Done</button></div><div class="EmailPreviewButtonsDiv"><button class="backButton" onclick="handleSaveChanges()">Save Changes</button><button class="backButton" onclick="loadMainBody()">Back</button></div></div>';
+
+            document.getElementById("mainDiv").innerHTML = previewEmailBody;
+
+            //fullMailBody
+            if (emailbody) {
+                document.getElementById("fullMailBody").innerHTML = `<div class="textareadiv"> <textarea id="emailbody" class="previewEmailBody" rows="10" disabled=true>${emailbody}</textarea></div>`;
+                //document.getElementById("fullMailBody").innerHTML = `<div class="textareadiv"> <textarea id="emailbody" class="previewEmailBody" rows="9" disabled=true>${emailbody}</textarea> <button class="doneAndEditButttons" onclick="handleEdit('emailbody')">Edit</button><button class="doneAndEditButttons" onclick="handleDone('emailbody')">Done</button></div>`;
+                //document.getElementById("fullMailBody").innerHTML += '<button class="doneAndEditButttons" onclick="handleEdit(`emailbody`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailbody`)">Done</button></div>';
+            }
+            // document.getElementById("fullMailBody").innerHTML += `<br/><label>Onboarding Approval</label><br/>`;
+            if (linksForJS) {
+                document.getElementById("fullMailBody").innerHTML += `<div class="linkMainContainer"><label class="OnboardingLabel">Onboarding Approval</label><br/><div class="linksDiv">${linksForJS}</div></div>`;
+            }
+            if (emailTo) {
+                document.getElementById("emailto").value = emailTo;
+            }
+        }
+
+        function handleSaveChanges() {
+
+            document.getElementById("darkBackground").classList.add("makeBackgroundDark");
+
+            document.getElementById("emailto").disabled = true;
+            document.getElementById("emailbody").disabled = true;
+            let minusButtonItems = document.getElementsByClassName("minusButton");
+            for (let i = 0; i < minusButtonItems.length; i++) {
+                minusButtonItems[i].disabled = true;
+            }
+
+
+            emailTo = document.getElementById("emailto").value;
+            emailbody = document.getElementById("emailbody").value;
+
+            let items = document.getElementsByClassName("atagrow");
+            linksForJS = '';
+
+            let ids = [];
+            for (let i = 0; i < items.length; i++) {
+                if (!items[i].querySelector('a')) {
+                    ids.push(items[i].querySelector('button').id.split(' Button')[0]);
+                }
+                if (items[i].querySelector('a')) {
+                    linksForJS += items[i].outerHTML + '<br/>';
+                }
+
+            }
+
+
+            let linksForFlowList = linksForFlow.split('\n');
+            linksForFlow = '';
+            if (linksForJS) {
+                //linksForFlow += '\nOnboarding Approval\n\n' ;
+                for (let i = 0; i < linksForFlowList.length; i++) {
+
+                    // if(!ids.includes(linksForFlowList[i])){
+                    //     linksForFlow += linksForFlowList[i] + '\n';
+                    // }
+
+                    if (!ids.some(id => linksForFlowList[i].includes(id))) {
+                        linksForFlow += linksForFlowList[i] + '\n';
+                    }
+                }
+            }
+
+            //document.getElementById("linksDiv").innerHTML = linksForJS;
+            if (emailbody) {
+                document.getElementById("fullMailBody").innerHTML = `<div class="textareadiv"> <textarea id="emailbody" class="previewEmailBody" rows="10" disabled=true>${emailbody}</textarea></div>`;
+                //document.getElementById("fullMailBody").innerHTML = `<div class="textareadiv"> <textarea id="emailbody" class="previewEmailBody" rows="9" disabled=true>${emailbody}</textarea> <button class="doneAndEditButttons" onclick="handleEdit('emailbody')">Edit</button><button class="doneAndEditButttons" onclick="handleDone('emailbody')">Done</button></div>`;
+                //document.getElementById("fullMailBody").innerHTML += '<button class="doneAndEditButttons" onclick="handleEdit(`emailbody`)">Edit</button><button class="doneAndEditButttons" onclick="handleDone(`emailbody`)">Done</button></div>';
+            }
+            // document.getElementById("fullMailBody").innerHTML += `<br/><label>Onboarding Approval</label><br/>`;
+            if (linksForJS) {
+                document.getElementById("fullMailBody").innerHTML += `<div class="linkMainContainer"><label class="OnboardingLabel">Onboarding Approval</label><br/><div class="linksDiv">${linksForJS}</div></div>`;
+            }
+            if (emailTo) {
+                document.getElementById("emailto").value = emailTo;
+            }
+
+
+            document.getElementById("darkBackground").classList.remove("makeBackgroundDark");
+
+            //loadMainBody();
+
+
+            // var data = {
+
+            // }
+            // await parent.Xrm.WebApi.updateRecord("crb_onboarding", recordID, data).then(
+            //     function success(result) {
+            //         var updatedId = result.id;
+            //         document.getElementById("EmailPreviewDiv").classList.remove("makeBackgroundDark");
+            //         handleEmailPreviewBack(parentDivName);
+            //     },
+            //     function (error) {
+            //         document.getElementById("EmailPreviewDiv").classList.remove("makeBackgroundDark");
+            //         alert('Failed To Save Changes');
+            //     }
+            // );
+
+            // setTimeout(() => {
+            //     document.getElementById("darkBackground").classList.remove("makeBackgroundDark");
+            //     loadMainBody();
+            // }, 3000);
+        }
+
+        function handlePreviewBack() {
+            //document.getElementById("linksDiv").innerHTML = linksForJS;
+            loadMainBody();
+        }
+
+        function handleEdit(fieldId) {
+            document.getElementById(fieldId).disabled = false;
+            if (fieldId === 'emailbody') {
+                let items = document.getElementsByClassName("minusButton");
+                for (let i = 0; i < items.length; i++) {
+                    items[i].disabled = false;
+                }
+
+            }
+        }
+
+        function handleDone(fieldId) {
+            document.getElementById(fieldId).disabled = true;
+            if (fieldId === 'emailbody') {
+                let items = document.getElementsByClassName("minusButton");
+                for (let i = 0; i < items.length; i++) {
+                    items[i].disabled = true;
+                }
+
+            }
+        }
+    </script>
+    <style>
+        .minusButton:not(:disabled):hover {
+            cursor: pointer;
+            border-color: white;
+            color: white;
+            background-color: black;
+        }
+
+        .minusButton:disabled {
+            cursor: not-allowed;
+        }
+
+        .OnboardingLabel {
+            font-weight: bold;
+            font-size: large;
+        }
+
+        .atagrow {
+            display: flex;
+            flex-direction: row;
+            gap: 2%;
+        }
+
+        .EmailPreviewButtonsDiv {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5%;
+            /* margin-top: 2%; */
+            padding-bottom: 1rem;
+        }
+
+        .backButton {
+            padding: 0.5rem;
+            border-radius: 0.1cm;
+        }
+
+        .backButton:hover {
+            cursor: pointer;
+            background-color: gray;
+            color: white;
+        }
+
+        .buttonsEmailBody {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 1rem;
+            align-items: center;
+            margin: 1rem;
+            margin-top: 1%;
+        }
+
+        .emailBodyOuterDiv {
+            display: flex;
+            flex-direction: row;
+            gap: 5%;
+            /* align-items: center; */
+            width: 100%;
+        }
+
+        .textareadiv {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 1%;
+        }
+
+        .fullMailBody {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            border: 0.01px solid darkgray;
+            border-radius: 0.1cm;
+            width: 100%;
+        }
+
+        .linkMainContainer {
+            /* border:1px solid black; */
+            display: flex;
+            flex-direction: column;
+            gap: 2%;
+            padding: 0.5rem;
+        }
+
+        .mainDiv {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            gap: 2%;
+        }
+
+        .buttonDiv {
+            width: 50%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            margin-top: 5%;
+        }
+
+        .mainEmailTo {
+            width: 30%;
+            font-size: medium;
+            padding: 0.5rem;
+        }
+
+        .questionLabel {
+            font-size: large;
+            font-weight: bold;
+        }
+
+        .answerButtons {
+            font-weight: bold;
+            border-width: 2px;
+            padding: 10px;
+            border-radius: 5cm;
+        }
+
+        .answerButtons:hover {
+            cursor: pointer;
+        }
+
+        .EmailPreviewDiv {
+            /* display: flex;
+            flex-direction: column; */
+            /* justify-content: center; */
+            margin: 1rem;
+            /* align-items: center; */
+            height: 100%;
+            width: 100%;
+            gap: 3%;
+        }
+
+        .emailToRow {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .emailBodyRow {
+            display: flex;
+            flex-direction: row;
+            /* justify-content: center; */
+            align-items: center;
+            margin: 1rem;
+            margin-bottom: 0px;
+        }
+
+        .rowDiv {
+            display: flex;
+            /* justify-content: center;
+            align-items: center; */
+            gap: 1%;
+            /* margin-left: 5rem; */
+        }
+
+        .heading::first-letter {
+            text-transform: uppercase;
+        }
+
+        .moveToCenter {
+            text-align: center;
+        }
+
+        .makeBackgroundDark {
+            background-color: gray;
+            color: white;
+            opacity: 0.5;
+            z-index: 100;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+        }
+
+        .doneAndEditButttons:hover {
+            cursor: pointer;
+            background-color: blue;
+            color: white;
+        }
+
+        .previewEmailBody {
+            width: 100%;
+            height: 100%;
+            /* padding: 1rem; */
+            font-size: large;
+            resize: none;
+            /* overflow: hidden; */
+            border: none;
+        }
+
+        .previewEmailTo {
+            width: 30%;
+            padding: 0.3rem;
+            font-size: medium;
+        }
+    </style>
+    <meta>
+</head>
+
+<body>
+    <div id="darkBackground"></div>
+    <div id="mainDiv" class="mainDiv">
+
+    </div>
+
+</body>
+
+</html>
