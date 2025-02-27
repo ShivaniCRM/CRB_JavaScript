@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Team Selector</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/css/bootstrap-select.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Document Review Team Selector</h1>
+        <form id="document-form">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Document</th>
+                        <th>Line 1 Reviewing Teams</th>
+                        <th>Line 2 Reviewing Teams</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!--Documents Rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+            <button id="submit" type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.18/js/bootstrap-select.min.js"></script>
+
+    <script>
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+
+            var temp = url.slice(url.indexOf(name),);
+            temp = temp.slice(14,);
+            var x = temp.split('%252C')
+            //console.log(x);
+            return x;
+            //var startIndex = url.indexOf(name);
+            //var endIndex = startIndex + name.length + 3;
+            //console.log(url.substring(endIndex, endIndex + 36));
+            //return url.substring(endIndex, endIndex + 36);
+
+        }
+
+        async function retrievedocument() {
+            var docIds = getParameterByName('documentIds');
+            //console.log(OppId);
+            var list = [];
+            var filter = '';
+            docIds.forEach((docId, index) => {
+                if (index === docIds.length - 1)
+                    filter += 'crb_documentid eq ' + docId;
+                else
+                    filter += 'crb_documentid eq ' + docId + ' or ';
+            });
+            await fetch(parent.Xrm.Utility.getGlobalContext().getClientUrl() + "/api/data/v9.2/crb_documents?$select=crb_documentid,crb_name&$filter=" + filter,
+                {
+                    method: "GET",
+                    headers: {
+                        "OData-MaxVersion": "4.0",
+                        "OData-Version": "4.0",
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Accept": "application/json",
+                        "Prefer": "odata.include-annotations=*"
+                    }
+                })
+                .then(
+                    function success(response) {
+                        return response.json().then((json) => { if (response.ok) { return [response, json]; } else { throw json.error; } });
+                    }
+                ).then(function (responseObjects) {
+                    var response = responseObjects[0];
+                    var responseBody = responseObjects[1];
+                    var results = responseBody;
+                    console.log(results);
+                    for (var i = 0; i < results.value.length; i++) {
+                        var result = results.value[i];
+                        // Columns
+                        var new_crbdocumentid = result["crb_documentid"]; // Guid
+                        var new_name = result["crb_name"]; // Text
+                        //var new_team = result["_new_team_value"]; // Lookup
+                        //var new_team_formatted = result["_new_team_value@OData.Community.Display.V1.FormattedValue"];
+                        //var new_team_lookuplogicalname = result["_new_team_value@Microsoft.Dynamics.CRM.lookuplogicalname"];
+                        var obj = {
+                            documentid: new_crbdocumentid,
+                            //teamId: new_team,
+                            //teamname: new_team_formatted,
+                            name: new_name
+
+                        };
+                        list.push(obj);
+                    }
+                }).catch(function (error) {
+                    console.log(error.message);
+                });
+
+
+
+
+            return list;
+        }
+        async function getRelatedTeams(list) {
+            var updateddoclist = [];
+            var filter = '';
+            list.forEach((doc, index) => {
+                if (index === list.length - 1)
+                    filter += "crb_standardizedname eq " + "'" + doc.name + "'";
+                else
+                    filter += "crb_standardizedname eq " + "'" + doc.name + "' or ";
+            });
+            //console.log(filter);
+            await fetch(parent.Xrm.Utility.getGlobalContext().getClientUrl() + "/api/data/v9.2/crb_docrefs?$select=crb_docrefid,crb_standardizedname&$expand=crb_docref_Team_Team($select=teamid,name)&$filter=" + filter, {
+                method: "GET",
+                headers: {
+                    "OData-MaxVersion": "4.0",
+                    "OData-Version": "4.0",
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Accept": "application/json",
+                    "Prefer": "odata.include-annotations=*"
+                }
+            }).then(
+                function success(response) {
+                    return response.json().then((json) => { if (response.ok) { return [response, json]; } else { throw json.error; } });
+                }
+            ).then(function (responseObjects) {
+                var response = responseObjects[0];
+                var responseBody = responseObjects[1];
+                var results = responseBody;
+                console.log(results);
+                
+                for (var i = 0; i < results.value.length; i++) {
+                    var listTeamA = [];
+                    var result = results.value[i];
+                    // Columns
+                    var crb_docrefid = result["crb_docrefid"]; // Guid
+                    var crb_standardizedname = result["crb_standardizedname"]; // Text
+                   // var crb_productname = result["_crb_productname_value@OData.Community.Display.V1.FormattedValue"]; // Value
+                    // One To Many Relationships
+                    for (var j = 0; j < result.crb_docref_Team_Team.length; j++) {
+                        var teamid = result.crb_docref_Team_Team[j]["teamid"]; // Guid
+                        var teamName = result.crb_docref_Team_Team[j]["name"]; // Text
+                        var teamobj = {
+                            name: teamName,
+                            id : teamid
+                        }
+                        listTeamA.push(teamobj)
+                    }
+                    var obj = {
+                        documentName: crb_standardizedname,
+                        //productName: crb_productname,
+                        Line1: listTeamA,
+                        Line2: listTeamA
+                    }
+                    updateddoclist.push(obj);
+                }
+            }).catch(function (error) {
+                console.log(error.message);
+            });
+            
+            return updateddoclist;
+
+        }
+
+        async function retrieveTeam() {
+            var list = [];
+            await fetch(parent.Xrm.Utility.getGlobalContext().getClientUrl() + "/api/data/v9.2/teams?$select=teamid,name", {
+                method: "GET",
+                headers: {
+                    "OData-MaxVersion": "4.0",
+                    "OData-Version": "4.0",
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Accept": "application/json",
+                    "Prefer": "odata.include-annotations=*"
+                }
+            }).then(
+                function success(response) {
+                    return response.json().then((json) => { if (response.ok) { return [response, json]; } else { throw json.error; } });
+                }
+            ).then(function (responseObjects) {
+                var response = responseObjects[0];
+                var responseBody = responseObjects[1];
+                var results = responseBody;
+                console.log(results);
+                for (var i = 0; i < results.value.length; i++) {
+                    var result = results.value[i];
+                    // Columns
+                    var teamid = result["teamid"]; // Guid
+                    var name = result["name"]; // Text
+                    var obj = {
+
+                        teamname: name,
+                        teamid: teamid
+
+                    };
+                    list.push(obj);
+                }
+            }).catch(function (error) {
+                console.log(error.message);
+            });
+            return list;
+        }
+
+
+        $(document).ready(async function () {
+            // Populate the table with document rows
+            var list = await retrievedocument();
+            
+            var updateddoclist = await getRelatedTeams(list);
+            const crbdocument = {
+                "value":list
+            }
+            
+            
+            crbdocument.value.forEach(document2 => {
+                if (updateddoclist.length == 0) {
+
+                    $('body').append(`<div class="alert alert-danger" style="position: fixed; top: 28%; left: 50%; transform: translate(-50%, -50%);">Document type(s) ${list.map(document2 => document2.name).join(', ')} does not exist in reference documents</div>`);
+
+                    $('#submit').prop('disabled', true);
+                }});
+            //if (updateddoclist.length == 0) {
+
+            //    $('body').append('<div class="alert alert-danger" style="position: fixed; top: 28%; left: 50%; transform: translate(-50%, -50%);">Document type "' + document.name + '" does not exist in reference documents</div>');
+
+            //    $('#submit').prop('disabled', true);
+            //}
+            
+            const documents1 = {
+                "value": updateddoclist
+            };
+            //console.log(documents1.value);
+            //var listofteams = await retrieveTeam();
+            //const team1 = {
+            //    "value": listofteams
+            //}
+            documents1.value.forEach(document => {
+
+                const row = `<tr>
+                                        <td>${document.documentName}</td>
+                                        
+                                        <td>
+                                            <select class="selectpicker form-control" multiple data-live-search="true" data-width="100%" data-name="${document.documentName}">
+                                            ${document.Line1.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                                            </select>
+                                        </td>
+                                         <td>
+                                            <select class="selectpicker form-control" multiple data-live-search="true" data-width="100%" data-name="${document.documentName}">
+                                            ${document.Line2.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                                            </select>
+                                        </td>
+                                    </tr>`;
+                $('table tbody').append(row);
+            });
+
+            // Initialize the selectpicker for dynamically added elements
+            $('.selectpicker').selectpicker();
+
+            // Handle form submission
+            $('#document-form').on('submit', async function (e) {
+                e.preventDefault();
+                const selections = [];
+                $('select').each(function () {
+                    console.log($(this).val());
+                    const documentname = $(this).data('name');
+                    const selectedTeams = $(this).val();
+                    //console.log(selectedTeams);
+                    var counterone = 0;
+                    selectedTeams.forEach(
+                        teamvalue => {
+                            selections.push({
+                                docname: documentname,
+                                teamid: selectedTeams[counterone]
+                                //documentname: name,
+                            });
+                            if (counterone !== selectedTeams.length) {
+                                counterone = counterone + 1;
+                            }
+                        }
+
+                    );
+
+                });
+
+                // POST to API (Example: logging to console since there's no actual API here)
+                console.log('Selections:', selections);
+                // Replace this with actual AJAX call to your API
+                // $.ajax({
+                //     url: 'https://example.com/api/submit',
+                //     type: 'POST',
+                //     contentType: 'application/json',
+                //     data: JSON.stringify(selections),
+                //     success: function(response) {
+                //         alert('Data submitted successfully!');
+                //     },
+                //     error: function(error) {
+                //         alert('Error submitting data');
+                //     }
+                // });
+
+                selections.forEach(docreviewinstance => {
+                    var documentid = list.filter(item => item.name == docreviewinstance.docname)[0].documentid;
+                    //console.log(documentid);
+                    var data =
+                    {
+                        "crb_name": docreviewinstance.docname,
+                        "crb_status": 100000000,
+                        "crb_reviewdstatus": 100000000,
+                        //"crb_reviewedby": docreviewinstance.teamid,
+                        "crb_Document@odata.bind": "/crb_documents(" + documentid + ")",
+                        "crb_Reviewedby2@odata.bind":"/teams("+docreviewinstance.teamid +")"
+                    }
+                    //console.log(data);
+                    parent.Xrm.WebApi.createRecord("crb_docreview", data).then(
+                        function success(result) {
+                            console.log("Account created with ID: " + result.id);
+                        },
+                        function (error) {
+                            console.log(error.message);
+                            alert("Record creation failed");
+                        }
+                    );
+
+
+                });
+
+                var alertStrings = { confirmButtonLabel: "Close", text: "Document Review Instance is created successfully.", title: "Success" };
+                var alertOptions = { height: 70, width: 160 };
+                parent.Xrm.Navigation.openAlertDialog(alertStrings, alertOptions).then(
+                    function (success) {
+                        window.close();
+                    },
+                    function (error) {
+                    }
+                );
+
+
+            });
+        });
+    </script>
+</body>
+</html>
