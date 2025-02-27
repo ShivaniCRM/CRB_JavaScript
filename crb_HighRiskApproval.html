@@ -1,0 +1,191 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSRequestType</title>
+    <script type="text/javascript">
+        onload = function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var data = urlParams.get('data');
+            var dataList = data.split(";");
+            var partnerName = dataList[1];
+            var recordID = dataList[0];
+            //var parentName = window.parent.Xrm.Page.getAttribute("crb_partner").getValue()[0].name;
+            document.getElementById("description").value = 'Please approve ' + partnerName + ' for a test account. Sandbox Testing, CIP, and the Beneficial Ownership document are completed and validated.\nWe will share the account numbers with the client.\nWe will share the accounts so that Production test transactions can be processed abiding the Production Test Parameters (transaction amount: 25/per day up to $10.00 max per transaction).';
+
+
+        }
+        async function onClickOfSubmit() {
+            var mailId = document.getElementById("email").value;
+            var mailDecription = document.getElementById("description").value;
+            
+            if (mailId != "") {
+                var urlParams = new URLSearchParams(window.location.search);
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(mailId)) {
+                    alert('Please enter a valid email address');
+                }
+                else {
+                    parent.Xrm.Utility.showProgressIndicator('Sending');
+                    //var recordID = urlParams.get('data');
+                    var data = urlParams.get('data');
+                    var dataList = data.split(";");
+                    var partnerName = dataList[1];
+                    var recordID = dataList[0];
+                    if (!recordID) return;
+                    var record = {};
+                    record.crb_highriskapprovalsmailid = mailId; // Text
+                    record.crb_highriskapprovaldescription = mailDecription;
+                    record.crb_sendemailstatusinflow = 100000001; // Choice - InProgress
+                    await parent.Xrm.WebApi.updateRecord("crb_onboarding", recordID, record).then(
+                        function success(result) {
+                            var updatedId = result.id;
+                            //console.log(updatedId);
+                            chekcSentEmailStatus();
+                        },
+                        function (error) {
+                            //console.log(error.message);
+                            parent.Xrm.Utility.closeProgressIndicator();
+                            alert('Failed To Send Approval Request');
+                        }
+                    );
+                   // window.close();
+                }
+            } else {
+                alert("Enter atleast one email Id for approval");
+            }
+
+        }
+
+        function chekcSentEmailStatus() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var data = urlParams.get('data');
+            var dataList = data.split(";");
+            var partnerName = dataList[1];
+            var recordID = dataList[0];
+            parent.Xrm.WebApi.retrieveRecord("crb_onboarding", recordID, "?$select=crb_sendemailstatusinflow").then(
+                function success(result) {
+                    var sendemailstatus = result.crb_sendemailstatusinflow;
+                    if (sendemailstatus === 100000002) {
+                        parent.Xrm.Utility.closeProgressIndicator();
+                        window.close();
+                        parent.Xrm.Navigation.openAlertDialog({ text: "High Risk Approval Sent Successfully" });
+                    }
+                    else if (sendemailstatus === 100000003) {
+                        parent.Xrm.Utility.closeProgressIndicator();
+                        window.close();
+                        parent.Xrm.Navigation.openAlertDialog({ text: "Failed To Send Approval Request" });
+                    }
+                    else {
+                        setTimeout(() => {
+                            chekcSentEmailStatus();
+                        }, 3000);
+                    }
+                },
+                function (error) {
+                    alert('Failed To Send Approval Request');
+                    parent.Xrm.Utility.closeProgressIndicator();
+                }
+            );
+        }
+
+        function onClickOfEdit() {
+            document.getElementById("description").disabled = false;
+
+        }
+
+        function onClickOfDone() {
+            document.getElementById("description").disabled = true;
+
+        }
+    </script>
+    <style>
+        .mainDiv {
+            display: flex;
+            flex-direction: column;
+            /* align-items: center; */
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            gap: 2%;
+        }
+
+        .emailinput {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            padding-block: 10px;
+            padding-inline: 10px;
+        }
+
+        .buttonDiv {
+            width: 50%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            align-items: center;
+            width: 100%;
+        }
+
+        .questionLabel {
+            font-size: large;
+            font-weight: bold;
+        }
+
+        .answerButtons {
+            font-weight: bold;
+            border-width: 2px;
+            padding: 10px;
+            border-radius: 5cm;
+        }
+
+        .answerButtons:hover {
+            cursor: pointer;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .labelDiv {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="mainDiv">
+        <div class="labelDiv">
+            <label class="questionLabel">Enter Email Id to Send Approval</label>
+            <label class="label">
+                Please enter the email Id to send the approval request with ; for multiple users
+            </label>
+        </div>
+        <div class="container">
+            <label for="email">Email Id:</label>
+            <input class="emailinput" type="email" id="email" name="email" required>
+            <label for="description">Email Description:</label>
+            <textarea class="emailinput" disabled="true" id="description" rows="10" name="description"></textarea>
+        </div>
+        <div style="display: flex; flex-direction: row-reverse; gap: 1%; width: 75%;">
+            <button class="answerButtons" id="Edit" onclick="onClickOfEdit()">Edit</button>
+            <button class="answerButtons" id="Done" onclick="onClickOfDone()">Done</button>
+        </div>
+        <div class="buttonDiv">
+            <button class="answerButtons" id="Submit" onclick="onClickOfSubmit()">Submit</button>
+
+        </div>
+
+    </div>
+</body>
+
+</html>
