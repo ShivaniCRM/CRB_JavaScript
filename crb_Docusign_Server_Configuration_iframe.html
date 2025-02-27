@@ -1,0 +1,303 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>DocuSign Account Configuration App</title>
+
+        <link rel="stylesheet" href="/WebResources/docusign_bootstrap_min_3_2_0_css" />
+        <link rel="stylesheet" href="/WebResources/docusign_common_styles" />
+        <link rel="stylesheet" href="/WebResources/docusign_configuration_signin_iframe_styles" />
+        <script type="text/javascript" src="/WebResources/docusign_jquery"></script>
+        <script type="text/javascript" src="/WebResources/docusign_utilitiesjs"></script>
+        <script type="text/javascript" src="/WebResources/docusign_crm_odata"></script>
+        <script type="text/javascript" src="/WebResources/docusign_bootstrap_min_3_2_0_js"></script>
+        <script type="text/javascript" src="/WebResources/docusign_handlebars_v2_0_0_js"></script>
+        <script type="text/javascript" src="/WebResources/docusign_underscore_1_7_0_js"></script>
+        <script type="text/javascript" src="/WebResources/docusign_backbone_1_1_2_js"></script>
+        <script type="text/javascript" src="/WebResources/docusign_backbone_marionette_2_2_0_js"></script>
+
+    </head>
+    <body>
+        <div id="divLoadingDialog" class="modal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body text-center">
+                        <div style="display: inline-block; margin-top: 12px">
+                            <div id="loadingIcon" class="spinner-circle spinner-sm"></div>
+                            <div id="loadingDivCaption" class="spinner-text">Loading ...</div>
+                            <div id="loadingDivCaption2" class="spinner-text"></div>
+                            <div class="progress" id="progress" style="display:none;">
+                                <div class="progress-bar progress-bar active" role="progressbar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="globalError" class="alert alert-danger text-center"></div>
+        <div id="mainBody" class="container-fluid"></div>
+
+        <div id="templates" style="display:none;">
+            <script type="text/template" id="docusignAccountConfigLayoutTemplate">
+                <div class="row">
+                    <iframe id="partnersIframe" style="width:100%;border:0;height:97vh;" src="{{{configuration_url}}}">
+                    </iframe>
+                </div>
+
+            </script>
+        </div>
+        <script type="text/javascript">
+            (function ($, Xrm, CRMDataHelpers, Handlebars, Backbone, _, Marionette) {
+
+
+                // throw up the 'loading' dialog straight away, while we initialize things:
+                var $loadingDiv = $("#divLoadingDialog").modal({
+                    backdrop: 'static',
+                    keyboard: false,
+                    show: true
+                });
+
+                var partnersHostname = '';
+                var $templates = $("div#templates");
+                if ($templates.length <= 0) throw "Cannot render SPA without templates";
+
+                // application, at the top. hosts utility, like showing/hiding the loading dialog,
+                // showing/hiding error messages on the page, etc.
+                var AppKlass = Marionette.Application.extend({
+                    initialize: function (options) {
+                        this.$loader = options.$loader;
+                        this.$globalError = options.$globalError;
+                    },
+                    fnLoading: function (bLoading, options) {
+                        options = options || {};
+                        var strLoaderCaption = (typeof options.strLoaderCaption === 'string' && options.strLoaderCaption.length > 0) ? options.strLoaderCaption : 'Loading ...';
+                        var strLoaderCaption2 = (typeof options.strLoaderCaption2 === 'string' && options.strLoaderCaption2.length > 0) ? options.strLoaderCaption2 : "";
+
+                        var bShowProgress = (typeof options.bShowProgress === 'boolean') ? options.bShowProgress : false;
+                        var progressPercentage = (typeof options.progressPercentage === 'number' && options.progressPercentage >= 0) ? options.progressPercentage : 1;
+                        if (progressPercentage < 1) progressPercentage *= 100;
+
+                        if (bLoading) {
+                            this.$loader.find("#loadingDivCaption").text(strLoaderCaption);
+                            this.$loader.find("#loadingDivCaption2").text(strLoaderCaption2);
+
+                            if (bShowProgress) {
+                                this.$loader.find("#progress").show().find(".progress-bar").css('width', progressPercentage + "%");
+                                this.$loader.find("#loadingIcon").hide();
+                            }
+                            else {
+                                this.$loader.find("#loadingIcon").show();
+                                this.$loader.find("#progress").hide();
+                            }
+                                
+
+                            this.$loader.modal('show');
+                        } else {
+                            this.$loader.modal('hide');
+                        }
+                    },
+                    fnShowError: function (strErrorMessage) {
+                        strErrorMessage = (typeof strErrorMessage === 'string') ? strErrorMessage : "Unknown error";
+                        this.$globalError.html(strErrorMessage).show();
+                    },
+                    fnHideError: function () {
+                        this.$globalError.hide();
+                    },
+                    fnGetRouter: function () {
+                        return this.router;
+                    }
+                });
+
+                // this'll only work if the DOM is ready and the given selectors are actually on the page.
+                // if that's not the case, use addInitializer hooks on a document.ready callback.
+                var oApp = new AppKlass({
+                    $loader: $loadingDiv,
+                    $globalError: $("#globalError")
+                });
+
+                // add any initializers that you want to call when the app starts.
+                // these initializers often help you avoid circular dependencies (ie: objects initialized
+                // below this line can be passed into the application with these hooks, by calling
+                // app.start below.)
+                oApp.addInitializer(function (options) {
+                    this.router = options.router;
+                });
+
+                // interaction with CRM via this object:
+                var oCRMHelpers = new CRMDataHelpers(Xrm);
+
+                /*
+                 * Backbone Model for Role entities
+                 *
+                 */
+                var SecurityRoleEntityKlass = Backbone.Model.extend({
+                    IsAdmin: function () {
+                        return this.get("Name") === 'System Administrator';
+                    },
+                    IsDocuSign: function () {
+                        if (this.get("Name") === 'DocuSignUser') return true;
+                        if (this.IsAdmin()) return true;
+
+                        return false;
+                    }
+                });
+
+                /*
+                 * Backbone Collection for Role entities
+                 *
+                 */
+                var SecurityRoleEntityCollectionKlass = Backbone.Collection.extend({
+
+                    // the 'roles' objects that crm sends back to the browser are unnecessarily verbose.
+                    // we'll prune them down to only those properties we care about!
+                    model: function (pNewModelAttributes, options) {
+                        return new SecurityRoleEntityKlass({ Name: pNewModelAttributes.Name }, options);
+                    }
+                });
+
+                var ConfigurationModelKlass = Backbone.Model.extend({
+                    initialize: function (model) {
+                        // check to see if we have an existing configuration object
+                        if (model.existingConfigurationEndpoint)
+                        {
+                            this.set("configuration_url", model.existingConfigurationEndpoint);
+                        }
+                        else
+                        {
+                            //otherwise, go to the "new configuration endpoint"
+                            this.set("configuration_url", model.newConfigurationEndpoint + "&crmHost=" + window.location.hostname);
+                        }
+                    }
+                });
+
+                /*
+                 * Backbone Model for SystemUser entities
+                 *
+                 */
+                var SystemUserEntityKlass = Backbone.Model.extend({
+
+                    initialize: function (model) {
+                        // initialize the user's security roles when present
+                        if (model.systemuserroles_association && model.systemuserroles_association.results)
+                            this.oSecurityRoles = new SecurityRoleEntityCollectionKlass(model.systemuserroles_association.results);
+                        else
+                            this.oSecurityRoles = new SecurityRoleEntityCollectionKlass();
+                    },
+
+                    // crm stores email addresses in a few different places.  we'll look them all up
+                    // in an arbitrary pecking order and return the first one we find, or null if none
+                    // are present.
+                    GetEmailAddress: function () {
+                        var email = this.get("InternalEMailAddress");
+                        if (email) return email;
+
+                        email = this.get("WindowsLiveID");
+                        if (email) return email;
+
+                        email = this.get("DomainName");
+                        if (email) return email;
+
+                        return null;
+                    },
+
+                    IsAdmin: function () {
+                        var oAdminRole = this.oSecurityRoles.find(function (oRole) {
+                            return oRole.IsAdmin();
+                        });
+
+                        return oAdminRole != null;
+                    },
+
+                    IsDocuSignUser: function () {
+                        var oDocuSignUserRole = this.oSecurityRoles.find(function (oRole) {
+                            return oRole.IsDocuSign();
+                        });
+
+                        return oDocuSignUserRole != null;
+                    }
+                });
+
+                var DocuSignAccountConfigPageLayoutKlass = Marionette.LayoutView.extend({
+                    template: Handlebars.compile($templates.find("#docusignAccountConfigLayoutTemplate").html()),
+                    initialize: function (options) {
+
+                    },
+                    regions: {
+                    },
+                    ui: {
+                    },
+                    events: {
+                    },
+                    onShow: function () {
+                    }
+                });
+
+                //
+                // Controllers
+                //
+                var DocuSignAccountConfigControllerKlass = Marionette.Controller.extend({
+                    Index: async function () {
+                        try {
+                            const configData = await oCRMHelpers.GetConfigurationEndpoint();
+                            var model = new ConfigurationModelKlass(configData);
+
+                            var view = new DocuSignAccountConfigPageLayoutKlass({
+                                'model': model
+                            });
+
+                            oApp.mainBody.show(view);
+                            oApp.fnLoading(false);
+                        } catch(pError) {
+                            oApp.fnShowError(pError.Error);
+                            oApp.fnLoading(false);
+                        }
+                    }
+                });
+
+                //
+                // Routing
+                //
+                var pRouter = {
+                    HandleHomePageRequest: async function () {
+                        oApp.fnLoading(true);
+                        var controller = new DocuSignAccountConfigControllerKlass();
+                        try {
+                            const systemUserModel = await oCRMHelpers.GetCurrentUserInfo();
+                            const hasAdminPrivileges = await oCRMHelpers.CurrentUserHasAdminPrivileges();
+                            const oUserModel = new SystemUserEntityKlass(systemUserModel);
+                            if (!hasAdminPrivileges && oUserModel.IsAdmin() === false) {
+                                oApp.fnShowError("Only admins are able to create or edit DocuSign account configurations.  Please contact your CRM administrator for more info.");
+                                oApp.fnLoading(false);
+                                return;
+                            }
+                        } catch (pError) {
+                            oApp.fnShowError(pError.Error);
+                            oApp.fnLoading(false);
+                        }
+
+                        controller.Index();
+                    }
+                };
+
+                // fire up the application and feed the router to the app object.
+                // all the controllers and views will use it to move the app along.
+                oApp.addRegions({
+                    mainBody: "#mainBody"
+                });
+                var pAppInitOptions = { router: pRouter };
+
+                // you can wrap app.start in a document.ready callback when you need to feed
+                // dom elements to the application (b/c the document has to be ready before
+                // your dom elements are accessible)
+                oApp.start(pAppInitOptions);
+
+                // technically speaking, the "home page" of our app is the login screen - fire that up
+                pRouter.HandleHomePageRequest();
+
+            })(jQuery.noConflict(true), window.parent.Xrm, window.CRMDataHelpers, Handlebars, Backbone, _, Backbone.Marionette);
+        </script>
+    </body>
+</html>
