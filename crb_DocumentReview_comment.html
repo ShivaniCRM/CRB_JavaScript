@@ -1,0 +1,478 @@
+<html></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CommunicationComments</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 300px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-box {
+            margin-bottom: 20px;
+        }
+
+            .comment-box textarea {
+                width: 100%;
+                height: 100px;
+                padding: 10px;
+                box-sizing: border-box;
+                font-size: 16px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+
+            .comment-box button {
+                padding: 10px 20px;
+                font-size: 16px;
+                margin-top: 10px;
+               /* cursor: pointer; */
+                margin-right: 10px;
+                background: #ddd;
+                color: #333;
+                border: none;
+                border-radius: 20px;
+                transition: background 0.3s;
+            }
+
+                .comment-box button:hover {
+                    background: #ccc;
+                }
+
+        .comment-history {
+            margin-top: 20px;
+        }
+
+        .comment {
+            background: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            word-wrap: break-word;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+            .comment .date {
+                font-size: 12px;
+                color: #555;
+            }
+
+        .reply-box {
+            margin-top: 10px;
+        }
+
+            .reply-box textarea {
+                width: 100%;
+                height: 60px;
+                padding: 10px;
+                box-sizing: border-box;
+                font-size: 14px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            }
+
+            .reply-box button {
+                padding: 5px 10px;
+                font-size: 14px;
+                margin-top: 10px;
+                /*cursor: pointer;*/
+                background: #ddd;
+                color: #333;
+                border: none;
+                border-radius: 20px;
+                transition: background 0.3s;
+            }
+            
+            .reply-box{
+            cursor: pointer;
+        }
+
+                .reply-box button:hover {
+                    background: #ccc;
+                }
+
+        .reply {
+            background: #efefef;
+            margin-left: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+            .reply .date {
+                font-size: 12px;
+                color: #555;
+            }
+
+        .reply-button {
+            background: none;
+            border: none;
+            color: #007BFF;
+           /* cursor: pointer; */
+            padding: 0;
+            margin-top: 5px;
+            text-decoration: underline;
+        }
+
+            .reply-button:hover {
+                text-decoration: none;
+            }
+
+        .reply-thread {
+            margin-left: 20px;
+            border-left: 2px solid #ddd;
+            padding-left: 10px;
+        }
+
+        .collapse-button {
+            background: none;
+            border: none;
+            color: #007BFF;
+            cursor: pointer;
+            padding: 0;
+            margin-top: 5px;
+            text-decoration: underline;
+        }
+
+            .collapse-button:hover {
+                text-decoration: none;
+            }
+            .disabledButton{
+            cursor: not-allowed;
+        }
+        .enableButton{
+            cursor: pointer;
+        }
+        .replybutton:disabled{
+            cursor: not-allowed;
+        }
+        .replybutton:enabled{
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body onfocusout="parent.setEmailRange();" style="overflow-wrap: break-word;">
+    <div class="container">
+        <div class="comment-box">
+            <textarea id="commentInput" placeholder="Write your comment..."></textarea>
+            <div style="display: flex; flex-direction: row; justify-content: space-around;">
+                <button onclick="saveComment()" id="savebutton">Save Comment</button>
+                <button onclick="refreshComments()" id="refreshButton" class="enableButton">Refresh Comments</button>
+            </div>
+            <!--<button onclick="clearComments()">Clear Comments</button>-->
+        </div>
+        <div class="comment-history" id="commentHistory">
+            <!-- Comment history will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        let comments = [];
+        
+        async function refreshComments() {
+            let savedComments;
+            let recipientHistory;
+            const documentId = window.parent.Xrm.Page.getAttribute("crb_document").getValue()[0].id.replace("{", "").replace("}", "");
+            await parent.Xrm.WebApi.retrieveRecord("crb_document", documentId, "?$select=crb_documentreviewscommentsdata,crb_documentreviewsrecipientshistory")
+                .then(
+                    function success(result) {
+                        // perform operations on record retrieval
+                        savedComments = result.crb_documentreviewscommentsdata;
+                        recipientHistory = result.crb_documentreviewsrecipientshistory;
+                    },
+                    function (error) {
+                        console.log(error.message);
+                        // handle error conditions
+                    }
+                );
+
+            parent.Xrm.Page.getAttribute("crb_recipientshistory").setValue(recipientHistory);
+
+            if (savedComments) {
+                comments = JSON.parse(savedComments);
+                comments.forEach(comment => {
+                    if (!comment.replies) {
+                        comment.replies = [];
+                    }
+                });
+                displayComments();
+            }
+        }
+  
+
+        function disableReplyButton() {
+            
+            var buttons = document.getElementsByClassName("replybutton");
+            
+            if (window.parent.Xrm.Page.getAttribute("crb_status").getValue() === 100000000) {
+                for (let i = 0; i < buttons.length; i++) {
+                    buttons[i].disabled = false;
+                    buttons[i].classList.remove("disabledButton");
+                    buttons[i].classList.add("enableButton");
+                    buttons[i].title = "";
+                }
+                
+            }
+            else {
+                for (let i = 0; i < buttons.length; i++) {
+                    buttons[i].disabled = true;
+                    buttons[i].classList.add("disabledButton");
+                    buttons[i].classList.remove("enableButton");
+                    buttons[i].title = "Comment status is not 'In Progress'";
+                }
+               
+            }
+        }
+        
+         function disableButton(){
+            var button = document.getElementById("savebutton");
+            var flag = false;
+            if(window.parent.Xrm.Page.getAttribute("crb_name").getValue() !== null && window.parent.Xrm.Page.getAttribute("crb_documenttype").getValue() !== null && window.parent.Xrm.Page.getAttribute("crb_reviewedby2").getValue() !== null){
+			flag = true;
+            }
+            if(window.parent.Xrm.Page.getAttribute("crb_status").getValue() === 100000000 && flag){
+                button.disabled = false;
+                document.getElementById("savebutton").classList.remove("disabledButton");
+                document.getElementById("savebutton").classList.add("enableButton");
+                button.title = "";
+                
+            }
+            else{
+                button.disabled = true;
+                document.getElementById("savebutton").classList.add("disabledButton");
+                document.getElementById("savebutton").classList.remove("enableButton");
+                button.title = "Please fill the mandatory fields and keep Comment status 'In Progress'";
+                
+            }
+        }
+
+        async function saveComment(parentId = null) {
+        
+            let savedComments;
+            let recipientHistory;
+            const documentId = window.parent.Xrm.Page.getAttribute("crb_document").getValue()[0].id.replace("{", "").replace("}", "");
+            await parent.Xrm.WebApi.retrieveRecord("crb_document",documentId,"?$select=crb_documentreviewscommentsdata,crb_documentreviewsrecipientshistory")
+            .then(
+                function success(result) {
+                    // perform operations on record retrieval
+                    savedComments = result.crb_documentreviewscommentsdata;
+                    recipientHistory = result.crb_documentreviewsrecipientshistory;
+                },
+                function (error) {
+                    console.log(error.message);
+                    // handle error conditions
+                }
+            );
+
+            parent.Xrm.Page.getAttribute("crb_recipientshistory").setValue(recipientHistory);
+
+            if (savedComments) {
+                comments = JSON.parse(savedComments);
+                comments.forEach(comment => {
+                    if (!comment.replies) {
+                        comment.replies = [];
+                    }
+                });
+            }
+        
+            const commentText = document.getElementById(parentId ? `replyInput-${parentId}` : 'commentInput').value;
+            if (commentText.trim() === "") {
+                alert("Comment cannot be empty!");
+                return;
+            }
+            const currentDateTime = new Date().toLocaleString();
+            const comment = {
+                id: Date.now(),
+                datetime: currentDateTime + " " + ' ' + window.parent.Xrm.Utility.getGlobalContext().userSettings.userName,
+                comment: commentText,
+                parentId: parentId,
+                replies: []
+            };
+            if (parentId) {
+                const parentComment = findCommentById(comments, parentId);
+                if (parentComment.replies) {
+                    parentComment.replies.push(comment);
+                } else {
+                    parentComment.replies = [comment];
+                }
+            } else {
+                comments.push(comment);
+            }
+           // localStorage.setItem('comments', JSON.stringify(comments));
+            window.parent.Xrm.Page.getAttribute("crb_commentsdata").setValue(JSON.stringify(comments));
+            window.parent.Xrm.Page.getAttribute("crb_commentsdata").fireOnChange();
+            
+            //window.parent.Xrm.Page.onClickOfSaveInWebResourceFunctionInstance();
+            displayComments();
+            document.getElementById(parentId ? `replyInput-${parentId}` : 'commentInput').value = "";
+        }
+
+        //function clearComments() {
+        //    if (confirm("Are you sure you want to clear all comments?")) {
+        //        localStorage.removeItem('comments');
+        //        comments = [];
+        //        displayComments();
+        //    }
+        //}
+
+        function displayComments() {
+            const commentHistory = document.getElementById('commentHistory');
+            commentHistory.innerHTML = "";
+            comments.sort((a, b) => b.id - a.id);
+            comments.forEach(comment => {
+                const commentElement = createCommentElement(comment);
+                commentHistory.appendChild(commentElement);
+            });
+        }
+
+        function createCommentElement(comment, isReply = false) {
+            const commentElement = document.createElement('div');
+            commentElement.classList.add(isReply ? 'reply' : 'comment');
+            commentElement.innerHTML = `
+                <p>${comment.comment}</p>
+                <p class="date">${comment.datetime}</p>
+                <button class="reply-button" onclick="showReplyBox(${comment.id})">Reply</button>
+                <div class="reply-box" id="replyBox-${comment.id}" style="display: none;">
+                    <textarea id="replyInput-${comment.id}" placeholder="Write your reply..."></textarea>
+                    <button class="replybutton" onclick="saveComment(${comment.id})">Save Reply</button>
+                </div>
+            `;
+            if (comment.replies && comment.replies.length > 0) {
+                const collapseButton = document.createElement('button');
+                collapseButton.innerText = "Collapse";
+                collapseButton.classList.add('collapse-button');
+                collapseButton.onclick = () => toggleReplies(comment.id);
+                commentElement.appendChild(collapseButton);
+
+                const repliesContainer = document.createElement('div');
+                repliesContainer.classList.add('reply-thread');
+                repliesContainer.id = `replies-${comment.id}`;
+                comment.replies.forEach(reply => {
+                    const replyElement = createCommentElement(reply, true);
+                    repliesContainer.appendChild(replyElement);
+                });
+                commentElement.appendChild(repliesContainer);
+            }
+            return commentElement;
+        }
+
+        function showReplyBox(commentId) {
+            const replyBox = document.getElementById(`replyBox-${commentId}`);
+            replyBox.style.display = replyBox.style.display === 'none' ? 'block' : 'none';
+            const replyButtons = document.getElementsByClassName("replybutton");
+            for (let i = 0; i < replyButtons.length; i++) {
+                replyButtons[i].addEventListener("mouseover", disableReplyButton);
+            }
+        }
+
+        function toggleReplies(commentId) {
+            const repliesContainer = document.getElementById(`replies-${commentId}`);
+            const collapseButton = repliesContainer.previousElementSibling;
+            if (repliesContainer.style.display === 'none') {
+                repliesContainer.style.display = 'block';
+                collapseButton.innerText = 'Collapse';
+            } else {
+                repliesContainer.style.display = 'none';
+                collapseButton.innerText = 'Expand';
+            }
+        }
+
+        function findCommentById(commentsArray, id) {
+            for (let comment of commentsArray) {
+                if (comment.id === id) {
+                    return comment;
+                }
+                if (comment.replies) {
+                    const foundComment = findCommentById(comment.replies, id);
+                    if (foundComment) {
+                        return foundComment;
+                    }
+                }
+            }
+            return null;
+        }
+
+        async function loadComments() {
+            //This is NULL onLoad of Record - Might be the webResource is loading earlier than the formContext, there isn't any Promise Structure
+            //fetch the record from CRM in place of accessing it from form/fields
+            var recordId = window.parent.Xrm.Page.data.entity.getId().replace("{", "").replace("}", "");
+            var recordLogicalName = window.parent.Xrm.Page.data.entity.getEntityName();
+            var options = "?$select=crb_commentsdata";
+            const savedComments =await window.parent.Xrm.WebApi.retrieveRecord(recordLogicalName, recordId, options).then(
+                function success(result) {
+                    // perform operations on record retrieval
+                    return result.crb_commentsdata;
+                    
+                },
+                function (error) {
+                    console.log(error.message);
+                    // handle error conditions
+                }
+            );
+            if (savedComments) {
+                comments = JSON.parse(savedComments);
+                comments.forEach(comment => {
+                    if (!comment.replies) {
+                        comment.replies = [];
+                    }
+                });
+                displayComments();
+            }
+        }
+        
+        async function loadComments2() {
+            
+            //const savedComments = window.parent.Xrm.Page.getAttribute("crb_commentsdata").getValue();
+            let savedComments;
+            let recipientHistory;
+            const documentId = window.parent.Xrm.Page.getAttribute("crb_document").getValue()[0].id.replace("{", "").replace("}", "");
+            await parent.Xrm.WebApi.retrieveRecord("crb_document",documentId,"?$select=crb_documentreviewscommentsdata,crb_documentreviewsrecipientshistory")
+            .then(
+                function success(result) {
+                    // perform operations on record retrieval
+                    savedComments = result.crb_documentreviewscommentsdata;
+                    recipientHistory = result.crb_documentreviewsrecipientshistory;
+                },
+                function (error) {
+                    console.log(error.message);
+                    // handle error conditions
+                }
+            );
+            parent.Xrm.Page.getAttribute("crb_recipientshistory").setValue(recipientHistory);
+
+            if (savedComments) {
+                comments = JSON.parse(savedComments);
+                comments.forEach(comment => {
+                    if (!comment.replies) {
+                        comment.replies = [];
+                    }
+                });
+                displayComments();
+            }
+        }
+
+        // Load comments when the page loads
+        window.onload = loadComments2;
+        
+        document.getElementById("savebutton").addEventListener("mouseover", disableButton);
+        
+       
+    </script>
+</body>
+</html>
