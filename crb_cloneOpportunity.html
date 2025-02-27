@@ -1,0 +1,288 @@
+<html><head>
+    <title>Document Selection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        
+        .light-blue-btn {
+            background-color: #add8e6;
+            border-color: #add8e6;
+        }
+
+            .light-blue-btn:hover {
+                background-color: #87cefa;
+                border-color: #87cefa;
+            }
+
+        .error-message {
+            color: red;
+            display: none;
+        }
+       
+    </style>
+    <script>
+
+        async function retrievedocument(){
+        var list = [];
+        //var formContext = executionContext.getFormContext();
+        //var oppoId = formContext.data.entity.getId().replace("{", "").replace("}", "");
+      //  var oppoId = parent.Xrm.Page.data.entity.getId().replace("{", "").replace("}", "");
+
+    //var oppoId = parent.Xrm.Page.data.entity.getId().replace("{", "").replace("}", "");
+     //   var oppoID = Xrm.Utility.getGlobalContext().getClientUrl().data.entity.getId().replace("{", "").replace("}", "");
+
+      //  var opportunityObject = CRB.CRM.PJ.Opportunity;
+        
+        const params = new URLSearchParams(window.location.search);
+        var optyId = params.get("data")
+        
+        await parent.Xrm.WebApi.retrieveMultipleRecords("crb_document", "?$select=crb_documentid,crb_expirationdateifapplicable,crb_name,_crb_opportunity_value,crb_versionnumber,versionnumber&$filter=crb_file ne null and _crb_opportunity_value eq "+optyId).then(
+            function success(results) {
+                            console.log(results);
+                            for (var i = 0; i < results.entities.length; i++) {
+                                            var result = results.entities[i];
+                                            // Columns
+                                            var crb_documentid = result["crb_documentid"]; // Guid
+                                            var crb_expirationdateifapplicable = result["crb_expirationdateifapplicable"]; // Date Time
+                                            var crb_expirationdateifapplicable_formatted = result['crb_expirationdateifapplicable@OData.Community.Display.V1.FormattedValue'];
+                                            var crb_name = result["crb_name"]; // Text
+                                            var crb_opportunity = result["_crb_opportunity_value"]; // Lookup
+                                            var crb_opportunity_formatted = result['_crb_opportunity_value@OData.Community.Display.V1.FormattedValue'];
+                                            var crb_opportunity_lookuplogicalname = result['_crb_opportunity_value@Microsoft.Dynamics.CRM.lookuplogicalname'];
+                                            var crb_versionnumber = result["crb_versionnumber"]; // Decimal
+                                            var crb_versionnumber_formatted = result['crb_versionnumber@OData.Community.Display.V1.FormattedValue'];
+                                            var versionnumber = result["versionnumber"]; // Big Integer
+                                            var versionnumber_formatted = result['versionnumber@OData.Community.Display.V1.FormattedValue'];
+                                            
+                                            var obj = {
+                                                documentid: crb_documentid,
+                                                //teamId: new_team,
+                                                //teamname: new_team_formatted,
+                                                name: crb_name,
+                                                versionNo: crb_versionnumber,
+                                                expiryDate: crb_expirationdateifapplicable_formatted
+                                            };
+                                            list.push(obj);
+                            
+                            }
+            },
+            function(error) {
+                            console.log(error.message);
+            }
+);
+
+        showDocumentPopup(list);
+        }
+            
+
+        function showDocumentPopup(documents) {
+            //#region 
+            // Create a popup with the list of documents using HTML
+            // let popup = document.createElement('div');
+            // popup.id = 'documentPopup';
+            // popup.innerHTML = '<h2>Select Documents</h2>';
+            // documents.forEach(doc => {
+            //     let checkbox = document.createElement('input');
+            //     checkbox.type = 'checkbox';
+            //     checkbox.value = doc.id;
+            //     popup.appendChild(checkbox);
+            //     popup.appendChild(document.createTextNode(doc.name));
+            //     popup.appendChild(document.createTextNode(doc.versionNo));
+            //     popup.appendChild(document.createTextNode(doc.expiryDate));
+                
+            //     popup.appendChild(document.createElement('br'));
+            // });
+            // let button = document.createElement('button');
+            // button.innerText = 'Save';
+            // button.onclick = saveSelectedDocuments;
+            // popup.appendChild(button);
+            // document.body.appendChild(popup);
+            //#endregion
+
+            const params = new URLSearchParams(window.location.search);
+            var optyId = params.get("data");
+            document.getElementById("opportunityGuid").innerText = optyId;
+            
+            let tableBody = document.getElementById('documentGrid');
+
+            documents.forEach((doc)=>{
+                //<td><input type="checkbox" class="docCheckbox" value="${doc.documentid}" /></td>
+                let tableRow = document.createElement('tr');
+                let tableData0 = document.createElement('td');
+                let checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = doc.documentid;
+                checkbox.className = 'docCheckbox';
+                tableData0.appendChild(checkbox);
+                tableRow.appendChild(tableData0);
+                let tableData1 = document.createElement('td');
+                tableData1.innerText = doc.name;
+                tableRow.appendChild(tableData1);
+                let tableData2 = document.createElement('td');
+                tableData2.innerText = doc.versionNo;
+                tableRow.appendChild(tableData2);
+                let tableData3 = document.createElement('td');
+                tableData3.innerText = doc.expiryDate?doc.expiryDate:'No-Expiry';
+                tableRow.appendChild(tableData3);
+
+                // const row = `
+                //             <tr>
+                //                 <td><input type="checkbox" class="docCheckbox" value="${document.documentid}" /></td>
+                //                 <td>${document.documentname}</td>
+                //                 <td>${document.versionnumber}</td>
+                //                 <td>${new Date(document.expirydate).toLocaleDateString()}</td>
+                //             </tr>
+                //         `;
+                        tableBody.append(tableRow);
+
+            })
+        }
+
+
+        function handleSave(){
+            const selectedDocuments = [];
+            // $('input.docCheckbox:checked').each(function() {
+            //     selectedDocuments.push($(this).val());
+            // });
+
+            // if (selectedDocuments.length === 0) {
+            //     $('#errorMessage').show();
+            //     return;
+            // }
+
+            // $('#errorMessage').hide();
+
+            let x = document.getElementsByClassName("docCheckbox");
+            for (let i = 0; i < x.length; i++) {
+                if (x[i].checked) {
+                    selectedDocuments.push(x[i].value);
+                }
+            }
+
+            //console.log("Selected Doc Ids", selectedDocuments);
+            
+            if (selectedDocuments.length === 0) {
+                if (confirm("Do you want to Clone without any Documents")) {
+                    createOpportunity(selectedDocuments);
+                }
+            }
+            else {
+                createOpportunity(selectedDocuments);
+            }
+
+      
+        }
+        
+        function createOpportunity(selectedDocuments) {
+            const params = new URLSearchParams(window.location.search);
+            var optyId = params.get("data");
+
+
+
+            parent.Xrm.WebApi.retrieveRecord("opportunity", optyId, "?$select=_parentaccountid_value")
+                .then((res) => {
+                    let parentAccountId = res._parentaccountid_value;
+
+                    let data = {
+                        "crb_cloneddocumentslistnew": selectedDocuments.join(","),
+                        "crb_cloneopportunityguidnew": optyId,
+                    }
+
+                    data["parentaccountid@odata.bind"] = "/accounts(" + parentAccountId + ")";
+
+                    parent.Xrm.WebApi.createRecord('opportunity', data).then(
+                        function success(result) {
+                            var newoptyid = result.id;
+                            let confirmStrings = {
+                                cancelButtonLabel: 'No',
+                                confirmButtonLabel: 'Yes',
+                                //subtitle: 'Click confirm to proceed',
+                                text: 'Would you like to open Cloned Opportunity?',
+                                title: 'Cloned Successfully'
+                            };
+                            let confirmOptions = { height: 200, width: 450 };
+
+                            parent.Xrm.Navigation.openConfirmDialog(confirmStrings, confirmOptions).then(
+                                function (success) {
+                                    if (success.confirmed) {
+                                        var urllocation = parent.window.location.href;
+                                        var url = urllocation.split('opportunity&id=')[0];
+
+                                        if (url.includes('account&id=') && !url.includes('opportunity&id=')) {
+                                            url = urllocation.split('account&id=')[0];
+                                        }
+                                        else if (url.includes('crb_onboarding&id=') && !url.includes('opportunity&id=')) {
+                                            url = urllocation.split('crb_onboarding&id=')[0];
+                                        }
+                                        else{
+                                            //do nothing
+                                        }
+
+
+                                        parent.window.location.href = url + 'opportunity&id=' + newoptyid;
+                                        window.close();
+
+                                    } else {
+                                        window.close();
+                                    }
+                                },
+                                function (error) {
+                                    window.close();
+                                    // handle error conditions
+                                }
+                            );
+
+                        },
+                        function (error) {
+                            alert('Failed To Clone Opportunity');
+                            //console.log(error.message);
+                            // handle error conditions
+                        }
+                    );
+                })
+                .catch((error) => {
+                    alert("Failed to Partner Information");
+                    //console.log(error.message);
+                });
+        }
+
+        function handleSelectAll() {
+
+            let selectAll = document.getElementById("selectAllCheckbox");
+            let isSelected = selectAll.checked;
+            let checkboxes = document.getElementsByClassName("docCheckbox");
+            for (let i = 0; i < checkboxes.length; i++) {
+                checkboxes[i].checked = isSelected;
+            }
+            
+        }
+
+      
+    </script>
+<meta></head>
+<body onload="retrievedocument()">
+    <div class="container mt-2">
+        <!-- <h2>Select Documents to Clone</h2> -->
+        <h4 class="my-4">Clone Opportunity and Documents</h4>
+        <p hidden="true">Opportunity GUID: <span id="opportunityGuid"></span></p>
+        <div class="error-message" hidden=true id="errorMessage">Please select at least one document before submitting.</div>
+         <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th>
+                        <input type="checkbox" id="selectAllCheckbox" onclick="handleSelectAll()"/> 
+                    </th>
+                    <th>Document Name</th>
+                    <th>Version Number</th>
+                    <th>Expiry Date</th>
+                </tr>
+            </thead>
+            <tbody id="documentGrid">
+                <!-- Dynamically populated rows go here -->
+            </tbody>
+        </table>
+        <button class="btn light-blue-btn" id="submitBtn" onclick="handleSave()">Clone</button>
+    </div>
+</body></html>
